@@ -39,8 +39,10 @@ internal class Program
         //létezik-e a cikk az adatbázisban?
 
         //feldolgozni az összes cikket
+        INerService nerService = new LocalNerService();
         List<Article> articles = archiveScrapers.SelectMany(scraper => scraper.GetArticlesForDayAsync(datesToScrape[0]).Result).ToList();
         //ner-elés
+        int failedCount=0;
         foreach (Article article in articles)
         {
             System.Console.WriteLine("-----------------------------");
@@ -48,15 +50,20 @@ internal class Program
             {
                 System.Console.WriteLine(article.Url);
                 IArticleScraperService scraper = ArticleScraperFactory.GetScraperForSite(article.Source);
-                article.Corpus=scraper.GetCorpus(article);
-                System.Console.WriteLine(article.Corpus);
-                
+                article.Corpus = scraper.GetCorpus(article);
+                //System.Console.WriteLine(article.Corpus);
+                var idk = nerService.GetNamedEntities(article).Result;
+                System.Console.WriteLine(idk);
+
+
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                System.Console.WriteLine("Failed");
+                System.Console.WriteLine(ex.Message);
+                failedCount++;
             }
         }
         //beírni adatbázisba
+        System.Console.WriteLine($"{articles.Count} / {articles.Count-failedCount}");
     }
 }
