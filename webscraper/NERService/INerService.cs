@@ -4,5 +4,6 @@ namespace webscraper;
 
 public interface INerService
 {
-    Task<NerResponse> GetNamedEntities(Article articleIn);
+    Task<NerResponse> AnalyzeSingle(Article articleIn);
+    Task<List<NerResponse>> AnalyzeBatch(List<Article> articles);
 }

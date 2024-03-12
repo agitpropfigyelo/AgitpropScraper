@@ -13,6 +13,7 @@ public class Article
     public string Source { get; init; }
     public DateTime Date { get; init; }
     public string? Corpus { get; set; }
+    public NerResponse? Entities { get; set; }
     [JsonIgnore] private List<Func<HtmlDocument, string>>? ScraperFunctions { get; init; }
     [JsonIgnore] private HtmlDocument? Doc { get; set; }
 

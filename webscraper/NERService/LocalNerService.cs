@@ -14,8 +14,27 @@ public class LocalNerService : INerService
 
     }
 
+    public async Task<List<NerResponse>> AnalyzeBatch(List<Article> articles)
+    {
+        try
+        {
+            string requestContent = JsonSerializer.Serialize(articles.Select(a => a.Corpus));
+            StringContent content = new StringContent(requestContent, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _httpClient.PostAsync("analyzeBatch", content);
+            response.EnsureSuccessStatusCode();
 
-    public async Task<NerResponse> GetNamedEntities(Article articleIn)
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            List<NerResponse> result = JsonSerializer.Deserialize<List<NerResponse>>(responseContent) ?? new List<NerResponse>();
+            return result;
+        }
+        catch (System.Exception)
+        {
+            return new List<NerResponse>();
+        }
+    }
+
+    public async Task<NerResponse> AnalyzeSingle(Article articleIn)
     {
         var requestJson = $"{{ \"corpus\": \"{articleIn.Corpus}\" }}";
         var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
@@ -24,6 +43,13 @@ public class LocalNerService : INerService
         response.EnsureSuccessStatusCode();
 
         string responseContent = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<NerResponse>(responseContent);;
+        try
+        {
+            return JsonSerializer.Deserialize<NerResponse>(responseContent) ?? new NerResponse();
+        }
+        catch
+        {
+            return new NerResponse();
+        }
     }
 }
