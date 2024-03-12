@@ -8,28 +8,35 @@ app = Flask(__name__)
 def hello_world():
     return "<p>Hello, World!</p>"
 
+@app.route("/ping")
+def ping():
+    return "OK", 200
+
 @app.route("/analyzeSingle", methods=['POST'])
 def analyzeSingleCorpus():
     data = request.get_json()
     if 'corpus' not in data:
         return jsonify({"error": "Missing 'corpus' key in JSON data"}), 400
     text=data['corpus']
-    return jsonify(getNamedEntities(text))
+    doc = nlp(text)
+    result=getNamedEntities(doc)
+
+    return jsonify(result), 200
 
 
 @app.route("/analyzeBatch", methods=['POST'])
 def analyzeBatchCorpus():
     data = request.get_json()
-    if 'corpus' not in data:
-        return jsonify({"error": "Missing 'corpus' key in JSON data"}), 400
-    text=data['corpus']
-    return jsonify(getNamedEntities(text))
+    texts=list(data)
+    result=[]
+    for doc in nlp.pipe(texts):
+        result.append(getNamedEntities(doc))
+
+    return jsonify(result), 200
 
 
 
-def getNamedEntities(text:str):
-    doc = nlp(text)
-    
+def getNamedEntities(doc):
     named_entities = {}
     entity_mapping = {}  # Dictionary to map different entity mentions to a canonical representation
 
