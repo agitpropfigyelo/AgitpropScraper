@@ -4,6 +4,8 @@ services:
     build: ./NER # Path to your Python service Dockerfile or source code
     depends_on:
       - surrealdb
+    ports:
+      - 5000:5000
     networks:
       - agitprop-net
 
