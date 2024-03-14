@@ -8,7 +8,7 @@ services:
       - 5000:5000
     networks:
       - agitprop-net
-
+  
   surrealdb:
     image: surrealdb/surrealdb
     user: root
