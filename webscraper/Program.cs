@@ -1,28 +1,28 @@
-﻿using webscraper;
+﻿using System.Collections.Concurrent;
+using webscraper;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         List<string> sitesToScrape =
         [
-            "ripost",
-            "mandiner",
-            "metropol",
             "origo",
-            "magyarnemzet",
-            "pestisracok",
-            "magyarjelen",
-            "kuruczinfo",
-            "alfahir",
-            "24hu",
-            "444",
-            "telex",
-            "rtl",
-            "index",
-            "merce"
+            //"ripost",
+            //"mandiner",
+            //"metropol",
+            //"magyarnemzet",
+            //"pestisracok",
+            //"magyarjelen",
+            //"kuruczinfo",
+            //"alfahir",
+            //"24hu",
+            //"444",
+            //"telex",
+            //"rtl",
+            //"index",
+            //"merce"
         ];
-        List<IArchiveScraperService> archiveScrapers = ArchiveScraperFactory.GetScraperForSites(sitesToScrape);
         Console.WriteLine("Start");
         //lekérni az összes cikket
         List<DateTime> datesToScrape = [
@@ -35,35 +35,103 @@ internal class Program
             // new DateTime(2022, 02, 14),
             // new DateTime(2022, 02, 23),
         ];
+        var tryDate = new DateTime(2024, 02, 10);
 
-        //létezik-e a cikk az adatbázisban?
-
-        //feldolgozni az összes cikket
+        List<IArchiveScraperService> archiveScrapers = ArchiveScraperFactory.GetScraperForSites(sitesToScrape);
         INerService nerService = new LocalNerService();
-        List<Article> articles = archiveScrapers.SelectMany(scraper => scraper.GetArticlesForDayAsync(datesToScrape[0]).Result).ToList();
-        //ner-elés
-        int failedCount=0;
-        foreach (Article article in articles)
+        SurrealDBService dbService = new();
+
+        //idk ez mennyire aszinkron?
+        IEnumerable<List<Article>> articlesBySource = archiveScrapers.Select(async x => await x.GetArticlesForDayAsync(tryDate)).Select(x => x.Result.ToList());
+
+        foreach (var articlesFromOneSource in articlesBySource)
         {
-            System.Console.WriteLine("-----------------------------");
-            try
+            string articleSource = articlesFromOneSource[0].Source;
+            IArticleScraperService articleScraper = ArticleScraperFactory.GetScraperForSite(articleSource);
+            List<Article> successfullScrape = await articleScraper.GetCorpus(articlesFromOneSource, new FailedReportHandler()); //itt már csak a scrapelt oldalak vannak
+            System.Console.WriteLine($"{articlesFromOneSource.Count} / {successfullScrape.Count}");
+            List<Article> successfullNer = await nerService.AnalyzeBatch(successfullScrape);
+            var tasks = successfullNer.Select(x => dbService.CreateMentionsForArticle(x)).ToArray();
+            Task.WaitAll(tasks);
+            foreach (var item in successfullNer)
             {
-                System.Console.WriteLine(article.Url);
-                IArticleScraperService scraper = ArticleScraperFactory.GetScraperForSite(article.Source);
-                article.Corpus = scraper.GetCorpus(article);
-                //System.Console.WriteLine(article.Corpus);
-                var idk = nerService.GetNamedEntities(article).Result;
-                System.Console.WriteLine(idk);
-
-
-            }
-            catch (System.Exception ex)
-            {
-                System.Console.WriteLine(ex.Message);
-                failedCount++;
+                await dbService.CreateMentionsForArticle(item);
+                System.Console.WriteLine("-----------------");
+                System.Console.WriteLine(item);
             }
         }
+
+
+
+        //     //OLD BUT GOLD
+        //     IEnumerable<Article> articles = archiveScrapers.SelectMany(scraper => scraper.GetArticlesForDayAsync(datesToScrape[0]).Result);
+
+        //     ConcurrentBag<Article> sendToNer = [];
+        //     ConcurrentBag<(Article, Exception)> failedScraping = [];
+
+        //     System.Console.WriteLine($"Getting articles from {datesToScrape[0]}");
+
+        //     articles.AsParallel().ForAll(async article =>
+        //     {
+        //         try
+        //         {
+        //             article.Corpus = await ArticleScraperFactory.GetScraperForSite(article.Source).GetCorpus(article);
+        //             sendToNer.Add(article);
+        //         }
+        //         catch (System.Exception ex)
+        //         {
+        //             failedScraping.Add((article, ex));
+        //         }
+        //     });
+
+        //     System.Console.WriteLine($"{articles.Count()} / {sendToNer.Count}");
+
+
+        //     IEnumerable<Article[]> chunks = sendToNer.Chunk(5);
+        //     ConcurrentBag<(Article, Exception)> failedNer = [];
+        //     ConcurrentBag<Article> successfulNer = [];
+
+        //     chunks.AsParallel().ForAll(chunk =>
+        //     {
+        //         try
+        //         {
+
+        //             List<NerResponse> responseList = nerService.AnalyzeBatch([.. chunk]).Result;
+        //             foreach ((Article article, NerResponse response) in chunk.Zip(responseList))
+        //             {
+        //                 article.Entities = response;
+        //                 successfulNer.Add(article);
+        //             }
+        //         }
+        //         catch (System.Exception ex)
+        //         {
+        //             foreach (var item in chunk)
+        //             {
+        //                 failedNer.Add((item, ex));
+        //             }
+        //         }
+        //     });
+        //     System.Console.WriteLine($"Successfully got entities: {successfulNer.Count}");
+
+        //     SurrealDBService dbService = new();
+
+        //     foreach (var item in successfulNer)
+        //     {
+        //         dbService.CreateMentionsForArticle(item);
+        //     }
+
+
+        // }
         //beírni adatbázisba
-        System.Console.WriteLine($"{articles.Count} / {articles.Count-failedCount}");
+
+        //System.Console.WriteLine($"{articles.Count} / {articles.Count-failedCount}");
+    }
+
+    class FailedReportHandler : IProgress<Article>
+    {
+        public void Report(Article value)
+        {
+            System.Console.WriteLine($"Failed to scrape {value.Url}");
+        }
     }
 }

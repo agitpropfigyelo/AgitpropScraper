@@ -1,5 +1,6 @@
 ﻿
 
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Text;
 using HtmlAgilityPack;
@@ -23,7 +24,7 @@ public class Article
         Date = dateIn;
         Source = sourceIn;
     }
-    
+
     public Article(Uri urlIn, DateTime dateIn, string sourceIn)
     {
         Url = urlIn;
@@ -138,7 +139,9 @@ public class Article
 
     public override string ToString()
     {
-        return $"{Url.ToString()}\n{(Corpus is not null ? Corpus![..50] : "Ora et labora")}";
+        string corpusPart = Corpus is not null ? Corpus[..Math.Min(50, Corpus.Length)] : "Ora et labora";
+        string entPart = Entities is not null ? Entities.ToString() : "Ad astra per aspera";
+        return $"{Url}\n{corpusPart}\n{entPart}";
     }
 }
 

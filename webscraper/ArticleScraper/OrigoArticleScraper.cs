@@ -16,31 +16,48 @@ public class OrigoArticleScraper : IArticleScraperService
             },
     ];
 
-    public string GetCorpus(Article articleIn)
+    private async Task<Article> GetCorpus(Article articleIn)
     {
-        HtmlDocument doc = GetHtml(articleIn);
+        TaskCompletionSource<Article> tcs = new();
+        HtmlDocument doc = await GetHtml(articleIn);
         foreach (Func<HtmlDocument, string> scraper in scraperFunctions)
         {
             string result = scraper(doc);
             if (result.Length != 0)
             {
-                return result;
+                articleIn.Corpus = result;
+                return articleIn;
             }
         }
         throw new EmptyCorpusException("Not able to scrape site");
     }
 
-    public HtmlDocument GetHtml(Article articleIn)
+    public async Task<List<Article>> GetCorpus(List<Article> articleIn,IProgress<Article>? progress, CancellationToken? cancellationToken)
+    {
+        TaskCompletionSource tcs = new();
+        List<Article> result = [];
+        foreach (var article in articleIn)
+        {
+            try
+            {
+                Article res = await GetCorpus(article);
+                result.Add(article);
+
+            }
+            catch (System.Exception)
+            {
+                progress?.Report(article);
+            }
+        }
+        return result;
+    }
+
+    public async Task<HtmlDocument> GetHtml(Article articleIn)
     {
         HtmlDocument result;
         HtmlWeb web = new HtmlWeb();
         web.OverrideEncoding = Encoding.UTF8;
-        Stopwatch stopwatch = new();
-
-        stopwatch.Start();
-        result = web.LoadFromWebAsync(articleIn.Url.ToString()).Result;
-        stopwatch.Stop();
-
+        result = await web.LoadFromWebAsync(articleIn.Url.ToString());
         return result;
     }
 }

@@ -4,6 +4,6 @@ namespace webscraper;
 
 public interface IArticleScraperService
 {
-    string GetCorpus(Article articleIn);
-    HtmlDocument GetHtml(Article articleIn);
+    Task<List<Article>> GetCorpus(List<Article> articleIn, IProgress<Article>? progress = null, CancellationToken? cancellationToken = null);
+    Task<HtmlDocument> GetHtml(Article articleIn);
 }
