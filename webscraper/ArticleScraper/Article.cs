@@ -1,7 +1,4 @@
-﻿
-
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -14,7 +11,7 @@ public class Article
     public string Source { get; init; }
     public DateTime Date { get; init; }
     public string? Corpus { get; set; }
-    public NerResponse? Entities { get; set; }
+    public List<string> Entities { get; set; }
     [JsonIgnore] private List<Func<HtmlDocument, string>>? ScraperFunctions { get; init; }
     [JsonIgnore] private HtmlDocument? Doc { get; set; }
 
@@ -23,6 +20,7 @@ public class Article
         Url = new Uri(urlIn);
         Date = dateIn;
         Source = sourceIn;
+        Entities= new List<string>();
     }
 
     public Article(Uri urlIn, DateTime dateIn, string sourceIn)
@@ -30,32 +28,6 @@ public class Article
         Url = urlIn;
         Date = dateIn;
         Source = sourceIn;
-    }
-    public Task<Article> GetHtmlAsync(IProgress<(TimeSpan, string)>? progress, CancellationToken? token = null)
-    {
-        HtmlWeb web = new HtmlWeb();
-        web.OverrideEncoding = Encoding.UTF8;
-        TaskCompletionSource<Article> tcs = new TaskCompletionSource<Article>();
-        Stopwatch stopwatch = new();
-        try
-        {
-            stopwatch.Start();
-            this.Doc = web.Load(Url);
-            tcs.SetResult(this);
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            tcs.SetException(ex);
-            progress?.Report((stopwatch.Elapsed, "Failed fetching"));
-        }
-        finally
-        {
-            stopwatch.Stop();
-            progress?.Report((stopwatch.Elapsed, "Fetched"));
-        }
-
-        return tcs.Task;
     }
 
     public async Task<Article> GetHtml(IProgress<(TimeSpan, string)>? progress, CancellationToken? token = null)
@@ -77,7 +49,7 @@ public class Article
         {
             stopwatch.Stop();
             progress?.Report((stopwatch.Elapsed, "Fetched"));
-        }
+        } var asd= new HtmlDocument();
 
         return this;
     }

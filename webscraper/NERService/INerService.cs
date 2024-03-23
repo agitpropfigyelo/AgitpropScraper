@@ -1,6 +1,4 @@
-﻿using Azure.AI.TextAnalytics;
-
-namespace webscraper;
+﻿namespace webscraper;
 
 public interface INerService
 {

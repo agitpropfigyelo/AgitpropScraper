@@ -4,7 +4,7 @@ namespace webscraper;
 
 public class MandinerArticleScraper : IArticleScraperService
 {
-    public Task<List<Article>> GetCorpus(List<Article> articleIn, IProgress<Article>? progress = null, CancellationToken? cancellationToken = null)
+    public Task<List<Article>> GetCorpus(List<Article> articleIn, IProgress<int>? progress = null, CancellationToken? cancellationToken = null)
     {
         throw new NotImplementedException();
     }

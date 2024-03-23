@@ -29,7 +29,9 @@ public class LocalNerService : INerService
 
             foreach ((Article art, NerResponse resp) in articlesIn.Zip(result))
             {
-                art.Entities = resp;
+                art.Entities.AddRange(resp.PER);
+                art.Entities.AddRange(resp.MISC);
+                art.Entities.AddRange(resp.ORG);
             }
         }
         catch (System.Exception)

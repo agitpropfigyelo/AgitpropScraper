@@ -2,103 +2,100 @@
 using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Response;
 
-namespace webscraper;
-
-public class SurrealDBService
+namespace webscraper
 {
-    private readonly static string selectEntityQuery = "select * from entity where name=$en";
-    private readonly static string relateQuery = "RELATE $src->mentions->$eid SET date=$d, url=$u;";
-    private readonly static string articleExistsQuery = "select * from mentions where url=$en";
-
-    private readonly static string endpoint = "http://localhost:8000";
-    private readonly static string ns = "agitprop";
-    private readonly static string dbName = "test";
-    private readonly static string userName = "root";
-    private readonly static string userPassword = "root";
-    private SurrealDbClient CreateClient()
+    public class SurrealDBService
     {
-        SurrealDbClient client = new(endpoint);
-        client.Configure(ns, dbName, userName, userPassword);
-        return client;
-    }
+        private readonly static string selectEntityQuery = "select * from entity where name=$en";
+        private readonly static string relateQuery = "RELATE $src->mentions->$eid SET date=$d, url=$u;";
+        private readonly static string articleExistsQuery = "select * from mentions where url=$en";
 
-    public async Task CreateMentionsForArticle(Article articleIn)
-    {
-        List<string> entityStrings = [];
-        entityStrings.AddRange(articleIn.Entities!.MISC ??= []);
-        entityStrings.AddRange(articleIn.Entities!.ORG ??= []);
-        entityStrings.AddRange(articleIn.Entities!.PER ??= []);
+        private readonly static string endpoint = "http://localhost:8000";
+        private readonly static string ns = "agitprop";
+        private readonly static string dbName = "test";
+        private readonly static string userName = "root";
+        private readonly static string userPassword = "root";
 
-        foreach (var item in entityStrings)
+        private SurrealDbClient CreateClient()
         {
-            CreateMention($"source:{articleIn.Source}", GetEntityId(item), articleIn.Url, articleIn.Date);
+            SurrealDbClient client = new SurrealDbClient(endpoint);
+            client.Configure(ns, dbName, userName, userPassword);
+            return client;
         }
 
-        // entityStrings.AsParallel().ForAll(async ent =>
-        // {
-        //     CreateMention($"source:{articleIn.Source}", await GetEntityId(ent), articleIn.Url, articleIn.Date);
-        // });
-    }
-
-    public async Task<bool> IsArticleAlreadPresentAsync(Article articleIn)
-    {
-        SurrealDbClient client = CreateClient();
-        Dictionary<string, object> parameters = new()
+        public async Task CreateMentionsForArticle(Article articleIn, IProgress<int>? progress = null, CancellationToken? cancellationToken = null)
         {
-            { "en", articleIn.Url },
-        };
-        SurrealDbResponse result = await client.RawQuery(relateQuery, parameters);
+            if (articleIn.Entities is null)
+            {
+                progress?.Report(1);
+                throw new InvalidOperationException($"No entities for article: {articleIn.Url}");
+            }
+            Task<Task>[] tasks = articleIn.Entities.Select(async item => CreateMention($"source:{articleIn.Source}", await GetEntityIdAsync(item), articleIn.Url, articleIn.Date)).ToArray();
+            await Task.WhenAll(tasks);
+            progress?.Report(1);
+        }
 
-        Mentions? mentions = result.FirstOk.GetValues<Mentions>().FirstOrDefault();
-        return mentions is not null;
-    }
-
-    private void CreateMention(string sourceIn, string entityIn, Uri url, DateTime date)
-    {
-        SurrealDbClient client = CreateClient();
-        Dictionary<string, object> parameters = new()
+        public async Task<bool> IsArticleAlreadPresentAsync(Article articleIn)
         {
-            { "src", sourceIn },
-            { "eid", entityIn },
-            { "d", date },
-            { "u", url }
-        };
-        client.RawQuery(relateQuery, parameters);
-    }
+            SurrealDbClient client = CreateClient();
+            Dictionary<string, object> parameters = new Dictionary<string, object>
+            {
+                { "en", articleIn.Url },
+            };
+            SurrealDbResponse result = await client.RawQuery(relateQuery, parameters);
 
-    public string CreateEntity(string entityName)
-    {
-        SurrealDbClient client = CreateClient();
-        Entity result = client.Create<Entity>("entity", new Entity { Name = entityName }).Result;
-        return result.Id.ToString();
-    }
-    public string GetEntityId(string entityName)
-    {
-        SurrealDbClient client = CreateClient();
-        Dictionary<string, object> parameters = new()
+            Mentions? mentions = result.FirstOk.GetValues<Mentions>().FirstOrDefault();
+            return mentions != null;
+        }
+
+        private async Task CreateMention(string sourceIn, string entityIn, Uri url, DateTime date)
         {
-            { "en", entityName },
-        };
-        SurrealDbResponse result = client.RawQuery(selectEntityQuery, parameters).Result;
-        Entity? ent = result.FirstOk.GetValues<Entity>().FirstOrDefault();
-        return ent?.Id.ToString() ?? CreateEntity(entityName);
-    }
+            SurrealDbClient client = CreateClient();
+            Dictionary<string, object> parameters = new Dictionary<string, object>
+            {
+                { "src", sourceIn },
+                { "eid", entityIn },
+                { "d", date },
+                { "u", url }
+            };
+            await client.RawQuery(relateQuery, parameters);
+        }
 
-    private class Entity : Record
-    {
-        public string Name { get; set; }
-    }
+        public async Task<string> CreateEntityAsync(string entityName)
+        {
+            SurrealDbClient client = CreateClient();
+            Entity result = await client.Create<Entity>("entity", new Entity { Name = entityName });
+            return result.Id.ToString();
+        }
 
-    private class Source : Record
-    {
-        public string Src { get; set; }
-    }
+        public async Task<string> GetEntityIdAsync(string entityName)
+        {
+            SurrealDbClient client = CreateClient();
+            Dictionary<string, object> parameters = new Dictionary<string, object>
+            {
+                { "en", entityName },
+            };
+            SurrealDbResponse result = await client.RawQuery(selectEntityQuery, parameters);
+            Entity? ent = result.FirstOk.GetValues<Entity>().FirstOrDefault();
+            return ent?.Id.ToString() ?? await CreateEntityAsync(entityName);
+        }
 
-    private class Mentions : Record
-    {
-        public Source In { get; set; }
-        public Entity Out { get; set; }
-        public string Url { get; set; }
-        public string Date { get; set; }
+        private class Entity : Record
+        {
+            public string Name { get; set; }
+        }
+
+        private class Source : Record
+        {
+            public string Src { get; set; }
+        }
+
+        private class Mentions : Record
+        {
+            public Source In { get; set; }
+            public Entity Out { get; set; }
+            public string Url { get; set; }
+            public string Date { get; set; }
+        }
     }
 }

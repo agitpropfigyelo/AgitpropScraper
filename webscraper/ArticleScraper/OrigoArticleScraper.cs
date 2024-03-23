@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reflection.Metadata;
-using System.Text;
+﻿using System.Text;
 using HtmlAgilityPack;
 
 namespace webscraper;
@@ -32,7 +30,7 @@ public class OrigoArticleScraper : IArticleScraperService
         throw new EmptyCorpusException("Not able to scrape site");
     }
 
-    public async Task<List<Article>> GetCorpus(List<Article> articleIn,IProgress<Article>? progress, CancellationToken? cancellationToken)
+    public async Task<List<Article>> GetCorpus(List<Article> articleIn, IProgress<int>? progress, CancellationToken? cancellationToken)
     {
         TaskCompletionSource tcs = new();
         List<Article> result = [];
@@ -42,12 +40,13 @@ public class OrigoArticleScraper : IArticleScraperService
             {
                 Article res = await GetCorpus(article);
                 result.Add(article);
-
+                //System.Console.WriteLine("Add");
             }
             catch (System.Exception)
             {
-                progress?.Report(article);
+                //System.Console.WriteLine("Fail");
             }
+            progress?.Report(1);
         }
         return result;
     }
