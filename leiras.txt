@@ -1,0 +1,4 @@
+ArchiveService: megkap híroldal listát, majd kiszedi az archívból a cikkeket
+ArticleService : megkap cikk listát, visszaadja őket kitöltött Corpus-al, hibát elnyeli
+NerService : megkap cikk listát, visszaadja kitöltött entitásokkal
+DbService : megkap cikk listát, beírja az adatbázisba

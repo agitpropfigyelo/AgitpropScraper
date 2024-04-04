@@ -1,6 +1,4 @@
-﻿
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -13,7 +11,7 @@ public class Article
     public string Source { get; init; }
     public DateTime Date { get; init; }
     public string? Corpus { get; set; }
-    public NerResponse? Entities { get; set; }
+    public List<string> Entities { get; set; }
     [JsonIgnore] private List<Func<HtmlDocument, string>>? ScraperFunctions { get; init; }
     [JsonIgnore] private HtmlDocument? Doc { get; set; }
 
@@ -22,39 +20,14 @@ public class Article
         Url = new Uri(urlIn);
         Date = dateIn;
         Source = sourceIn;
+        Entities= new List<string>();
     }
-    
+
     public Article(Uri urlIn, DateTime dateIn, string sourceIn)
     {
         Url = urlIn;
         Date = dateIn;
         Source = sourceIn;
-    }
-    public Task<Article> GetHtmlAsync(IProgress<(TimeSpan, string)>? progress, CancellationToken? token = null)
-    {
-        HtmlWeb web = new HtmlWeb();
-        web.OverrideEncoding = Encoding.UTF8;
-        TaskCompletionSource<Article> tcs = new TaskCompletionSource<Article>();
-        Stopwatch stopwatch = new();
-        try
-        {
-            stopwatch.Start();
-            this.Doc = web.Load(Url);
-            tcs.SetResult(this);
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            tcs.SetException(ex);
-            progress?.Report((stopwatch.Elapsed, "Failed fetching"));
-        }
-        finally
-        {
-            stopwatch.Stop();
-            progress?.Report((stopwatch.Elapsed, "Fetched"));
-        }
-
-        return tcs.Task;
     }
 
     public async Task<Article> GetHtml(IProgress<(TimeSpan, string)>? progress, CancellationToken? token = null)
@@ -76,7 +49,7 @@ public class Article
         {
             stopwatch.Stop();
             progress?.Report((stopwatch.Elapsed, "Fetched"));
-        }
+        } var asd= new HtmlDocument();
 
         return this;
     }
@@ -138,7 +111,9 @@ public class Article
 
     public override string ToString()
     {
-        return $"{Url.ToString()}\n{(Corpus is not null ? Corpus![..50] : "Ora et labora")}";
+        string corpusPart = Corpus is not null ? Corpus[..Math.Min(50, Corpus.Length)] : "Ora et labora";
+        string entPart = Entities is not null ? Entities.ToString() : "Ad astra per aspera";
+        return $"{Url}\n{corpusPart}\n{entPart}";
     }
 }
 
