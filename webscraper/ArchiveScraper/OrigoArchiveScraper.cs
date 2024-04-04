@@ -1,4 +1,3 @@
-using System.Text;
 using HtmlAgilityPack;
 
 namespace webscraper
@@ -7,29 +6,36 @@ namespace webscraper
     {
         private readonly Uri baseUri = new Uri("https://www.origo.hu");
 
-        public Task<IEnumerable<Article>> GetArticlesForDayAsync(DateTime date)
+        public async Task<IEnumerable<Article>> GetArticlesForDayAsync(DateTime date)
         {
-            List<Article> resultArticles = [];
+            List<Article> resultArticles = new List<Article>();
             string endOfUri = $"/hir-archivum/{date.Year}/{date:yyyyMMdd}.html";
-            Uri Url = new Uri(baseUri, endOfUri);
+            Uri url = new Uri(baseUri, endOfUri);
+
             try
             {
-                HtmlWeb web = new HtmlWeb();
-                //web.OverrideEncoding = Encoding.GetEncoding("ISO-8859-1");
-                HtmlDocument doc = web.Load(Url);
-                var hrefs = doc.DocumentNode.Descendants("article")
-                                            .Select(article => article.Descendants("a").FirstOrDefault())
-                                            .Where(a => a != null)
-                                            .Select(a => a.GetAttributeValue("href", ""))
-                                            .ToList();
-                resultArticles = hrefs.Select(link => new Article(new Uri(baseUri, link), date, "origo")).ToList();
+                using (HttpClient client = new HttpClient())
+                {
+                    string htmlContent = await client.GetStringAsync(url).ConfigureAwait(false);
 
+                    HtmlDocument doc = new HtmlDocument();
+                    doc.LoadHtml(htmlContent);
+
+                    var hrefs = doc.DocumentNode.Descendants("article")
+                        .Select(article => article.Descendants("a").FirstOrDefault())
+                        .Where(a => a != null)
+                        .Select(a => a.GetAttributeValue("href", ""))
+                        .ToList();
+                    resultArticles = hrefs.Select(link => new Article(new Uri(baseUri, link), date, "origo")).ToList();
+                }
             }
             catch (Exception ex)
             {
-                Task.FromException(ex);
+                // Rethrow the exception as a task result
+                throw new InvalidOperationException("Error occurred while fetching articles", ex);
             }
-            return Task.FromResult(resultArticles.AsEnumerable());
+
+            return resultArticles;
         }
     }
 }

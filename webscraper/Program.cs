@@ -1,15 +1,17 @@
-﻿using webscraper;
+﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using webscraper;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         List<string> sitesToScrape =
         [
+            "origo",
             "ripost",
             "mandiner",
             "metropol",
-            "origo",
             "magyarnemzet",
             "pestisracok",
             "magyarjelen",
@@ -22,7 +24,6 @@ internal class Program
             "index",
             "merce"
         ];
-        List<IArchiveScraperService> archiveScrapers = ArchiveScraperFactory.GetScraperForSites(sitesToScrape);
         Console.WriteLine("Start");
         //lekérni az összes cikket
         List<DateTime> datesToScrape = [
@@ -35,35 +36,14 @@ internal class Program
             // new DateTime(2022, 02, 14),
             // new DateTime(2022, 02, 23),
         ];
+        var tryDate = new DateTime(2024, 02, 10);
 
-        //létezik-e a cikk az adatbázisban?
-
-        //feldolgozni az összes cikket
+        List<IArchiveScraperService> archiveScrapers = ArchiveScraperFactory.GetScraperForSites(sitesToScrape);
         INerService nerService = new LocalNerService();
-        List<Article> articles = archiveScrapers.SelectMany(scraper => scraper.GetArticlesForDayAsync(datesToScrape[0]).Result).ToList();
-        //ner-elés
-        int failedCount=0;
-        foreach (Article article in articles)
-        {
-            System.Console.WriteLine("-----------------------------");
-            try
-            {
-                System.Console.WriteLine(article.Url);
-                IArticleScraperService scraper = ArticleScraperFactory.GetScraperForSite(article.Source);
-                article.Corpus = scraper.GetCorpus(article);
-                //System.Console.WriteLine(article.Corpus);
-                var idk = nerService.GetNamedEntities(article).Result;
-                System.Console.WriteLine(idk);
+        SurrealDBService dbService = new();
 
-
-            }
-            catch (System.Exception ex)
-            {
-                System.Console.WriteLine(ex.Message);
-                failedCount++;
-            }
-        }
-        //beírni adatbázisba
-        System.Console.WriteLine($"{articles.Count} / {articles.Count-failedCount}");
+        //idk ez mennyire aszinkron?
+        IEnumerable<List<Article>> articlesBySource = archiveScrapers.Select(async x => await x.GetArticlesForDayAsync(tryDate)).Select(x => x.Result.ToList());
+        
     }
 }

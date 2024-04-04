@@ -4,12 +4,12 @@ namespace webscraper;
 
 public class MandinerArticleScraper : IArticleScraperService
 {
-    public string GetCorpus(Article articleIn)
+    public Task<List<Article>> GetCorpus(List<Article> articleIn, IProgress<int>? progress = null, CancellationToken? cancellationToken = null)
     {
         throw new NotImplementedException();
     }
 
-    public HtmlDocument GetHtml(Article articleIn)
+    public Task<HtmlDocument> GetHtml(Article articleIn)
     {
         throw new NotImplementedException();
     }

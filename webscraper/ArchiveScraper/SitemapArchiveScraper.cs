@@ -26,55 +26,54 @@ namespace webscraper
         }
 
 
-        public Task<IEnumerable<Article>> GetArticlesForDayAsync(DateTime dateIn)
+        public async Task<IEnumerable<Article>> GetArticlesForDayAsync(DateTime dateIn)
         {
             suffix = $"{dateIn:yyyyMM}_sitemap.xml";
             Uri weblink = new(baseUri!, suffix);
             string sitemapUrl = weblink.ToString();
-            List<Article> resultArticles = [];
+
+            List<Article> resultArticles = new List<Article>(); // Initialize the list
 
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
-                    HttpResponseMessage response = client.GetAsync(sitemapUrl).Result;
+                    HttpResponseMessage response = await client.GetAsync(sitemapUrl).ConfigureAwait(false);
 
                     if (!response.IsSuccessStatusCode)
                     {
                         throw new InvalidOperationException($"Cannot access site: {sitemapUrl}");
                     }
-                    if (response.IsSuccessStatusCode)
+
+                    string xmlContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                    XmlDocument documen = new XmlDocument();
+                    documen.LoadXml(xmlContent);
+
+                    XmlNodeList urlNodes = documen.GetElementsByTagName("url");
+
+                    foreach (XmlElement urlNode in urlNodes)
                     {
-                        string xmlContent = response.Content.ReadAsStringAsync().Result;
-
-                        // Load XML content into HtmlAgilityPack's HtmlDocument
-                        HtmlDocument htmlDocument = new HtmlDocument();
-                        htmlDocument.LoadHtml(xmlContent);
-
-                        XmlDocument documen = new();
-                        documen.LoadXml(xmlContent);
-                        XmlNodeList akarmi = documen.GetElementsByTagName("url");
-                        foreach (XmlElement item in akarmi)
+                        XmlNodeList childNodes = urlNode.ChildNodes;
+                        string location = childNodes[0]!.InnerText;
+                        DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText);
+                        if (timestamp.Date == dateIn.Date)
                         {
-                            XmlNodeList asd = item.ChildNodes;
-                            string location = asd[0]!.InnerText;
-                            DateTime timestamp = DateTime.Parse(asd[1]!.InnerText);
-                            if (timestamp.Date == dateIn.Date)
-                            {
-                                Article tmp = new(location, dateIn, source);
-                                resultArticles.Add(tmp);
-                            }
+                            Article tmp = new Article(location, dateIn, source);
+                            resultArticles.Add(tmp);
                         }
-                        // Process the sitemap XML document using HtmlAgilityPack
                     }
                 }
                 catch (Exception ex)
                 {
-                    Task.FromException(ex);
+                    // Rethrow the exception as a task result
+                    throw new InvalidOperationException("Error occurred while fetching articles", ex);
                 }
-                return Task.FromResult(resultArticles as IEnumerable<Article>);
             }
+
+            return resultArticles; // Return the list as a task result
         }
+
     }
 
 }
