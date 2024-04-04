@@ -4,7 +4,7 @@ namespace NewsArticleScraper.Core;
 
 public interface INewsSiteScraper
 {
-    Task<List<string>> GetArticlesAsync(DateTime dateIn);
+    Task<List<string>> GetArticlesForDateAsync(DateTime dateIn);
 
     string GetArticleContent(HtmlDocument document);
 }

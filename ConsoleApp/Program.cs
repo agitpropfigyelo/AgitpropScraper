@@ -11,7 +11,7 @@ internal class Program
 
         var origo = new OrigoScraper();
 
-        var idk = await origo.GetArticlesAsync(date);
+        var idk = await origo.GetArticlesForDateAsync(date);
 
         List<ArticleInfo> allArticles=[];
 
