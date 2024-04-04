@@ -1,28 +1,30 @@
-﻿using System.Data.Common;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Xml;
 using HtmlAgilityPack;
-using Louw.SitemapParser;
 using NewsArticleScraper.Core;
 
 namespace NewsArticleScraper.Scrapers;
 
-public class RipostScraper : INewsSiteScraper, IRecskaService
+public class MetropolScraper : INewsSiteScraper
 {
-    private readonly Uri baseUri = new Uri("https://www.ripost.hu");
+    private readonly Uri baseUri = new Uri("https://www.metropol.hu");
 
     public string GetArticleContent(HtmlDocument document)
     {
-        var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='title']");
+        // Select nodes with class "article-title"
+        var titleNode = document.DocumentNode.SelectSingleNode("//h1[contains(@class, 'article-header-title')]");
         string titleText = titleNode.InnerText.Trim() + " ";
 
-        var leadNode = document.DocumentNode.SelectSingleNode("//div[@class='article-page-lead']");
+        // Select nodes with class "article-lead"
+        var leadNode = document.DocumentNode.SelectSingleNode("//p[contains(@class, 'article-header-lead')]");
         string leadText = leadNode.InnerText.Trim() + " ";
 
-        var boxNodes = document.DocumentNode.SelectNodes("//app-wysiwyg-box");
+        // Select nodes with tag "origo-wysiwyg-box"
+        var boxNodes = document.DocumentNode.SelectNodes("//metropol-wysiwyg-box");
         string boxText = Helper.ConcatenateNodeText(boxNodes);
 
+        // Concatenate all text
         string concatenatedText = titleText + leadText + boxText;
 
         return Helper.CleanUpText(concatenatedText);
@@ -52,7 +54,8 @@ public class RipostScraper : INewsSiteScraper, IRecskaService
                     XmlNodeList childNodes = urlNode.ChildNodes;
                     string location = childNodes[0]!.InnerText;
                     DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText, CultureInfo.InvariantCulture);
-                    if (timestamp.Date == dateIn.Date)
+                    var offset=DateTimeOffset.Parse(childNodes[1]!.InnerText,CultureInfo.InvariantCulture);
+                    if (offset.Date == dateIn.Date)
                     {
                         resultList.Add(location);
                     }

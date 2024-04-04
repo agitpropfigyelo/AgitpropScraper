@@ -1,28 +1,33 @@
-﻿using System.Data.Common;
-using System.Globalization;
-using System.Net;
+﻿using System.Globalization;
 using System.Xml;
 using HtmlAgilityPack;
-using Louw.SitemapParser;
 using NewsArticleScraper.Core;
 
 namespace NewsArticleScraper.Scrapers;
 
-public class RipostScraper : INewsSiteScraper, IRecskaService
+public class IndexScraper : INewsSiteScraper
 {
-    private readonly Uri baseUri = new Uri("https://www.ripost.hu");
+private readonly Uri baseUri = new Uri("https://www.index.hu");
 
     public string GetArticleContent(HtmlDocument document)
     {
-        var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='title']");
+        var titleNode = document.DocumentNode.SelectSingleNode("//div[@class='content-title']");
         string titleText = titleNode.InnerText.Trim() + " ";
 
-        var leadNode = document.DocumentNode.SelectSingleNode("//div[@class='article-page-lead']");
+        var leadNode = document.DocumentNode.SelectSingleNode("//div[@class='lead']");
         string leadText = leadNode.InnerText.Trim() + " ";
 
-        var boxNodes = document.DocumentNode.SelectNodes("//app-wysiwyg-box");
-        string boxText = Helper.ConcatenateNodeText(boxNodes);
+        var boxNode = document.DocumentNode.SelectSingleNode("//div[@class='cikk-torzs']");
 
+        var toRemove = boxNode.SelectNodes("//div[contains(@class, 'cikk-bottom-text-ad')]");
+        foreach (var item in toRemove)
+        {
+            item.Remove();
+        }
+
+        string boxText = boxNode.InnerText.Trim() + " ";
+
+        // Concatenate all text
         string concatenatedText = titleText + leadText + boxText;
 
         return Helper.CleanUpText(concatenatedText);
@@ -30,7 +35,7 @@ public class RipostScraper : INewsSiteScraper, IRecskaService
 
     public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
     {
-        var suffix = $"{dateIn:yyyyMM}_sitemap.xml";
+        var suffix = $"sitemap/cikkek_{dateIn:yyyyMM}.xml";
         Uri weblink = new(baseUri!, suffix);
         string sitemapUrl = weblink.ToString();
 
@@ -51,7 +56,7 @@ public class RipostScraper : INewsSiteScraper, IRecskaService
                 {
                     XmlNodeList childNodes = urlNode.ChildNodes;
                     string location = childNodes[0]!.InnerText;
-                    DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText, CultureInfo.InvariantCulture);
+                    DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText,CultureInfo.InvariantCulture);
                     if (timestamp.Date == dateIn.Date)
                     {
                         resultList.Add(location);

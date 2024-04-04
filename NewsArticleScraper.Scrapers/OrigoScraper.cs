@@ -1,5 +1,7 @@
 ﻿using NewsArticleScraper.Core;
 using HtmlAgilityPack;
+using System.Text;
+using System.Net;
 
 namespace NewsArticleScraper.Scrapers;
 
@@ -9,12 +11,22 @@ public class OrigoScraper : INewsSiteScraper
 
     public string GetArticleContent(HtmlDocument document)
     {
-        string text = document.DocumentNode.SelectSingleNode("/html/body/app-root/app-base/div[2]/app-article-page/section").InnerText;
-        if (string.IsNullOrEmpty(text)) throw new InvalidOperationException("Not able to scrape site");
-        return text.Replace("&nbsp;", "");
+        var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='article-title']");
+        string titleText = titleNode.InnerText.Trim()+" ";
+
+        var leadNode = document.DocumentNode.SelectSingleNode("//div[@class='article-lead']");
+        string leadText = leadNode.InnerText.Trim()+" ";
+
+        var boxNodes = document.DocumentNode.SelectNodes("//origo-wysiwyg-box");
+        string boxText = Helper.ConcatenateNodeText(boxNodes);
+
+        string concatenatedText = titleText + leadText + boxText;
+
+        return Helper.CleanUpText(concatenatedText);
     }
 
-    public async Task<List<string>> GetArticlesAsync(DateTime dateIn)
+
+    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
     {
 
         List<string> resultArticles = [];

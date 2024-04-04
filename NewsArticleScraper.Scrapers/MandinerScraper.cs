@@ -1,28 +1,30 @@
-﻿using System.Data.Common;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Xml;
 using HtmlAgilityPack;
-using Louw.SitemapParser;
 using NewsArticleScraper.Core;
 
 namespace NewsArticleScraper.Scrapers;
 
-public class RipostScraper : INewsSiteScraper, IRecskaService
+public class MandinerScraper : INewsSiteScraper
 {
-    private readonly Uri baseUri = new Uri("https://www.ripost.hu");
+private readonly Uri baseUri = new Uri("https://www.mandiner.hu");
 
     public string GetArticleContent(HtmlDocument document)
     {
-        var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='title']");
-        string titleText = titleNode.InnerText.Trim() + " ";
+        // Select nodes with class "article-title"
+        var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='article-page-title']");
+        string titleText = titleNode.InnerText.Trim()+" ";
 
-        var leadNode = document.DocumentNode.SelectSingleNode("//div[@class='article-page-lead']");
-        string leadText = leadNode.InnerText.Trim() + " ";
+        // Select nodes with class "article-lead"
+        var leadNode = document.DocumentNode.SelectSingleNode("//p[@class='article-page-lead']");
+        string leadText = leadNode.InnerText.Trim()+" ";
 
-        var boxNodes = document.DocumentNode.SelectNodes("//app-wysiwyg-box");
+        // Select nodes with tag "origo-wysiwyg-box"
+        var boxNodes = document.DocumentNode.SelectNodes("//man-wysiwyg-box");
         string boxText = Helper.ConcatenateNodeText(boxNodes);
 
+        // Concatenate all text
         string concatenatedText = titleText + leadText + boxText;
 
         return Helper.CleanUpText(concatenatedText);
