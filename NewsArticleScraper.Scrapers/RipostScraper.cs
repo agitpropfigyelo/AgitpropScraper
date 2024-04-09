@@ -8,7 +8,7 @@ using NewsArticleScraper.Core;
 
 namespace NewsArticleScraper.Scrapers;
 
-public class RipostScraper : INewsSiteScraper, IRecskaService
+public class RipostScraper : INewsSiteScraper
 {
     private readonly Uri baseUri = new Uri("https://www.ripost.hu");
 
