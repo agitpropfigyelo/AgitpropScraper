@@ -20,8 +20,29 @@ public class MerceScraper : INewsSiteScraper
         return Helper.CleanUpText(concatenatedText);
     }
 
-    public Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
+    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
     {
-        throw new NotImplementedException();
+
+        try
+        {
+
+            Uri url = new($"https://merce.hu/{dateIn.Year}/{dateIn.Month}/{dateIn.Day}/");
+            using (HttpClient client = new HttpClient())
+            {
+                string htmlContent = await client.GetStringAsync(url);
+                HtmlDocument doc = new();
+                doc.LoadHtml(htmlContent);
+                HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//article/a");
+                return articles.Select(x => x.GetAttributeValue("href", "")).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Rethrow the exception as a task result
+            throw new InvalidOperationException("Error occurred while fetching articles", ex);
+            //add logging
+        }
     }
+
 }
+

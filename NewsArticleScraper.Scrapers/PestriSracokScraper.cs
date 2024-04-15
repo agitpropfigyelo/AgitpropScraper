@@ -22,9 +22,27 @@ public class PestriSracokScraper : INewsSiteScraper
         return Helper.CleanUpText(concatenatedText);
     }
 
-    public Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
+    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
     {
-        //TODO: ez itt elég trükkös lesz
-        throw new NotImplementedException();
+        try
+        {
+
+            Uri url = new($"https://pestisracok.hu/{dateIn.Year}/{dateIn.Month}/{dateIn.Day}");
+            using (HttpClient client = new HttpClient())
+            {
+                string htmlContent = await client.GetStringAsync(url);
+                HtmlDocument doc = new();
+                doc.LoadHtml(htmlContent);
+
+                HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//*[@id='home-widget-wrap']/div/ul/li/div[1]/a");
+                return articles.Select(x => x.GetAttributeValue("href", "")).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Rethrow the exception as a task result
+            throw new InvalidOperationException("Error occurred while fetching articles", ex);
+            //add logging
+        }
     }
 }

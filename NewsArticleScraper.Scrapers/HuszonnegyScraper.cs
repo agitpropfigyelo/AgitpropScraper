@@ -9,7 +9,7 @@ namespace NewsArticleScraper.Scrapers;
 public class HuszonnegyScraper : INewsSiteScraper
 {
     private readonly Uri baseUri = new Uri("https://www.24.hu");
-    private readonly Uri freshSiteMap = new Uri("https://24.hu/app/uploads/sitemap/24.hu_sitemap_fresh.xml");
+    private readonly Uri sitemapBase = new Uri("https://24.hu/app/uploads/sitemap/");
 
     public string GetArticleContent(HtmlDocument document)
     {
@@ -34,47 +34,18 @@ public class HuszonnegyScraper : INewsSiteScraper
 
     public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
     {
-        List<string> resultArticles = [];
-        int pageNum = 1;
-        bool moveToNextPage = true;
-
         try
         {
-            while (moveToNextPage)
+
+            Uri url = new($"https://24.hu/{dateIn.Year}/{dateIn.Month}/{dateIn.Day}");
+            using (HttpClient client = new HttpClient())
             {
-                string archivePath = $"/app/uploads/sitemap/24.hu_sitemap_{pageNum++}.xml";
-                Uri url = new(baseUri, archivePath);
-                using (HttpClient client = new HttpClient())
-                {
-                    string response = await client.GetStringAsync(url);
+                string htmlContent = await client.GetStringAsync(url);
+                HtmlDocument doc = new();
+                doc.LoadHtml(htmlContent);
 
-                    XmlDocument document = new XmlDocument();
-                    document.LoadXml(response);
-
-                    XmlNodeList urlNodes = document.GetElementsByTagName("url");
-
-
-                    foreach (XmlElement urlNode in urlNodes)
-                    {
-                        XmlNodeList childNodes = urlNode.ChildNodes;
-                        DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText, CultureInfo.InvariantCulture);
-                        var compare = DateTime.Compare(timestamp.Date, dateIn.Date);
-                        
-
-                        string location = childNodes[0]!.InnerText;
-                        if (timestamp.Date == dateIn.Date)
-                        {
-                            resultArticles.Add(location);
-                        }
-                    }
-                    if (dateIn.Date > min.Date)
-                    {
-                        moveToNextPage = false;
-                        break;
-                    }
-
-
-                }
+                HtmlNodeCollection articles =doc.DocumentNode.SelectNodes("//*[@id='content']/h2/a");
+                return articles.Select(x => x.GetAttributeValue("href","")).ToList();
             }
         }
         catch (Exception ex)

@@ -41,7 +41,7 @@ public class OrigoScraper : INewsSiteScraper
 
                 HtmlDocument doc = new();
                 doc.LoadHtml(htmlContent);
-
+                //TODO: use XPATH like other scrapers
                 var hrefs = doc.DocumentNode.Descendants("article")
                     .Select(article => article.Descendants("a").FirstOrDefault())
                     .Where(a => a != null)
