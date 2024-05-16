@@ -5,6 +5,7 @@ namespace NewsArticleScraper.Scrapers;
 
 public class MerceScraper : INewsSiteScraper
 {
+    private readonly Uri baseUrl= new("https://merce.hu/");
     public string GetArticleContent(HtmlDocument document)
     {
         // Select nodes with class "article-title"
@@ -26,7 +27,7 @@ public class MerceScraper : INewsSiteScraper
         try
         {
 
-            Uri url = new($"https://merce.hu/{dateIn.Year}/{dateIn.Month}/{dateIn.Day}/");
+            Uri url = new(baseUrl,$"{dateIn.Year}/{dateIn.Month}/{dateIn.Day}/");
             using (HttpClient client = new HttpClient())
             {
                 string htmlContent = await client.GetStringAsync(url);

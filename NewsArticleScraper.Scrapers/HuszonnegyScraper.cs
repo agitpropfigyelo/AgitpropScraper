@@ -1,7 +1,4 @@
-﻿using System.Globalization;
-using System.Xml;
-using HtmlAgilityPack;
-using Louw.SitemapParser;
+﻿using HtmlAgilityPack;
 using NewsArticleScraper.Core;
 
 namespace NewsArticleScraper.Scrapers;

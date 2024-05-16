@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\NewsArticleScraper.Core\NewsArticleScraper.Core.csproj" />
+    <ProjectReference Include="..\NewsArticleScraper.Core\Agitprop.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.59" />
-    <PackageReference Include="Louw.SitemapParser" Version="0.0.2" />
+    <PackageReference Include="PuppeteerSharp" Version="16.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
 

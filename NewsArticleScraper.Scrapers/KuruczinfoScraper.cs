@@ -56,7 +56,6 @@ public class KuruczinfoScraper : INewsSiteScraper
                     List<ArchiveArticleInfo> articleInfos = [];
                     HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='alcikkheader']/a");
                     HtmlNodeCollection dateNodes = doc.DocumentNode.SelectNodes(".//div[@class='cikkdatum']");
-                    dateNodes.RemoveAt(0);
                     var first = DateTimeOffset.Parse(dateNodes.First().InnerText.Split("::")[1].Trim());
                     var last = DateTimeOffset.Parse(dateNodes.Last().InnerText.Split("::")[1].Trim());
                     if (last.Date > dateIn.Date) continue;
@@ -64,7 +63,7 @@ public class KuruczinfoScraper : INewsSiteScraper
                     foreach ((HtmlNode articleNode, DateTimeOffset date) in articleNodes.Zip(dateNodes.Select(item => DateTimeOffset.Parse(item.InnerText.Split("::")[1].Trim()))))
                     {
                         if(date.Date==dateIn.Date){
-                            resultArticles.Add(articleNode.GetAttributeValue("href",""));
+                            resultArticles.Add(new Uri(baseUrl,articleNode.GetAttributeValue("href","")).ToString());
                         }
                     }
                 }
