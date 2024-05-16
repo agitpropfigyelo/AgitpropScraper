@@ -1,5 +1,6 @@
 ﻿using NewsArticleScraper.Core;
 using NewsArticleScraper.Scrapers;
+using WebReaper.Builders;
 
 internal class Program
 {

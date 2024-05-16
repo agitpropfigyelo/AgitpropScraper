@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Core", "NewsArticleScraper.Core\Agitprop.Core.csproj", "{C58DF0E9-4A59-47AE-8E67-5CD6214E35ED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Core", "Agitprop.Core\Agitprop.Core.csproj", "{C58DF0E9-4A59-47AE-8E67-5CD6214E35ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers", "NewsArticleScraper.Scrapers\Agitprop.Scrapers.csproj", "{ADAD725D-A0CF-46F0-8588-20DB2ACC680A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers", "Agitprop.Scrapers\Agitprop.Scrapers.csproj", "{ADAD725D-A0CF-46F0-8588-20DB2ACC680A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.NERClient", "NewsArticleScraper.NERClient\Agitprop.NERClient.csproj", "{1950B353-4925-459A-80A7-62966470A77E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.NERClient", "Agitprop.NERClient\Agitprop.NERClient.csproj", "{1950B353-4925-459A-80A7-62966470A77E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Database", "NewsArticleScraper.Database\Agitprop.Database.csproj", "{808F0F2A-1039-4B09-90E0-30989C9072A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Database", "Agitprop.Database\Agitprop.Database.csproj", "{808F0F2A-1039-4B09-90E0-30989C9072A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers.Tests", "NewsArticleScraper.Tests\Agitprop.Scrapers.Tests.csproj", "{96A0846C-3FEB-4E89-A29C-949E4427975D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers.Tests", "Agitprop.Tests\Agitprop.Scrapers.Tests.csproj", "{96A0846C-3FEB-4E89-A29C-949E4427975D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleApp", "ConsoleApp\Agitprop.ConsoleApp.csproj", "{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleApp", "Agitprop.ConsoleApp\Agitprop.ConsoleApp.csproj", "{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure", "Agitprop.Infrastructure\Agitprop.Infrastructure.csproj", "{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}"
 EndProject
