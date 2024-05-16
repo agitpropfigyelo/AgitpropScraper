@@ -5,6 +5,7 @@ using NewsArticleScraper.Scrapers;
 
 namespace NewsArticleScraper.Tests;
 
+[Parallelizable(scope: ParallelScope.All)]
 public class ArticleScrapeTest
 {
     private IScraperFactory factory;
@@ -13,7 +14,7 @@ public class ArticleScrapeTest
     public void OneTimeSetUpSetUp()
     {
         factory = new NewsSiteScraperFactory();
-        webClient = new HtmlWeb();
+        webClient = new HtmlWeb() { AutoDetectEncoding = true };
     }
 
     //TODO: use local html files
@@ -47,18 +48,18 @@ public class ArticleScrapeTest
     [TestCase(NewsSites.Ripost, "2024.03.11", 76)]
     [TestCase(NewsSites.Mandiner, "2024.03.11", 100)]
     [TestCase(NewsSites.Metropol, "2024.03.11", 70)]
-    [TestCase(NewsSites.MagyarNemzet, "2024.03.11", 76)]
-    [TestCase(NewsSites.PestiSracok, "2024.03.11", 76)]
-    [TestCase(NewsSites.MagyarJelen, "2024.03.11", 76)]
-    [TestCase(NewsSites.Kuruczinfo, "2024.03.11", 76)]
-    [TestCase(NewsSites.Alfahir, "2024.03.11", 76)]
-    [TestCase(NewsSites.Huszonnegy, "2024.03.11", 76)]
-    [TestCase(NewsSites.NegyNegyNegy, "2024.03.11", 76)]
-    [TestCase(NewsSites.HVG, "2024.03.11", 76)]
-    [TestCase(NewsSites.Telex, "2024.03.11", 76)]
-    [TestCase(NewsSites.RTL, "2024.03.11", 76)]
-    [TestCase(NewsSites.Index, "2024.03.11", 143)]
-    [TestCase(NewsSites.Merce, "2024.03.11", 76)]
+    [TestCase(NewsSites.MagyarNemzet, "2024.03.11", 147)]
+    [TestCase(NewsSites.PestiSracok, "2024.03.11", 43)]
+    [TestCase(NewsSites.MagyarJelen, "2024.03.11", 12)]
+    [TestCase(NewsSites.Kuruczinfo, "2024.03.11", 34)]
+    [TestCase(NewsSites.Alfahir, "2024.03.11", 11)]
+    [TestCase(NewsSites.Huszonnegy, "2024.03.24", 24)]
+    [TestCase(NewsSites.NegyNegyNegy, "2024.03.11", 55)]
+    [TestCase(NewsSites.HVG, "2024.03.11", 126)]
+    [TestCase(NewsSites.Telex, "2024.03.11", 77)]
+    [TestCase(NewsSites.RTL, "2024.03.11", 103)]
+    [TestCase(NewsSites.Index, "2024.03.11", 141)]
+    [TestCase(NewsSites.Merce, "2024.03.11", 4)]
     [Parallelizable(scope: ParallelScope.All)]
     public async Task ScrapeArchive(NewsSites source, string dateIn, int expectedArticleCount)
     {
@@ -66,6 +67,15 @@ public class ArticleScrapeTest
         var dateArg = DateTime.Parse(dateIn, CultureInfo.InvariantCulture);
         var result = await scraper.GetArticlesForDateAsync(dateArg);
         Assert.That(result, Has.Count.EqualTo(expectedArticleCount));
+    }
+
+
+    [TestCase(NewsSites.Alfahir, "2024.01.11")]
+    public void ScrapeArchive_ThrowsInvalidOperationException(NewsSites source, string dateIn)
+    {
+        INewsSiteScraper scraper = factory.GetScraperForSite(source);
+        var dateArg = DateTime.Parse(dateIn, CultureInfo.InvariantCulture);
+        Assert.ThrowsAsync<InvalidOperationException>(() => scraper.GetArticlesForDateAsync(dateArg));
     }
 
 }

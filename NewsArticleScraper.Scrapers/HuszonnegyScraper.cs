@@ -1,6 +1,4 @@
-﻿using System.Xml;
-using HtmlAgilityPack;
-using Louw.SitemapParser;
+﻿using HtmlAgilityPack;
 using NewsArticleScraper.Core;
 
 namespace NewsArticleScraper.Scrapers;
@@ -8,7 +6,7 @@ namespace NewsArticleScraper.Scrapers;
 public class HuszonnegyScraper : INewsSiteScraper
 {
     private readonly Uri baseUri = new Uri("https://www.24.hu");
-    private readonly Uri freshSiteMap = new Uri("https://24.hu/app/uploads/sitemap/24.hu_sitemap_fresh.xml");
+    private readonly Uri sitemapBase = new Uri("https://24.hu/app/uploads/sitemap/");
 
     public string GetArticleContent(HtmlDocument document)
     {
@@ -33,6 +31,25 @@ public class HuszonnegyScraper : INewsSiteScraper
 
     public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
     {
-        throw new NotImplementedException();
+        try
+        {
+
+            Uri url = new($"https://24.hu/{dateIn.Year}/{dateIn.Month}/{dateIn.Day}");
+            using (HttpClient client = new HttpClient())
+            {
+                string htmlContent = await client.GetStringAsync(url);
+                HtmlDocument doc = new();
+                doc.LoadHtml(htmlContent);
+
+                HtmlNodeCollection articles =doc.DocumentNode.SelectNodes("//*[@id='content']/h2/a");
+                return articles.Select(x => x.GetAttributeValue("href","")).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Rethrow the exception as a task result
+            throw new InvalidOperationException("Error occurred while fetching articles", ex);
+            //add logging
+        }
     }
 }

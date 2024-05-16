@@ -1,5 +1,6 @@
 ﻿using NewsArticleScraper.Core;
 using NewsArticleScraper.Scrapers;
+using WebReaper.Builders;
 
 internal class Program
 {
@@ -8,26 +9,20 @@ internal class Program
         Console.WriteLine("Hello, World!");
 
         DateTime date = new(2024, 03, 11);
+        // var engine = await new ScraperEngineBuilder()
+        //     .GetWithBrowser("https://444.hu/2024/03/11")
+        //     .Parse(new()
+        //     {
+        // new("idk", ".text-3xl.font-bold"),
+        //     })
+        //     .WriteToJsonFile("output.json")
+        //     .PageCrawlLimit(10)
+        //     .WithParallelismDegree(30)
+        //     .LogToConsole()
+        //     .BuildAsync();
 
-        var origo = new OrigoScraper();
+        // await engine.RunAsync();
 
-        var idk = await origo.GetArticlesForDateAsync(date);
-
-        List<ArticleInfo> allArticles=[];
-
-        foreach (var item in idk)
-        {
-            System.Console.WriteLine("--------------");
-            try
-            {
-                //NewsArticleScraper.Core.ArticleInfo asd = origo.GetArticleInfo(item, date);
-                //allArticles.Add(asd);
-            }
-            catch (System.Exception)
-            {
-                System.Console.WriteLine($"Failed: {item}");
-
-            }
-        }
+        
     }
 }

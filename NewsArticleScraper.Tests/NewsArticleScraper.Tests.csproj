@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NewsArticleScraper.Scrapers\NewsArticleScraper.Scrapers.csproj" />
+    <ProjectReference Include="..\NewsArticleScraper.Scrapers\Agitprop.Scrapers.csproj" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.59" />
   </ItemGroup>
 

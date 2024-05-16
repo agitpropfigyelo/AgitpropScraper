@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
+using System.Xml;
 using HtmlAgilityPack;
 using NewsArticleScraper.Core;
 
@@ -6,15 +8,17 @@ namespace NewsArticleScraper.Scrapers;
 
 public class MagyarNemzetScraper : INewsSiteScraper
 {
+    private Uri baseUri = new("https://magyarnemzet.hu//");
+
     public string GetArticleContent(HtmlDocument document)
     {
-                // Select nodes with class "article-title"
+        // Select nodes with class "article-title"
         var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='title']");
-        string titleText = titleNode.InnerText.Trim()+" ";
+        string titleText = titleNode.InnerText.Trim() + " ";
 
         // Select nodes with class "article-lead"
         var leadNode = document.DocumentNode.SelectSingleNode("//h2[@class='lead']");
-        string leadText = leadNode.InnerText.Trim()+" ";
+        string leadText = leadNode.InnerText.Trim() + " ";
 
         // Select nodes with tag "origo-wysiwyg-box"
         var boxNodes = document.DocumentNode.SelectNodes("//app-article-text");
@@ -26,8 +30,43 @@ public class MagyarNemzetScraper : INewsSiteScraper
         return Helper.CleanUpText(concatenatedText);
     }
 
-    public Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
+    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
     {
-        throw new NotImplementedException();
+        var suffix = $"{dateIn:yyyyMM}_sitemap.xml";
+        Uri weblink = new(baseUri!, suffix);
+        string sitemapUrl = weblink.ToString();
+
+        List<string> resultList = []; // Initialize the list
+
+        using (HttpClient client = new HttpClient())
+        {
+            try
+            {
+                var response = await client.GetStringAsync(sitemapUrl);
+
+                XmlDocument document = new XmlDocument();
+                document.LoadXml(response);
+
+                XmlNodeList urlNodes = document.GetElementsByTagName("url");
+
+                foreach (XmlElement urlNode in urlNodes)
+                {
+                    XmlNodeList childNodes = urlNode.ChildNodes;
+                    string location = childNodes[0]!.InnerText;
+                    DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText, CultureInfo.InvariantCulture);
+                    if (timestamp.Date == dateIn.Date)
+                    {
+                        resultList.Add(location);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Rethrow the exception as a task result
+                throw new InvalidOperationException("Error occurred while fetching articles", ex);
+            }
+        }
+
+        return resultList; // Return the list as a task result
     }
 }
