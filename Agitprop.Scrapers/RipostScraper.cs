@@ -1,67 +1,85 @@
 ﻿using System.Globalization;
 using System.Xml;
+using Agitprop.Core;
+using Agitprop.Infrastructure;
+using Agitprop.Infrastructure.Enums;
+using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
-using NewsArticleScraper.Core;
 
-namespace NewsArticleScraper.Scrapers;
+namespace Agitprop.Scrapers.Ripost;
 
-public class RipostScraper : INewsSiteScraper
+public class ArticleContentParser : IContentParser
 {
-    private readonly Uri baseUri = new Uri("https://www.ripost.hu");
-
-    public string GetArticleContent(HtmlDocument document)
+    public (string, object) ParseContent(HtmlDocument html)
     {
-        var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='title']");
+        var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='title']");
         string titleText = titleNode.InnerText.Trim() + " ";
 
-        var leadNode = document.DocumentNode.SelectSingleNode("//div[@class='article-page-lead']");
+        var leadNode = html.DocumentNode.SelectSingleNode("//div[@class='article-page-lead']");
         string leadText = leadNode.InnerText.Trim() + " ";
 
-        var boxNodes = document.DocumentNode.SelectNodes("//app-wysiwyg-box");
+        var boxNodes = html.DocumentNode.SelectNodes("//app-wysiwyg-box");
         string boxText = Helper.ConcatenateNodeText(boxNodes);
 
         string concatenatedText = titleText + leadText + boxText;
 
-        return Helper.CleanUpText(concatenatedText);
+        return ("text", Helper.CleanUpText(concatenatedText));
     }
 
-    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
+    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
     {
-        var suffix = $"{dateIn:yyyyMM}_sitemap.xml";
-        Uri weblink = new(baseUri!, suffix);
-        string sitemapUrl = weblink.ToString();
+        var result = ParseContent(html);
+        return Task.FromResult(result);
+    }
 
-        List<string> resultList = []; // Initialize the list
+    public Task<(string, object)> ParseContentAsync(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return this.ParseContentAsync(doc);
+    }
+}
 
-        using (HttpClient client = new HttpClient())
-        {
-            try
-            {
-                var response = await client.GetStringAsync(sitemapUrl);
+public class ArchivePaginator : SitemapArchivePaginator, IPaginator
+{
+    public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
+    {
+        return new ScrapingJobBuilder().SetUrl(base.GetUrl(currentUrl, document))
+                                       .SetPageType(PageType.Static)
+                                       .SetPageCategory(PageCategory.PageWithPagination)
+                                       .AddContentParser(new ArticleContentParser())
+                                       .AddPagination(new ArchivePaginator())
+                                       .Build();
+    }
 
-                XmlDocument document = new XmlDocument();
-                document.LoadXml(response);
+    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    {
+        HtmlDocument html = new();
+        html.LoadHtml(docString);
+        return Task.FromResult(GetNextPage(currentUrl, html));
 
-                XmlNodeList urlNodes = document.GetElementsByTagName("url");
+    }
+}
 
-                foreach (XmlElement urlNode in urlNodes)
-                {
-                    XmlNodeList childNodes = urlNode.ChildNodes;
-                    string location = childNodes[0]!.InnerText;
-                    DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText, CultureInfo.InvariantCulture);
-                    if (timestamp.Date == dateIn.Date)
-                    {
-                        resultList.Add(location);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Rethrow the exception as a task result
-                throw new InvalidOperationException("Error occurred while fetching articles", ex);
-            }
-        }
+public class ArchiveLinkParser : SitemapLinkParser, ILinkParser
+{
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+    {
+        var result = base.GetLinks(docString).Select(link => new ScrapingJobBuilder().SetUrl(link)
+                                                                                     .SetPageType(PageType.Static)
+                                                                                     .SetPageCategory(PageCategory.TargetPage)
+                                                                                     .AddContentParser(new ArticleContentParser())
+                                                                                     .Build()).ToList();
+        return Task.FromResult(result);
+    }
 
-        return resultList; // Return the list as a task result
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    {
+        var result = base.GetLinks(doc.ToString()).Select(link => new ScrapingJobBuilder().SetUrl(link)
+                                                                             .SetPageType(PageType.Static)
+                                                                             .SetPageCategory(PageCategory.TargetPage)
+                                                                             .AddContentParser(new ArticleContentParser())
+                                                                             .Build()).ToList();
+        return Task.FromResult(result);
     }
 }

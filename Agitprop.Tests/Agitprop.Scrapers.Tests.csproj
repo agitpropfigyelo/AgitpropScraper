@@ -23,13 +23,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NewsArticleScraper.Scrapers\Agitprop.Scrapers.csproj" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.59" />
+    <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
+    <ProjectReference Include="..\Agitprop.Scrapers\Agitprop.Scrapers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Articles\**" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Expected\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
   </ItemGroup>
 
 </Project>

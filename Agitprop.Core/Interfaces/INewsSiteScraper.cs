@@ -1,6 +1,6 @@
 ﻿using HtmlAgilityPack;
 
-namespace NewsArticleScraper.Core;
+namespace Agitprop.Core.Interfaces;
 
 public interface INewsSiteScraper
 {

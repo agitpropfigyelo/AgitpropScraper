@@ -1,6 +1,6 @@
 using HtmlAgilityPack;
 
-namespace NewsArticleScraper.Scrapers;
+namespace Agitprop.Scrapers;
 
 public class ArchiveArticleInfo(string urlToArticle, DateTimeOffset publishDate)
 {

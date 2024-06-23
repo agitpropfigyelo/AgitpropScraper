@@ -1,4 +1,4 @@
-﻿namespace NewsArticleScraper.NERClient;
+﻿namespace Agitprop.NERClient;
 
 public class Class1
 {

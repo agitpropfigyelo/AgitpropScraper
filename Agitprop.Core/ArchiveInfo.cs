@@ -1,6 +1,6 @@
-﻿namespace NewsArticleScraper.Core;
+﻿namespace Agitprop.Core;
 
 public class ArchiveInfo
 {
-    
+
 }

@@ -1,10 +1,121 @@
-﻿using HtmlAgilityPack;
-using NewsArticleScraper.Core;
+﻿using Agitprop.Core;
+using Agitprop.Infrastructure;
+using Agitprop.Infrastructure.Enums;
+using Agitprop.Infrastructure.Interfaces;
+using HtmlAgilityPack;
 using PuppeteerSharp;
 
-namespace NewsArticleScraper.Scrapers;
+namespace Agitprop.Scrapers.Negynegynegy;
+//TODO ez az egészet megírni
 
-public class NegynegynegyScraper : INewsSiteScraper
+
+public class ArchivePaginator : DateBasedArchive, IPaginator
+{
+    public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
+    {
+        return new ScrapingJobBuilder().SetUrl(GetDateBasedUrl("https://444.hu", currentUrl))
+                                       .SetPageCategory(PageCategory.PageWithPagination)
+                                       .SetPageType(PageType.Dynamic)
+                                       .AddPageAction(new PageAction(PageActionType.Click, "#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0"))
+                                       .AddPageAction(new PageAction(PageActionType.Execute, [new ArchiveScrollAction()])) //ide összerakni a kattingatásokat, akár egy eval-ba
+                                       .AddLinkParser(new ArchiveLinkParser())
+                                       .AddPagination(new ArchivePaginator())
+                                       .Build();
+    }
+
+    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(docString);
+        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+    }
+}
+
+public class ArchiveScrollAction : IBrowserAction
+{
+    public async Task ExecuteAsync(IPage page)
+    {
+        await page.ClickAsync("#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0");
+        bool hasNext = true;
+        do
+        {
+            try
+            {
+                var button = await page.XPathAsync($"//button[text()='Korábbi cikkek']");
+
+                if (button.Length == 0)
+                {
+                    break;
+                }
+
+                // Click the button
+                await button[0].ClickAsync();
+
+                await page.WaitForNetworkIdleAsync();
+            }
+            catch (Exception)
+            {
+                hasNext = false;
+            }
+        } while (hasNext);
+    }
+}
+
+public class ArchiveLinkParser : ILinkParser
+{
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+    {
+        HtmlDocument doc = new();
+        doc.LoadHtml(docString);
+        return this.GetLinksAsync(baseUrl, doc);
+    }
+
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    {
+        HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//article/div/h1/a");
+        var result = articles.Select(x => x.GetAttributeValue("href", ""))
+                             .Select(link => new ScrapingJobBuilder().SetUrl(link)
+                                                                     .SetPageCategory(PageCategory.TargetPage)
+                                                                     .SetPageType(PageType.Static)
+                                                                     .AddContentParser(new ArticleContentParser())
+                                                                     .Build())
+                             .ToList();
+        return Task.FromResult(result);
+    }
+}
+
+public class ArticleContentParser : IContentParser
+{
+    public (string, object) ParseContent(HtmlDocument html)
+    {
+        // Select nodes with class "article-title"
+        var titleNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[3]/h1");
+        string titleText = titleNode.InnerText.Trim() + " ";
+
+        // Select nodes with class "article-lead"
+        var articleNode = html.DocumentNode.SelectSingleNode("//div[contains(@class, '_14rkbdc0 _4r5fio3')]");
+        string articleText = articleNode.InnerText.Trim() + " ";
+
+        // Concatenate all text
+        string concatenatedText = titleText + articleText;
+
+        return ("text", Helper.CleanUpText(concatenatedText));
+    }
+
+    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
+    {
+        return Task.FromResult(this.ParseContent(html));
+    }
+
+    public Task<(string, object)> ParseContentAsync(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return this.ParseContentAsync(doc);
+    }
+}
+
+public class NegynegynegyScraper
 {
     private readonly Uri baseUrl = new("http://444.hu/");
 

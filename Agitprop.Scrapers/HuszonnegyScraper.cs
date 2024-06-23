@@ -1,55 +1,79 @@
-﻿using HtmlAgilityPack;
-using NewsArticleScraper.Core;
+﻿using Agitprop.Infrastructure;
+using Agitprop.Infrastructure.Enums;
+using Agitprop.Infrastructure.Interfaces;
+using HtmlAgilityPack;
 
-namespace NewsArticleScraper.Scrapers;
-
-public class HuszonnegyScraper : INewsSiteScraper
+namespace Agitprop.Scrapers.Huszonnegy
 {
-    private readonly Uri baseUri = new Uri("https://www.24.hu");
-    private readonly Uri sitemapBase = new Uri("https://24.hu/app/uploads/sitemap/");
-
-    public string GetArticleContent(HtmlDocument document)
+    public class ArchiveLinkParser : ILinkParser
     {
-        // Select nodes with class "article-title"
-        HtmlNode titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='o-post__title']");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        var leadNode = document.DocumentNode.SelectSingleNode("//h1[@class='o-post__lead lead post-lead cf _ce_measure_widget']");
-        string leadText = leadNode is not null ? leadNode.InnerText.Trim() + " " : "";
-
-        // Select nodes with class "article-lead"
-        var articleNode = document.DocumentNode.SelectSingleNode("//div[@class='o-post__body post-body']");
-        string articleText = articleNode.InnerText.Trim() + " ";
-
-        // Concatenate all text
-        string concatenatedText = titleText + leadText + articleText;
-
-
-        return Helper.CleanUpText(concatenatedText);
-
+        public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+        {
+            var nodes = doc.DocumentNode.SelectNodes("//*[@id='content']/h2/a");
+            var result = nodes.Select(x => x.GetAttributeValue("href", ""))
+                              .Select(url => new ScrapingJobBuilder().SetUrl(url)
+                                                                      .SetPageType(PageType.Static)
+                                                                      .SetPageCategory(PageCategory.TargetPage)
+                                                                      .AddContentParser(new ArticleContentParser())
+                                                                      .Build())
+                              .ToList();
+            return Task.FromResult(result);
+        }
+        public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(docString);
+            return this.GetLinksAsync(baseUrl, doc);
+        }
     }
 
-    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
+    public class ArticleContentParser : IContentParser
     {
-        try
+        public async Task<(string, object)> ParseContentAsync(HtmlDocument html)
         {
+            // Select nodes with class "article-title"
+            var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='o-post__title']");
+            var titleText = titleNode.InnerText.Trim() + " ";
 
-            Uri url = new($"https://24.hu/{dateIn.Year}/{dateIn.Month}/{dateIn.Day}");
-            using (HttpClient client = new HttpClient())
-            {
-                string htmlContent = await client.GetStringAsync(url);
-                HtmlDocument doc = new();
-                doc.LoadHtml(htmlContent);
+            var leadNode = html.DocumentNode.SelectSingleNode("//h1[@class='o-post__lead lead post-lead cf _ce_measure_widget']");
+            var leadText = leadNode is not null ? leadNode.InnerText.Trim() + " " : "";
 
-                HtmlNodeCollection articles =doc.DocumentNode.SelectNodes("//*[@id='content']/h2/a");
-                return articles.Select(x => x.GetAttributeValue("href","")).ToList();
-            }
+            // Select nodes with class "article-lead"
+            var articleNode = html.DocumentNode.SelectSingleNode("//div[@class='o-post__body post-body']");
+            var articleText = articleNode.InnerText.Trim() + " ";
+
+            // Concatenate all text
+            var concatenatedText = titleText + leadText + articleText;
+
+            return await Task.FromResult(("text", Helper.CleanUpText(concatenatedText)));
         }
-        catch (Exception ex)
+        public Task<(string, object)> ParseContentAsync(string html)
         {
-            // Rethrow the exception as a task result
-            throw new InvalidOperationException("Error occurred while fetching articles", ex);
-            //add logging
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            return this.ParseContentAsync(doc);
+        }
+    }
+
+    public class ArchivePaginator : DateBasedArchive, IPaginator
+    {
+        public async Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
+        {
+            var url = GetDateBasedUrl("https://24.hu", currentUrl);
+            var job = new ScrapingJobBuilder().SetUrl(url)
+                                              .SetPageType(PageType.Static)
+                                              .SetPageCategory(PageCategory.PageWithPagination)
+                                              .AddPagination(new ArchivePaginator())
+                                              .AddLinkParser(new ArchiveLinkParser())
+                                              .Build();
+            return await Task.FromResult(job);
+        }
+
+        public async Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(docString);
+            return await GetNextPageAsync(currentUrl, doc);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\NewsArticleScraper.Scrapers\Agitprop.Scrapers.csproj" />
+    <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

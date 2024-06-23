@@ -1,4 +1,4 @@
-﻿namespace NewsArticleScraper.Core;
+﻿namespace Agitprop.Core;
 
 public enum NewsSites
 {

@@ -1,14 +1,12 @@
-﻿using System.ComponentModel;
+﻿using Agitprop.Infrastructure;
+using Agitprop.Infrastructure.Enums;
+using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
-using Microsoft.VisualBasic;
-using NewsArticleScraper.Core;
 
-namespace NewsArticleScraper.Scrapers;
-
-public class AlfahirScraper : INewsSiteScraper
+namespace Agitprop.Scrapers.Alfahir;
+public class ArticleContentParser : IContentParser
 {
-    private Uri baseUri = new("https://alfahir.hu/");
-    public string GetArticleContent(HtmlDocument document)
+    public Task<(string, object)> ParseContentAsync(HtmlDocument document)
     {
         // Select nodes with class "article-title"
         var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='article-title']");
@@ -24,63 +22,88 @@ public class AlfahirScraper : INewsSiteScraper
 
         // Concatenate all text
         string concatenatedText = titleText + leadText + articleText;
-
-        return Helper.CleanUpText(concatenatedText);
+        (string, object) result = ("text", Helper.CleanUpText(concatenatedText));
+        return Task.FromResult(result);
     }
 
-    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
+    public Task<(string, object)> ParseContentAsync(string html)
     {
-        List<string> resultArticles = [];
-        int pageNum = 1;
-        bool moveToNextPage = true;
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return this.ParseContentAsync(doc);
+    }
+}
 
-        try
+public class ArchiveLinkParser : ILinkParser
+{
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    {
+        List<ScrapingJob> jobs = [];
+        HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='article']");
+        foreach (var item in articleNodes)
         {
-            while (moveToNextPage)
-            {
-                string archivePath = $"/hirek/oldalak/{pageNum++}";
-                Uri url = new(baseUri, archivePath);
-                using (HttpClient client = new HttpClient())
-                {
-                    string htmlContent = await client.GetStringAsync(url);
-
-                    HtmlDocument doc = new();
-                    doc.LoadHtml(htmlContent);
-
-                    List<ArchiveArticleInfo> articleInfos = [];
-                    HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='article']");
-                    foreach (var item in articleNodes)
-                    {
-                        articleInfos.Add(CreateArticleInfo(item));
-                    }
-                    resultArticles.AddRange(articleInfos.Where(info => info.PublishDate.Date == dateIn.Date).Select(info => info.UrlToArticle));
-                    var min = articleInfos.Min(info => info.PublishDate.Date);
-                    if (dateIn.Date > min.Date)
-                    {
-                        moveToNextPage = false;
-                        break;
-                    }
-
-
-                }
-            }
+            jobs.Add(CreateJob(item));
         }
-        catch (Exception ex)
-        {
-            // Rethrow the exception as a task result
-            throw new InvalidOperationException("Error occurred while fetching articles", ex);
-            //add logging
-        }
-
-
-        return resultArticles;
+        return Task.FromResult(jobs);
     }
 
-    private ArchiveArticleInfo CreateArticleInfo(HtmlNode nodeIn)
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
     {
-        HtmlNode idk = nodeIn.SelectSingleNode(".//a[@class='article-title-link']");
-        var link = idk.GetAttributeValue<string>("href", "");
-        var pubDate = DateTimeOffset.Parse(nodeIn.SelectSingleNode(".//span[@class='article-date']").InnerText);
-        return new ArchiveArticleInfo(link,pubDate);
+        var doc = new HtmlDocument();
+        doc.LoadHtml(docString);
+        List<ScrapingJob> jobs = [];
+        HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='article']");
+        foreach (var item in articleNodes)
+        {
+            jobs.Add(CreateJob(item));
+        }
+        return Task.FromResult(jobs);
+    }
+
+    private ScrapingJob CreateJob(HtmlNode nodeIn)
+    {
+        var link = nodeIn.SelectSingleNode(".//a[@class='article-title-link']").GetAttributeValue<string>("href", "");
+        var builder = new ScrapingJobBuilder().SetUrl(link)
+                                              .SetPageCategory(PageCategory.TargetPage)
+                                              .SetPageType(PageType.Static)
+                                              .AddContentParser(new ArticleContentParser())
+                                              .AddLinkParser(new ArchiveLinkParser());
+
+        return builder.Build();
+    }
+}
+
+public class ArchivePaginator : IPaginator
+{
+    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    {
+        var url = "https://alfahir.hu/hirek/oldalak/1";
+        if (int.TryParse(new Uri(currentUrl).Segments.Last(), out var counter))
+        {
+            url = $"https://alfahir.hu/hirek/oldalak/{++counter}";
+        }
+        var result = new ScrapingJobBuilder().SetUrl(url)
+                                             .SetPageType(PageType.Static)
+                                             .SetPageCategory(PageCategory.PageWithPagination)
+                                             .AddPagination(new ArchivePaginator())
+                                             .AddLinkParser(new ArchiveLinkParser())
+                                             .Build();
+        return Task.FromResult(result);
+    }
+
+    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    {
+        var url = "https://alfahir.hu/hirek/oldalak/1";
+        if (int.TryParse(new Uri(currentUrl).Segments.Last(), out var counter))
+        {
+            url = $"https://alfahir.hu/hirek/oldalak/{++counter}";
+        }
+        var result = new ScrapingJobBuilder().SetUrl(url)
+                                             .SetPageType(PageType.Static)
+                                             .SetPageCategory(PageCategory.PageWithPagination)
+                                             .AddPagination(new ArchivePaginator())
+                                             .AddLinkParser(new ArchiveLinkParser())
+                                             .Build();
+        return Task.FromResult(result);
     }
 }

@@ -1,23 +1,24 @@
 ﻿using System.Globalization;
 using System.Xml;
+using Agitprop.Infrastructure;
+using Agitprop.Infrastructure.Enums;
+using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
-using NewsArticleScraper.Core;
 
-namespace NewsArticleScraper.Scrapers;
 
-public class IndexScraper : INewsSiteScraper
+namespace Agitprop.Scrapers.Index;
+
+public class ArticleContentParser : IContentParser
 {
-private readonly Uri baseUri = new Uri("https://www.index.hu");
-
-    public string GetArticleContent(HtmlDocument document)
+    public (string, object) ParseContent(HtmlDocument html)
     {
-        var titleNode = document.DocumentNode.SelectSingleNode("//div[@class='content-title']");
+        var titleNode = html.DocumentNode.SelectSingleNode("//div[@class='content-title']");
         string titleText = titleNode.InnerText.Trim() + " ";
 
-        var leadNode = document.DocumentNode.SelectSingleNode("//div[@class='lead']");
+        var leadNode = html.DocumentNode.SelectSingleNode("//div[@class='lead']");
         string leadText = leadNode.InnerText.Trim() + " ";
 
-        var boxNode = document.DocumentNode.SelectSingleNode("//div[@class='cikk-torzs']");
+        var boxNode = html.DocumentNode.SelectSingleNode("//div[@class='cikk-torzs']");
 
         var toRemove = boxNode.SelectNodes("//div[contains(@class, 'cikk-bottom-text-ad')]");
         foreach (var item in toRemove)
@@ -30,46 +31,59 @@ private readonly Uri baseUri = new Uri("https://www.index.hu");
         // Concatenate all text
         string concatenatedText = titleText + leadText + boxText;
 
-        return Helper.CleanUpText(concatenatedText);
+        return ("text", Helper.CleanUpText(concatenatedText));
     }
 
-    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
+    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
     {
-        var suffix = $"sitemap/cikkek_{dateIn:yyyyMM}.xml";
-        Uri weblink = new(baseUri!, suffix);
-        string sitemapUrl = weblink.ToString();
+        return Task.FromResult(this.ParseContent(html));
+    }
 
-        List<string> resultList = []; // Initialize the list
+    public Task<(string, object)> ParseContentAsync(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return this.ParseContentAsync(doc);
+    }
+}
 
-        using (HttpClient client = new HttpClient())
-        {
-            try
-            {
-                var response = await client.GetStringAsync(sitemapUrl);
+public class ArchiveLinkParser : SitemapLinkParser, ILinkParser
+{
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+    {
+        var result = GetLinks(docString).Select(link => new ScrapingJobBuilder().SetUrl(link)
+                                                    .SetPageType(PageType.Static)
+                                                    .SetPageCategory(PageCategory.TargetPage)
+                                                    .AddContentParser(new ArticleContentParser())
+                                                    .Build()).ToList();
+        return Task.FromResult(result);
+    }
 
-                XmlDocument document = new XmlDocument();
-                document.LoadXml(response);
+    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    {
+        return this.GetLinksAsync(baseUrl, doc.ToString());
+    }
+}
 
-                XmlNodeList urlNodes = document.GetElementsByTagName("url");
+public class ArchivePaginator : IPaginator
+{
+    public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
+    {
+        var uri = new Uri(currentUrl);
+        var currentDate = DateOnly.ParseExact(uri.Segments[^1].Replace("cikkek_", "").Replace(".xml", ""), "yyyyMM");
+        var nextJobDate = currentDate.AddMonths(-1);
+        return new ScrapingJobBuilder().SetUrl($"{uri.GetLeftPart(UriPartial.Authority)}/sitemap/cikkek_{nextJobDate:yyyyMM}.xml")
+                                       .SetPageType(PageType.Static)
+                                       .SetPageCategory(PageCategory.PageWithPagination)
+                                       .AddContentParser(new ArticleContentParser())
+                                       .AddPagination(new ArchivePaginator())
+                                       .Build();
+    }
 
-                foreach (XmlElement urlNode in urlNodes)
-                {
-                    XmlNodeList childNodes = urlNode.ChildNodes;
-                    string location = childNodes[0]!.InnerText;
-                    DateTime timestamp = DateTime.Parse(childNodes[1]!.InnerText,CultureInfo.InvariantCulture);
-                    if (timestamp.Date == dateIn.Date)
-                    {
-                        resultList.Add(location);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Rethrow the exception as a task result
-                throw new InvalidOperationException("Error occurred while fetching articles", ex);
-            }
-        }
-
-        return resultList; // Return the list as a task result
+    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    {
+        HtmlDocument doc = new();
+        doc.LoadHtml(docString);
+        return Task.FromResult(this.GetNextPage(currentUrl, doc));
     }
 }

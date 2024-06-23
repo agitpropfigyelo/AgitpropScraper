@@ -1,0 +1,45 @@
+using System.Net;
+using System.Text;
+using Agitprop.Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace Agitprop.Infrastructure;
+
+internal class HttpStaticPageLoader : IStaticPageLoader
+{
+    public HttpStaticPageLoader(IPageRequester pageRequester, ICookiesStorage cookiesStorage, ILogger logger)
+    {
+        ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        PageRequester = pageRequester;
+        CookiesStorage = cookiesStorage;
+        Logger = logger;
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+    }
+
+    public IPageRequester PageRequester { get; }
+    public ICookiesStorage CookiesStorage { get; }
+    public ILogger Logger { get; }
+
+    public async Task<string> Load(string url)
+    {
+        using var _ = Logger.LogMethodDuration();
+
+        PageRequester.CookieContainer = await CookiesStorage.GetAsync(); // TODO move to init factory func
+
+        var response = await PageRequester.GetAsync(url);
+
+        if (response.IsSuccessStatusCode) return await response.Content.ReadAsStringAsync();
+
+        Logger.LogError("Failed to load page {url}. Error code: {statusCode}", url, response.StatusCode);
+
+        throw new InvalidOperationException($"Failed to load page {url}. Error code: {response.StatusCode}")
+        {
+            Data = { ["url"] = url, ["statusCode"] = response.StatusCode }
+        };
+    }
+}
