@@ -1,14 +1,19 @@
 ﻿using HtmlAgilityPack;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
+using Agitprop.Core;
 using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Interfaces;
-using Agitprop.Infrastructure.Enums;
 
 namespace Agitprop.Scrapers.Origo;
 
 public class ArticleContentParser : IContentParser
 {
-    public (string, object) ParseContent(HtmlDocument html)
+    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
+        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/app-root/app-base/div[2]/app-article-page/section/div[1]/div/app-article-header/article/app-article-meta/div/div[1]/div")
+                    ?? html.DocumentNode.SelectSingleNode("/html/body/app-root/app-base/div[2]/app-sport-article-page/section/div/div[1]/div/app-sport-article-header/article/app-sport-article-author/div/div/div/div");
+        DateTime date = DateTime.Parse(dateNode.InnerText);
+
         var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='article-title']");
         string titleText = titleNode.InnerText.Trim() + " ";
 
@@ -20,14 +25,14 @@ public class ArticleContentParser : IContentParser
 
         string concatenatedText = titleText + leadText + boxText;
 
-        return ("text", Helper.CleanUpText(concatenatedText));
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.NegyNegyNegy,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
-
-    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
-    {
-        return Task.FromResult(ParseContent(html));
-    }
-    public Task<(string, object)> ParseContentAsync(string html)
+    public Task<ContentParserResult> ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);

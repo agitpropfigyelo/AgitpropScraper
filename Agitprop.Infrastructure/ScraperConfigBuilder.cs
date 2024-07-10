@@ -1,3 +1,5 @@
+using Agitprop.Core;
+
 namespace Agitprop.Infrastructure;
 
 public class ScraperConfigBuilder()
@@ -43,6 +45,6 @@ public class ScraperConfigBuilder()
 
     public ScraperConfig Build()
     {
-        return new ScraperConfig(this.StartJobs,this.UrlBlackList,this.DomainWhiteList,this.Date, this.PageCrawlLimit,this.Headless);
+        return new ScraperConfig(this.StartJobs, this.UrlBlackList, this.DomainWhiteList, this.Date, this.PageCrawlLimit, this.Headless);
     }
 }

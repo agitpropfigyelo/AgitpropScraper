@@ -1,15 +1,17 @@
 ﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Enums;
-using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Merce;
 
 public class ArticleContentParser : IContentParser
 {
-    public (string, object) ParseContent(HtmlDocument html)
+    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
+        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[4]/div/div/main/div/div[2]/div/article/div/div[1]/div[1]/div[2]/div[2]/time");
+        DateTime date = DateTime.Parse(dateNode.GetAttributeValue("datetime", ""));
         // Select nodes with class "article-title"
         var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='entry-title']");
         string titleText = titleNode.InnerText.Trim() + " ";
@@ -20,14 +22,15 @@ public class ArticleContentParser : IContentParser
         // Concatenate all text
         string concatenatedText = titleText + articleText;
 
-        return ("text", Helper.CleanUpText(concatenatedText));
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.NegyNegyNegy,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
 
-    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
-    {
-        return Task.FromResult(this.ParseContent(html));
-    }
-    public Task<(string, object)> ParseContentAsync(string html)
+    public Task<ContentParserResult> ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -75,6 +78,6 @@ public class ArchivePaginator : DateBasedArchive, IPaginator
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl,doc));
+        return Task.FromResult(this.GetNextPage(currentUrl, doc));
     }
 }

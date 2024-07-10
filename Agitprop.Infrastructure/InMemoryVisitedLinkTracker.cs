@@ -1,12 +1,12 @@
 ﻿using System.Collections.Immutable;
-using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Core.Interfaces;
 
 namespace Agitprop.Infrastructure;
 
 public class InMemoryVisitedLinkTracker : ILinkTracker
 {
     public bool DataCleanupOnStart { get; set; }
-    
+
     private ImmutableHashSet<string> visitedUrls = ImmutableHashSet.Create<string>();
 
     public Task AddVisitedLinkAsync(string visitedLink)
@@ -15,7 +15,7 @@ public class InMemoryVisitedLinkTracker : ILinkTracker
 
         return Task.CompletedTask;
     }
-    
+
     public Task<List<string>> GetVisitedLinksAsync()
     {
         return Task.FromResult(visitedUrls.ToList());

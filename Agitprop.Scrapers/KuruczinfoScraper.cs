@@ -1,7 +1,8 @@
 ﻿using System.Net;
+using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Enums;
-using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Kuruczinfo;
@@ -32,11 +33,14 @@ public class ArchiveLinkParser : ILinkParser
 
 public class ArticleContentParser : IContentParser
 {
-    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
+    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
         //TODO: a weboldal iso-8859-2 encoding-al van, valahogy ki kéne kupálni, hogy jó legyen
         //Convert this mofo to utf8, like all other normal newssite is, also fucked up using of html encoding
         //document= document.LoadHtml();
+
+        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='cikkcontent']/div/p[1]/span[1]");
+        DateTime date = DateTime.Parse(dateNode.InnerText);
 
         // Select nodes with class "article-title"       
         var titleNode = html.DocumentNode.SelectSingleNode("//div[@class='focikkheader']");
@@ -50,11 +54,15 @@ public class ArticleContentParser : IContentParser
         // Concatenate all text
         string concatenatedText = WebUtility.HtmlDecode(titleText + articleText);
 
-        (string, object) result = ("text", Helper.CleanUpText(concatenatedText));
-        return Task.FromResult(result);
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.NegyNegyNegy,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
 
-    public Task<(string, object)> ParseContentAsync(string html)
+    public Task<ContentParserResult> ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);

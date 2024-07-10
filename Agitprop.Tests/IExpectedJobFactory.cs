@@ -1,5 +1,5 @@
 using Agitprop.Core;
-using Agitprop.Infrastructure;
+using Agitprop.Core.Enums;
 
 namespace NewsArticleScraper.Tests;
 

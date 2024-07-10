@@ -1,8 +1,4 @@
 using System.Xml;
-using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Enums;
-using Agitprop.Infrastructure.Interfaces;
-using Agitprop.Scrapers.Index;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers;

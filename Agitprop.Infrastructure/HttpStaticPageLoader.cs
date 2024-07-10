@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -37,9 +38,9 @@ internal class HttpStaticPageLoader : IStaticPageLoader
 
         Logger.LogError("Failed to load page {url}. Error code: {statusCode}", url, response.StatusCode);
 
-        throw new InvalidOperationException($"Failed to load page {url}. Error code: {response.StatusCode}")
+        throw new InvalidOperationException($"Failed to load page {url}. Error code: {response.StatusCode}. Headers: {response.Headers.ToString()}")
         {
-            Data = { ["url"] = url, ["statusCode"] = response.StatusCode }
+            Data = { ["url"] = url, ["statusCode"] = response.StatusCode, ["headers"] = response.Headers }
         };
     }
 }

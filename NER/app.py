@@ -15,9 +15,7 @@ def ping():
 @app.route("/analyzeSingle", methods=['POST'])
 def analyzeSingleCorpus():
     data = request.get_json()
-    if 'corpus' not in data:
-        return jsonify({"error": "Missing 'corpus' key in JSON data"}), 400
-    text=data['corpus']
+    text=str(data)
     doc = nlp(text)
     result=getNamedEntities(doc)
 

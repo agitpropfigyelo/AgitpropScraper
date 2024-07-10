@@ -8,17 +8,17 @@ services:
       - 5000:5000
     networks:
       - agitprop-net
-  
+
   surrealdb:
-    image: surrealdb/surrealdb
+    image: surrealdb/surrealdb:latest
     user: root
-    command:  start file:mydatabase.db
+    command: start file:mydatabase.db
     environment:
       - SURREAL_USER=root
       - SURREAL_PASS=root
       - SURREAL_LOG=trace
     ports:
-      - 8000:8000    
+      - 8000:8000
     networks:
       - agitprop-net
 networks:

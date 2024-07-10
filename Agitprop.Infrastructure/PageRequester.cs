@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.Security;
-using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Core.Interfaces;
 
 namespace Agitprop.Infrastructure;
 
 internal class PageRequester : IPageRequester
 {
-private static HttpClient? client;
+    private static HttpClient? client;
 
     public PageRequester()
     {

@@ -1,13 +1,16 @@
-﻿using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Enums;
-using Agitprop.Infrastructure.Interfaces;
+﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Alfahir;
 public class ArticleContentParser : IContentParser
 {
-    public Task<(string, object)> ParseContentAsync(HtmlDocument document)
+    public Task<ContentParserResult> ParseContentAsync(HtmlDocument document)
     {
+        var dateNode = document.DocumentNode.SelectSingleNode("/html/body/main/div/div/article/div[1]/div/span[1]");
+        DateTime date = DateTime.Parse(dateNode.InnerText);
         // Select nodes with class "article-title"
         var titleNode = document.DocumentNode.SelectSingleNode("//h1[@class='article-title']");
         string titleText = titleNode.InnerText.Trim() + " ";
@@ -22,11 +25,15 @@ public class ArticleContentParser : IContentParser
 
         // Concatenate all text
         string concatenatedText = titleText + leadText + articleText;
-        (string, object) result = ("text", Helper.CleanUpText(concatenatedText));
-        return Task.FromResult(result);
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.Alfahir,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
 
-    public Task<(string, object)> ParseContentAsync(string html)
+    public Task<ContentParserResult> ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -63,7 +70,7 @@ public class ArchiveLinkParser : ILinkParser
     private ScrapingJob CreateJob(HtmlNode nodeIn)
     {
         var link = nodeIn.SelectSingleNode(".//a[@class='article-title-link']").GetAttributeValue<string>("href", "");
-        var builder = new ScrapingJobBuilder().SetUrl(link)
+        var builder = new ScrapingJobBuilder().SetUrl("https://alfahir.hu" + link)
                                               .SetPageCategory(PageCategory.TargetPage)
                                               .SetPageType(PageType.Static)
                                               .AddContentParser(new ArticleContentParser())

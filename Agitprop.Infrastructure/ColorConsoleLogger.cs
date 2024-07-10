@@ -2,7 +2,7 @@
 
 namespace Agitprop.Infrastructure;
 
-public sealed class ColorConsoleLogger : ILogger
+public sealed class ColorConsoleLogger : ILogger, IDisposable
 {
     private Dictionary<LogLevel, ConsoleColor> LogLevelToColorMap { get; } = new()
     {
@@ -18,6 +18,11 @@ public sealed class ColorConsoleLogger : ILogger
     public IDisposable BeginScope<TState>(TState state)
     {
         return default!;
+    }
+
+    public void Dispose()
+    {
+        Console.ForegroundColor = ConsoleColor.White;
     }
 
     public bool IsEnabled(LogLevel logLevel)

@@ -1,13 +1,11 @@
-﻿using System.Collections.Concurrent;
-using System.Text;
-using System.Text.Json.Nodes;
-using Agitprop.Core;
+﻿using System.Text;
 using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Interfaces;
-using HtmlAgilityPack;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Factories;
 using Agitprop.Core.Interfaces;
-using Agitprop.Scrapers.Tests;
-using System.Net;
+using Agitprop.Core;
+using Agitprop.Scrapers.Factories;
+using Microsoft.Extensions.Logging;
 
 namespace NewsArticleScraper.Tests;
 
@@ -49,10 +47,8 @@ public class ArticleScrapeTest
     private const string MERCE_ARCHIVE = "https://merce.hu/2024/3/11";
     private IContentParserFactory ContentParserFactory = new ContentParserFactory();
     private IPaginatorFactory PaginatorFactory = new PaginatorFactory();
-    private IExpectedJobFactory ExpectedJobFactory;
     private ILinkParserFactory LinkParserFactory = new LinkParserFactory();
     private HttpClient webClient = new();
-
     public ScrapingJobFactory ScrapingJobFactory = new();
 
     [OneTimeSetUp]
@@ -85,7 +81,7 @@ public class ArticleScrapeTest
         var document = await webClient.GetStringAsync(siteUrl);
         await webClient.GetStringAsync(siteUrl);
         var result = await contentParser.ParseContentAsync(document);
-        Assert.That((string)result.Item2, Is.EqualTo(File.ReadAllText(expectedPath)));
+        Assert.That(result.Text, Is.EqualTo(File.ReadAllText(expectedPath)));
     }
     [TestCase(NewsSites.Origo, ORIGO_ARCHIVE, "https://www.origo.hu/hirarchivum/2024/03/10")]
     [TestCase(NewsSites.Ripost, RIPOST_ARCHIVE, "https://ripost.hu/202403_sitemap.xml")]
@@ -144,5 +140,37 @@ public class ArticleScrapeTest
         List<ScrapingJob> result = await spider.CrawlAsync(job);
         Assert.That(result.Count, Is.EqualTo(expectedCount));
 
+    }
+
+    [Test]
+    public async Task NamedEntityRecognizer_IsAliveTest()
+    {
+        var ner = new NamedEntityRecognizer("http://127.0.0.1:5000/", null);
+        Assert.That(await ner.PingAsync(), Is.EqualTo("OK"));
+    }
+
+    [Test]
+    public async Task NamedEntityRecognizer_SendSingle()
+    {
+        var ner = new NamedEntityRecognizer("http://127.0.0.1:5000/", null);
+        Assert.That(await ner.PingAsync(), Is.EqualTo("OK"), "NER service is offline");
+        var idk = await ner.AnalyzeSingleAsync("Hajmési Péter elintonál Győrben ami Dávid és nem tudom mi ez a Szöveg, de azért írom, meg legyen benne olyan is hogy Telex meg Hős utca asd.");
+        Assert.That(idk, Is.Not.Null);
+    }
+    [Test]
+    public async Task AddMention()
+    {
+        var database = new SurrealDBProvider(null);
+        await database.CreateMentionsAsync("hahaha.hu", new ContentParserResult()
+        {
+            PublishDate = DateTime.Now,
+            SourceSite = NewsSites.Ripost,
+            Text = "Ez egy szöveg"
+        }, new NamedEntityCollection()
+        {
+            LOC = ["Csór", "Bábolna"],
+            PER = ["Valaki Máska"]
+        });
+        Assert.Pass();
     }
 }

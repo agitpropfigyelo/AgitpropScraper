@@ -1,12 +1,13 @@
 ﻿using System.Net;
-using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
+using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.Interfaces;
 
 namespace Agitprop.Infrastructure;
 
 public class SpiderBuilder
 {
-    private List<ISink> Sinks;
+    private List<ISink> Sinks = [];
     private ILogger Logger;
     private IScraperConfigStore ScraperConfigStore;
     private ILinkTracker LinkTracker;
@@ -51,13 +52,8 @@ public class SpiderBuilder
         Sinks.Add(sink);
         return this;
     }
-    
+
     public SpiderBuilder WithConfigStorage(IScraperConfigStore scraperConfigStorage)
-    {
-        ScraperConfigStore = scraperConfigStorage;
-        return this;
-    }
-        public SpiderBuilder WithProxy(IScraperConfigStore scraperConfigStorage)
     {
         ScraperConfigStore = scraperConfigStorage;
         return this;
@@ -75,12 +71,12 @@ public class SpiderBuilder
         return this;
     }
 
-     public SpiderBuilder WithCookieStorage(ICookiesStorage cookiesStorage)
+    public SpiderBuilder WithCookieStorage(ICookiesStorage cookiesStorage)
     {
         CookieStorage = cookiesStorage;
         return this;
     }
-     public SpiderBuilder WithLinkTracker(ILinkTracker linkTracker)
+    public SpiderBuilder WithLinkTracker(ILinkTracker linkTracker)
     {
         LinkTracker = linkTracker;
         return this;
@@ -90,5 +86,5 @@ public class SpiderBuilder
         Logger = logger;
         return this;
     }
-    
+
 }

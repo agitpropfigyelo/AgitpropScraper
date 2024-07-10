@@ -1,15 +1,18 @@
 ﻿namespace Agitprop.Scrapers.Telex;
 
 using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Enums;
-using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
 
 public class ArticleContentParser : IContentParser
 {
-    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
+    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
+        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='cikk-content']/div[1]/div[2]/div[2]/p/span");
+        DateTime date = DateTime.Parse(dateNode.InnerText.Split('–')[0]);
+
         // Select nodes with class "article-title"
         var titleNode = html.DocumentNode.SelectSingleNode("//div[@class='title-section__top']");
         string titleText = titleNode.InnerText.Trim() + " ";
@@ -20,13 +23,17 @@ public class ArticleContentParser : IContentParser
         // Concatenate all text
         string concatenatedText = titleText + articleText;
 
-        (string, object) result = ("text", Helper.CleanUpText(concatenatedText));
-        return Task.FromResult(result);
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.NegyNegyNegy,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
 
-    public Task<(string, object)> ParseContentAsync(string html)
+    public Task<ContentParserResult> ParseContentAsync(string html)
     {
-        var doc =new HtmlDocument();
+        var doc = new HtmlDocument();
         doc.LoadHtml(html);
         return this.ParseContentAsync(doc);
     }

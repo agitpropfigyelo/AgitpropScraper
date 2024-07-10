@@ -7,10 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Core", "Agitprop.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers", "Agitprop.Scrapers\Agitprop.Scrapers.csproj", "{ADAD725D-A0CF-46F0-8588-20DB2ACC680A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.NERClient", "Agitprop.NERClient\Agitprop.NERClient.csproj", "{1950B353-4925-459A-80A7-62966470A77E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Database", "Agitprop.Database\Agitprop.Database.csproj", "{808F0F2A-1039-4B09-90E0-30989C9072A3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers.Tests", "Agitprop.Tests\Agitprop.Scrapers.Tests.csproj", "{96A0846C-3FEB-4E89-A29C-949E4427975D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleApp", "Agitprop.ConsoleApp\Agitprop.ConsoleApp.csproj", "{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}"
@@ -31,14 +27,6 @@ Global
 		{ADAD725D-A0CF-46F0-8588-20DB2ACC680A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADAD725D-A0CF-46F0-8588-20DB2ACC680A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADAD725D-A0CF-46F0-8588-20DB2ACC680A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1950B353-4925-459A-80A7-62966470A77E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1950B353-4925-459A-80A7-62966470A77E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1950B353-4925-459A-80A7-62966470A77E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1950B353-4925-459A-80A7-62966470A77E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{808F0F2A-1039-4B09-90E0-30989C9072A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{808F0F2A-1039-4B09-90E0-30989C9072A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{808F0F2A-1039-4B09-90E0-30989C9072A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{808F0F2A-1039-4B09-90E0-30989C9072A3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96A0846C-3FEB-4E89-A29C-949E4427975D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{96A0846C-3FEB-4E89-A29C-949E4427975D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96A0846C-3FEB-4E89-A29C-949E4427975D}.Release|Any CPU.ActiveCfg = Release|Any CPU

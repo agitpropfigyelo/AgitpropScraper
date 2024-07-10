@@ -1,7 +1,7 @@
 ﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Enums;
-using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Pestisracok;
@@ -49,8 +49,11 @@ public class ArchiveLinkParser : ILinkParser
 
 public class ArticleContentParser : IContentParser
 {
-    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
+    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
+        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='left-content']/div[2]/span/time");
+        DateTime date = DateTime.Parse(dateNode.GetAttributeValue("datetime", ""));
+
         // Select nodes with class "article-title"
         var titleNode = html.DocumentNode.SelectNodes("//h1[contains(@class, 'story-title entry-title')]")[0];
         string titleText = titleNode.InnerText.Trim() + " ";
@@ -63,11 +66,15 @@ public class ArticleContentParser : IContentParser
         // Concatenate all text
         string concatenatedText = titleText + articleText;
 
-        (string, object) result = ("text", Helper.CleanUpText(concatenatedText));
-        return Task.FromResult(result);
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.NegyNegyNegy,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
 
-    public Task<(string, object)> ParseContentAsync(string html)
+    public Task<ContentParserResult> ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);

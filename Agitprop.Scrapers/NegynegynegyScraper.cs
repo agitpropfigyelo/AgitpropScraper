@@ -1,7 +1,7 @@
 ﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Enums;
-using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
 using PuppeteerSharp;
 
@@ -16,7 +16,8 @@ public class ArchivePaginator : DateBasedArchive, IPaginator
         return new ScrapingJobBuilder().SetUrl(GetDateBasedUrl("https://444.hu", currentUrl))
                                        .SetPageCategory(PageCategory.PageWithPagination)
                                        .SetPageType(PageType.Dynamic)
-                                       .AddPageAction(new PageAction(PageActionType.Click, "#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0"))
+                                       //.AddPageAction(new PageAction(PageActionType.Wait, 100))
+                                       //.AddPageAction(new PageAction(PageActionType.Click, "#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0"))
                                        .AddPageAction(new PageAction(PageActionType.Execute, [new ArchiveScrollAction()])) //ide összerakni a kattingatásokat, akár egy eval-ba
                                        .AddLinkParser(new ArchiveLinkParser())
                                        .AddPagination(new ArchivePaginator())
@@ -35,6 +36,7 @@ public class ArchiveScrollAction : IBrowserAction
 {
     public async Task ExecuteAsync(IPage page)
     {
+        await page.WaitForSelectorAsync("#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0");
         await page.ClickAsync("#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0");
         bool hasNext = true;
         do
@@ -86,8 +88,13 @@ public class ArchiveLinkParser : ILinkParser
 
 public class ArticleContentParser : IContentParser
 {
-    public (string, object) ParseContent(HtmlDocument html)
+    Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
+        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[4]/div/div[2]/div[2]");
+        if (!DateTime.TryParse(dateNode.InnerText, out DateTime date))
+        {
+            DateTime.Parse($"{DateTime.Now.Year}. {dateNode.InnerText}");
+        }
         // Select nodes with class "article-title"
         var titleNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[3]/h1");
         string titleText = titleNode.InnerText.Trim() + " ";
@@ -99,19 +106,44 @@ public class ArticleContentParser : IContentParser
         // Concatenate all text
         string concatenatedText = titleText + articleText;
 
-        return ("text", Helper.CleanUpText(concatenatedText));
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.NegyNegyNegy,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
 
-    public Task<(string, object)> ParseContentAsync(HtmlDocument html)
-    {
-        return Task.FromResult(this.ParseContent(html));
-    }
 
-    public Task<(string, object)> ParseContentAsync(string html)
+    Task<ContentParserResult> IContentParser.ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
         return this.ParseContentAsync(doc);
+    }
+
+    Task<ContentParserResult> IContentParser.ParseContentAsync(HtmlDocument html)
+    {
+        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[3]/h1");
+        DateTime date = DateTime.Parse(dateNode.InnerText);
+
+        // Select nodes with class "article-title"
+        var titleNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[3]/h1");
+        string titleText = titleNode.InnerText.Trim() + " ";
+
+        // Select nodes with class "article-lead"
+        var articleNode = html.DocumentNode.SelectSingleNode("//div[contains(@class, '_14rkbdc0 _4r5fio3')]");
+        string articleText = articleNode.InnerText.Trim() + " ";
+
+        // Concatenate all text
+        string concatenatedText = titleText + articleText;
+
+        return Task.FromResult(new ContentParserResult()
+        {
+            PublishDate = date,
+            SourceSite = NewsSites.NegyNegyNegy,
+            Text = Helper.CleanUpText(concatenatedText)
+        });
     }
 }
 

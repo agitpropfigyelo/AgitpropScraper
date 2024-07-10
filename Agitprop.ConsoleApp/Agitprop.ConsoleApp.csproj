@@ -2,6 +2,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
+    <ProjectReference Include="..\Agitprop.Scrapers\Agitprop.Scrapers.csproj" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SurrealDb.Net" Version="0.5.0" />
   </ItemGroup>
 
   <PropertyGroup>
