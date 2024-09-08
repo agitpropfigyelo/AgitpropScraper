@@ -9,4 +9,5 @@ public interface IScheduler
     Task AddAsync(IEnumerable<ScrapingJob> newJobs, CancellationToken cancellationToken);
     Task AddAsync(ScrapingJob newJobs, CancellationToken cancellationToken);
     IAsyncEnumerable<ScrapingJob> GetAllAsync(CancellationToken cancellationToken);
+    Task Close();
 }

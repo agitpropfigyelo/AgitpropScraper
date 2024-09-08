@@ -23,6 +23,7 @@ public class ScrapingJobFactory
     }
     public ScrapingJob GetArchiveScrapingJob(NewsSites source, string url)
     {
+        //Na ez itt hiba
         var ScrapingJobBuilder = new ScrapingJobBuilder();
         ScrapingJobBuilder.SetUrl(url);
         ScrapingJobBuilder.SetPageCategory(PageCategory.PageWithPagination);

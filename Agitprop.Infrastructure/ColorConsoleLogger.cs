@@ -42,10 +42,47 @@ public sealed class ColorConsoleLogger : ILogger, IDisposable
         var originalColor = Console.ForegroundColor;
 
         Console.ForegroundColor = LogLevelToColorMap[logLevel];
-        Console.WriteLine($"[{logLevel}] {formatter(state, exception)}");
+        Console.WriteLine($"[{DateTime.Now:u}][{logLevel}] {formatter(state, exception)}");
 
         if (exception != null) Console.WriteLine($"{Environment.NewLine}{exception}");
 
         Console.ForegroundColor = originalColor;
+    }
+}
+
+public class FileLogger : ILogger
+{
+    private string filePath;
+    private static object _lock = new object();
+    public FileLogger(string path)
+    {
+        filePath = path;
+    }
+    public IDisposable BeginScope<TState>(TState state)
+    {
+        return null;
+    }
+
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        //return logLevel == LogLevel.Trace;
+        return true;
+    }
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
+        if (formatter != null)
+        {
+            lock (_lock)
+            {
+                string fullFilePath = Path.Combine(filePath, DateTime.Now.ToString("yyyy-MM-dd") + "_log.log");
+                if (!File.Exists(fullFilePath))
+                {
+                    File.Create(fullFilePath);
+                }
+                File.AppendAllText(fullFilePath, $"{Environment.NewLine}[{DateTime.Now:u}][{logLevel}] {formatter(state, exception)}");
+                if (exception != null) File.AppendAllText(fullFilePath, $"{Environment.NewLine}{exception}");
+            }
+        }
     }
 }

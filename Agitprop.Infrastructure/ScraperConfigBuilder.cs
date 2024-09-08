@@ -15,6 +15,11 @@ public class ScraperConfigBuilder()
         StartJobs.Add(job);
         return this;
     }
+    public ScraperConfigBuilder AddStartJobs(List<ScrapingJob> jobs)
+    {
+        StartJobs.AddRange(jobs);
+        return this;
+    }
 
     public ScraperConfigBuilder AddBlacListedUrl(string url)
     {

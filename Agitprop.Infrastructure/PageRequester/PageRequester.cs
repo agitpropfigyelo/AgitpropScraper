@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Security;
 using Agitprop.Core.Interfaces;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.PageRequester;
 
 internal class PageRequester : IPageRequester
 {

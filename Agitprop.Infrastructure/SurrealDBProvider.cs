@@ -1,19 +1,17 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows.Markup;
-using Agitprop.Core;
-using Agitprop.Core.Enums;
+﻿using Agitprop.Core;
 using Agitprop.Core.Interfaces;
-using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using SurrealDb.Net;
+using SurrealDb.Net.Exceptions;
 using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Auth;
 using SurrealDb.Net.Models.Response;
 
 namespace Agitprop.Infrastructure;
-
+/*TODO:
+átírni a sémát: source -publish-> article -mentions->entity
+a létrejött article date-jét az entity-k beszúrása előtt frissítjük
+*/
 public class SurrealDBProvider : IAgitpropDataBaseService, ILinkTracker
 {
     private const string visitedLinksTable = "visitedLinks";
@@ -39,12 +37,13 @@ public class SurrealDBProvider : IAgitpropDataBaseService, ILinkTracker
     public async Task Initialize()
     {
         if (beenInitialized) return;
+        var idk = AppDomain.CurrentDomain.BaseDirectory;
         var client = await CreateClientAsync();
-        await client.RawQuery(File.ReadAllText("db_init.surql"));
-
+        await client.RawQuery(File.ReadAllText(Path.Combine(idk, "db_init.surql")));
+        beenInitialized = true;
     }
 
-    public async Task CreateMentionsAsync(string url, ContentParserResult article, NamedEntityCollection entities)
+    public async Task<int> CreateMentionsAsync(string url, ContentParserResult article, NamedEntityCollection entities)
     {
         try
         {
@@ -67,6 +66,7 @@ public class SurrealDBProvider : IAgitpropDataBaseService, ILinkTracker
         {
             Logger.LogError($"Failed to create mentions: {url} EX: {ex.Message}");
         }
+        return entities.All.Count;
     }
 
     private async Task<SurrealDbClient> CreateClientAsync()
@@ -100,13 +100,14 @@ public class SurrealDBProvider : IAgitpropDataBaseService, ILinkTracker
         try
         {
             var client = await CreateClientAsync();
-            await client.RawQuery($"CREATE visitedLinks SET Link='{visitedLink}';");
-
+            var vs = new VisitedLink { Link = visitedLink };
+            await client.Create(visitedLinksTable, vs);
+            Logger.LogInformation($"Added visited link {visitedLink}");
         }
-        catch (System.Exception ex)
+        catch (SurrealDbException ex)
         {
-
-            throw;
+            Logger.LogWarning(ex, $"Failed to add visited link {visitedLink}; ");
+            throw new PageAlreadyVisitedException();
         }
     }
 
@@ -144,7 +145,7 @@ public class SurrealDBProvider : IAgitpropDataBaseService, ILinkTracker
 
     private class VisitedLink : Record
     {
-        public string Link;
+        public string Link { get; set; }
     }
     private class Entity : Record
     {

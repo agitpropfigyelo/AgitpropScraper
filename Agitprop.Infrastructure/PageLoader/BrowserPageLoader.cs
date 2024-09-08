@@ -3,7 +3,7 @@ using Agitprop.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.PageLoader;
 
 public abstract class BrowserPageLoader
 {

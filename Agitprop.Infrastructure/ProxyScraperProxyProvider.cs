@@ -10,8 +10,8 @@ public class ProxyScrapeProxyProvider : IProxyProvider
 {
     static readonly HttpClient client = new HttpClient();
     private string proxyScraperUrl = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt";
+    //TODO: request the list after every 5 min improve thread safety
     private DateTime lastAccessTime;
-
     private List<WebProxy> webProxies = new List<WebProxy>();
     private Random rnd = new Random();
 
@@ -25,8 +25,7 @@ public class ProxyScrapeProxyProvider : IProxyProvider
     async Task InitAsync()
     {
         lastAccessTime = DateTime.Now;
-        var proxies = await GetWebProxies();
-        webProxies.AddRange(proxies);
+        webProxies = (await GetWebProxies()).ToList();
     }
 
     private async Task<IEnumerable<WebProxy>> GetWebProxies()
@@ -36,28 +35,11 @@ public class ProxyScrapeProxyProvider : IProxyProvider
         return result.Select(proxy => new WebProxy(proxy, true));
     }
 
-    public async Task<IWebProxy> GetProxyAsync()
+    public async Task<WebProxy> GetProxyAsync()
     {
         if ((DateTime.Now - lastAccessTime).TotalMinutes > 5) await InitAsync();
         int index = rnd.Next(0, webProxies.Count);
 
         return webProxies[index];
-    }
-
-    class FreeProxyListProxy
-    {
-        public string Adress { get; set; }
-        public string Country { get; set; }
-        public string City { get; set; }
-    }
-    private class CsvProxyMapping : CsvMapping<FreeProxyListProxy>
-    {
-        public CsvProxyMapping()
-            : base()
-        {
-            MapProperty(0, x => x.Adress);
-            MapProperty(1, x => x.Country);
-            MapProperty(2, x => x.City);
-        }
     }
 }

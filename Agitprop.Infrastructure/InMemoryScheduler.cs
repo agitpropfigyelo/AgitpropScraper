@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using System.Reflection.Metadata;
+using System.Threading.Channels;
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 
@@ -26,5 +27,11 @@ public class InMemoryScheduler : IScheduler
     {
         foreach (var job in jobs)
             await _jobChannel.Writer.WriteAsync(job, cancellationToken);
+    }
+
+    public Task Close()
+    {
+        _jobChannel.Writer.Complete();
+        return Task.CompletedTask;
     }
 }

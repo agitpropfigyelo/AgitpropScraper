@@ -1,12 +1,11 @@
-﻿using Agitprop.Core;
-using Agitprop.Core.Enums;
+﻿using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Core;
 
 public class Spider : ISpider
 {
@@ -20,16 +19,17 @@ public class Spider : ISpider
     public Spider(List<ISink> sinks, ILinkTracker linkTracker, IStaticPageLoader staticPageLoader,
                   IBrowserPageLoader browserPageLoader, IScraperConfigStore scraperConfigStore, ILogger logger)
     {
-        this.Sinks = sinks;
-        this.LinkTracker = linkTracker;
-        this.StaticPageLoader = staticPageLoader;
-        this.BrowserPageLoader = browserPageLoader;
-        this.ScraperConfigStore = scraperConfigStore;
-        this.Logger = logger;
+        Sinks = sinks;
+        LinkTracker = linkTracker;
+        StaticPageLoader = staticPageLoader;
+        BrowserPageLoader = browserPageLoader;
+        ScraperConfigStore = scraperConfigStore;
+        Logger = logger;
     }
 
     public async Task<List<ScrapingJob>> CrawlAsync(ScrapingJob job, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         await LinkTracker.Initialization;
 
         var config = await ScraperConfigStore.GetConfigAsync();
@@ -37,34 +37,13 @@ public class Spider : ISpider
         if (config.UrlBlackList.Contains(job.Url)) return Enumerable.Empty<ScrapingJob>().ToList();
 
         await CheckCrawlLimit(config);
-
+        if (job.PageCategory != PageCategory.PageWithPagination) await LinkTracker.AddVisitedLinkAsync(job.Url); ;
         var htmlContent = job.PageType switch
         {
             PageType.Static => await LoadStaticPage(job),
             PageType.Dynamic => await LoadDynamicPage(job, config.Headless),
             _ => throw new NotImplementedException()
         };
-
-        List<ScrapingJob> newJobs = [];
-        if (job.PageCategory == PageCategory.PageWithPagination)
-        {
-            newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, htmlContent));
-        }
-        else
-        {
-            await LinkTracker.AddVisitedLinkAsync(job.Url);
-        }
-        foreach (var linkParser in job.LinkParsers)
-        {
-            try
-            {
-                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, htmlContent));
-            }
-            catch (System.Exception)
-            {
-                Logger.LogWarning($"Failed to get links from site: {job.Url}");
-            }
-        }
 
         HtmlDocument doc = new();
         doc.LoadHtml(htmlContent);
@@ -78,6 +57,22 @@ public class Spider : ISpider
             return Enumerable.Empty<ScrapingJob>().ToList();
         }
 
+        List<ScrapingJob> newJobs = [];
+        foreach (var linkParser in job.LinkParsers)
+        {
+            try
+            {
+                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, htmlContent));
+            }
+            catch (Exception)
+            {
+                Logger.LogWarning($"Failed to get links from site: {job.Url}");
+            }
+        }
+        if (job.PageCategory == PageCategory.PageWithPagination)
+        {
+            newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, htmlContent));
+        }
         return newJobs;
     }
 
@@ -93,9 +88,9 @@ public class Spider : ISpider
                 results.Add(idk);
 
             }
-            catch (System.Exception)
+            catch (Exception ex)
             {
-                Logger.LogWarning($"Failed to run content parser on: {job.Url}");
+                Logger.LogWarning($"{job.Url} Failed to run content parser: {ex.Message}");
             }
         }
 
@@ -109,7 +104,7 @@ public class Spider : ISpider
 
     private async Task<string> LoadDynamicPage(ScrapingJob job, bool headless)
     {
-        Logger.LogInformation("Loading dynamic page {Url}", job.Url);
+        Logger.LogInformation("{Url} Loading dynamic page", job.Url);
         var doc = await BrowserPageLoader.Load(job.Url, job.Actions, headless);
 
         return doc;

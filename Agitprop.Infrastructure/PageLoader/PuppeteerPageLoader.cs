@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.PageLoader;
 
 public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
 {
@@ -31,7 +31,7 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         try
         {
             Logger.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoader), nameof(Load));
-            await browserFetcher.DownloadAsync(BrowserTag.Latest);
+            await browserFetcher.DownloadAsync(BrowserTag.Stable);
             Logger.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoader), nameof(Load));
         }
         finally
@@ -92,6 +92,6 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
 
     public Task<string> Load(string url, object pageActions, bool headless)
     {
-        return this.Load(url, (List<PageAction>)pageActions, headless);
+        return Load(url, (List<PageAction>)pageActions, headless);
     }
 }

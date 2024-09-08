@@ -4,5 +4,5 @@ namespace Agitprop.Core.Interfaces;
 
 public interface IProxyProvider
 {
-    Task<IWebProxy> GetProxyAsync();
+    Task<WebProxy> GetProxyAsync();
 }

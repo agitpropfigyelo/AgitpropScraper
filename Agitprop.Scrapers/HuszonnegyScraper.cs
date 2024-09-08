@@ -50,7 +50,7 @@ namespace Agitprop.Scrapers.Huszonnegy
             return Task.FromResult(new ContentParserResult()
             {
                 PublishDate = date,
-                SourceSite = NewsSites.NegyNegyNegy,
+                SourceSite = NewsSites.Huszonnegy,
                 Text = Helper.CleanUpText(concatenatedText)
             });
         }

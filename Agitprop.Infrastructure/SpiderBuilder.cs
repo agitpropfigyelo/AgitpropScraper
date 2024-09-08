@@ -2,6 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Infrastructure.PageRequester;
+using Agitprop.Core;
+using Agitprop.Infrastructure.PageLoader;
 
 namespace Agitprop.Infrastructure;
 
@@ -29,7 +32,7 @@ public class SpiderBuilder
         }
         else
         {
-            var pageRequester = new PageRequester();
+            var pageRequester = new PageRequester.PageRequester();
 
             StaticPageLoader ??= new HttpStaticPageLoader(pageRequester, CookieStorage, Logger);
             BrowserPageLoader ??= new PuppeteerPageLoader(Logger, CookieStorage);

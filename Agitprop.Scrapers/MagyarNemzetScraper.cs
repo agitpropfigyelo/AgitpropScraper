@@ -31,7 +31,7 @@ public class ArticleContentParser : IContentParser
         return Task.FromResult(new ContentParserResult()
         {
             PublishDate = date,
-            SourceSite = NewsSites.NegyNegyNegy,
+            SourceSite = NewsSites.MagyarNemzet,
             Text = Helper.CleanUpText(concatenatedText)
         });
     }

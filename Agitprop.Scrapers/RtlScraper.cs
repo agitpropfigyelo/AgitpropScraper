@@ -79,7 +79,7 @@ public class ArticleContentParser : IContentParser
         return new ContentParserResult()
         {
             PublishDate = date,
-            SourceSite = NewsSites.NegyNegyNegy,
+            SourceSite = NewsSites.RTL,
             Text = Helper.CleanUpText(concatenatedText)
         };
     }

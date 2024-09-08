@@ -5,7 +5,7 @@ namespace Agitprop.Infrastructure;
 
 public class Neo4jProvider : IAgitpropDataBaseService
 {
-    public Task CreateMentionsAsync(string url, ContentParserResult article, NamedEntityCollection entities)
+    public Task<int> CreateMentionsAsync(string url, ContentParserResult article, NamedEntityCollection entities)
     {
         throw new NotImplementedException();
     }

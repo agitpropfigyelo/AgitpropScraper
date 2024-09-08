@@ -25,7 +25,9 @@ public class AgitpropSink : ISink
         foreach (var article in data)
         {
             var entities = await NerService.AnalyzeSingleAsync(article.Text);
-            await DataBase.CreateMentionsAsync(url, article, entities);
+            Logger.LogInformation($"Recieved named entitees for {url}");
+            var count = await DataBase.CreateMentionsAsync(url, article, entities);
+            Logger.LogInformation($"Inserted {count} mentions for {url}");
         }
     }
 }

@@ -1,10 +1,11 @@
-using Agitprop.Core;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
+using Polly;
+using PuppeteerSharp;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Core;
 
 public class ScraperEngine
 {
@@ -18,6 +19,9 @@ public class ScraperEngine
     {
         await Scheduler.Initialization;
 
+
+        //resiliency pipeline, találj neki jobb helyet VAGY TODO: rakd össze a DI-t az egész projektre
+        var asd = new ResiliencePipelineBuilder();
         Logger.LogInformation("Start {class}.{method}", nameof(ScraperEngine), nameof(RunAsync));
 
         ScraperConfig config = await ConfigStorage.GetConfigAsync();
@@ -33,23 +37,57 @@ public class ScraperEngine
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Logger.LogInformation("Start consuming the scraping jobs");
+            int idk = 0;
 
             await Parallel.ForEachAsync(Scheduler.GetAllAsync(cancellationToken), options, async (jobIn, token) =>
             {
+                Console.WriteLine(idk);
+                Interlocked.Increment(ref idk);
+                token.ThrowIfCancellationRequested();
+                Logger.LogDebug($"Running: {idk} - {jobIn}");
                 if (jobIn is ScrapingJob job)
                 {
 
-                    Logger.LogInformation("Start crawling url {Url}", job.Url);
+                    Logger.LogInformation($"{job.Url} start crawling url ");
+                    List<ScrapingJob> newJobs = [];
 
-                    //var newJobs = await RetryAsync(async() => await Spider.CrawlAsync(job, cancellationToken));
-                    List<ScrapingJob> newJobs = await Executor.RetryAsync(() => Spider.CrawlAsync(job, cancellationToken));
+                    try
+                    {
+                        //   newJobs = await Executor.RetryAsync(() => Spider.CrawlAsync(job, cancellationToken));
+                        newJobs = await Spider.CrawlAsync(job, cancellationToken);
+                    }
+                    catch (NavigationException ex)//ez
+                    {
+                        Logger.LogError(ex, $"Failed to scrape {job.Url}");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Logger.LogError(ex, $"Failed to scrape {job.Url}");
+                    }
+                    catch (HttpRequestException ex)//ez
+                    {
+                        Logger.LogError(ex, $"Failed to scrape {job.Url}");
+                    }
+                    catch (PageAlreadyVisitedException ex)
+                    {
+                        Logger.LogError(ex, $"Page has been already scraped {job.Url}");
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.Data.Add("url", job.Url);
+                        throw;
+                    }
 
-                    Logger.LogInformation("Received {JobsCount} new jobs", newJobs.Count);
+                    Logger.LogInformation($"{job.Url} received {newJobs.Count} new jobs");
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     await Scheduler.AddAsync(newJobs, cancellationToken);
+                    Logger.LogInformation($"{job.Url} finished {idk}");
                 }
             });
+            Logger.LogInformation("Finished jobs from scheduler");
         }
         catch (PageCrawlLimitException ex)
         {
@@ -60,10 +98,18 @@ public class ScraperEngine
             Logger.LogWarning(ex, "Shutting down due to cancellation");
             throw;
         }
+        catch (OperationCanceledException ex)
+        {
+            Logger.LogWarning(ex, "Shutting down due tue cancelled operation");
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Shutting down due to unhandled exception");
             throw;
+        }
+        finally
+        {
+            await Scheduler.Close();
         }
     }
 }

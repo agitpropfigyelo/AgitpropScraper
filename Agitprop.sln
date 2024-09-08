@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleApp", "Agit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure", "Agitprop.Infrastructure\Agitprop.Infrastructure.csproj", "{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ahitprop.Core.Tests", "Ahitprop.Core.Tests\Ahitprop.Core.Tests.csproj", "{C13AC629-0892-47F4-B554-F4FCB8A5B4A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C13AC629-0892-47F4-B554-F4FCB8A5B4A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C13AC629-0892-47F4-B554-F4FCB8A5B4A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C13AC629-0892-47F4-B554-F4FCB8A5B4A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C13AC629-0892-47F4-B554-F4FCB8A5B4A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
