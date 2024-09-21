@@ -15,7 +15,7 @@ public class ScraperEngine
     public ILogger Logger { get; init; }
     public int ParallelismDegree { get; init; }
 
-    public async Task RunAsync(CancellationToken cancellationToken = default)
+    public async Task RunAsync(CancellationToken cancellationToken = default, IProgress<int>? progress = default)
     {
         await Scheduler.Initialization;
 

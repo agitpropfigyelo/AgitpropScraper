@@ -1,4 +1,5 @@
 ﻿using Agitprop.ConsoleApp;
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Infrastructure;
 

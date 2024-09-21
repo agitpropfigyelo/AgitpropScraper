@@ -54,7 +54,8 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         //var puppeteerExtra = new PuppeteerExtra().Use(new StealthPlugin());
 
         var proxy = await ProxyProvider.GetProxyAsync();
-        var proxyAddress = $"--proxy-server={proxy.Address!.Host}:{proxy.Address.Port}";
+        //var proxyAddress = $"--proxy-server={proxy.Address!.Host}:{proxy.Address.Port}";
+        var proxyAddress = $"--proxy-server={proxy.Address}";
 
         var extra = new PuppeteerExtra();
 
@@ -100,6 +101,7 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         }
         catch (Exception ex)
         {
+            ex.Data.Add("Proxy:", proxy.Address);
             Logger.LogError(ex, $"Failed to open page: {url}");
             throw;
         }

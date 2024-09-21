@@ -38,7 +38,7 @@ public class SpiderBuilder
             BrowserPageLoader ??= new PuppeteerPageLoader(Logger, CookieStorage);
         }
 
-        CookieStorage.AddAsync(Cookies);
+        CookieStorage?.AddAsync(Cookies);
 
         var spider = new Spider(
             Sinks,

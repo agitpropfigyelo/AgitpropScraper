@@ -8,7 +8,7 @@ using PuppeteerSharp;
 
 namespace Agitprop.Scrapers.Hvg;
 
-public class ArchivePaginator : DateBasedArchive, IPaginator
+internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
     public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
     {
@@ -41,7 +41,7 @@ public class ArchivePaginator : DateBasedArchive, IPaginator
     }
 }
 
-public class ArchiveLinkParser : ILinkParser
+internal class ArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
     {
@@ -65,7 +65,7 @@ public class ArchiveLinkParser : ILinkParser
     }
 }
 
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
@@ -100,56 +100,5 @@ public class ArticleContentParser : IContentParser
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
         return this.ParseContentAsync(doc);
-    }
-}
-
-
-public class HvgScraper
-{
-    private readonly Uri baseUrl = new("http://hvg.hu/");
-
-    public async Task<List<string>> GetArticlesForDateAsync(DateTime dateIn)
-    {
-        Uri url = new(baseUrl, $"frisshirek/{dateIn.Year:D4}.{dateIn.Month:D2}.{dateIn.Day:D2}");
-        try
-        {
-            await new BrowserFetcher().DownloadAsync();
-            using IBrowser browser = await Puppeteer.LaunchAsync(new LaunchOptions
-            {
-                Headless = false, // false if you need to see the browser
-            });
-            using IPage page = await browser.NewPageAsync();
-            page.DefaultTimeout = 50000; // or you can set this as 0
-            await page.GoToAsync(url.ToString(), WaitUntilNavigation.Networkidle2);
-            bool hasNext = true;
-            do
-            {
-                try
-                {
-                    await page.ClickAsync("#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button:nth-child(2)");
-                    await page.EvaluateExpressionAsync("window.scrollTo(0, document.body.scrollHeight)");
-                    await page.ClickAsync("div.latest-nav > div:first-of-type > a");
-                    await page.WaitForNavigationAsync();
-                    //await idk.EvaluateFunctionAsync("b=>b.click()",WaitUntilNavigation.Networkidle2);
-                }
-                catch (Exception ex)
-                {
-                    hasNext = false;
-                    throw;
-                }
-            } while (hasNext);
-
-            var htmlContent = await page.GetContentAsync();
-            HtmlDocument doc = new();
-            doc.LoadHtml(htmlContent);
-            HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//article/div/h1/a");
-            return articles.Select(x => x.GetAttributeValue("href", "")).ToList();
-        }
-        catch (Exception ex)
-        {
-            // Rethrow the exception as a task result
-            throw new InvalidOperationException("Error occurred while fetching articles", ex);
-            //add logging
-        }
     }
 }

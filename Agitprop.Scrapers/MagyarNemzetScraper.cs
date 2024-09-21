@@ -7,7 +7,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Magyarnemzet;
 
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
@@ -45,7 +45,7 @@ public class ArticleContentParser : IContentParser
 
 }
 
-public class ArchivePaginator : IPaginator
+internal class ArchivePaginator : IPaginator
 {
     public Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
@@ -68,7 +68,7 @@ public class ArchivePaginator : IPaginator
     }
 }
 
-public class ArchiveLinkParser : SitemapLinkParser, ILinkParser
+internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {

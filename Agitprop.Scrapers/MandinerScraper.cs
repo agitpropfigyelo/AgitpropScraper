@@ -8,7 +8,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Mandiner;
 
-public class ArchiveLinkParser : SitemapLinkParser, ILinkParser
+internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
     {
@@ -26,7 +26,7 @@ public class ArchiveLinkParser : SitemapLinkParser, ILinkParser
     }
 }
 
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
@@ -65,7 +65,7 @@ public class ArticleContentParser : IContentParser
 
 
 
-public class ArchivePaginator : IPaginator
+internal class ArchivePaginator : IPaginator
 {
     public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
     {

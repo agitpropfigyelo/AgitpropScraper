@@ -7,7 +7,7 @@ using HtmlAgilityPack;
 namespace Agitprop.Scrapers.Magyarjelen;
 
 
-public class ArchivePaginator : DateBasedArchive, IPaginator
+internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
     public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
     {
@@ -27,7 +27,7 @@ public class ArchivePaginator : DateBasedArchive, IPaginator
         return Task.FromResult(this.GetNextPage(currentUrl, doc));
     }
 }
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
@@ -61,7 +61,7 @@ public class ArticleContentParser : IContentParser
     }
 }
 
-public class ArchiveLinkParser : ILinkParser
+internal class ArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {

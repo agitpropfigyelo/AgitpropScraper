@@ -6,7 +6,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Pestisracok;
 
-public class ArchivePaginator : DateBasedArchive, IPaginator
+internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
     public Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
@@ -25,7 +25,7 @@ public class ArchivePaginator : DateBasedArchive, IPaginator
         return this.GetNextPageAsync(currentUrl, doc);
     }
 }
-public class ArchiveLinkParser : ILinkParser
+internal class ArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
@@ -47,7 +47,7 @@ public class ArchiveLinkParser : ILinkParser
     }
 }
 
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {

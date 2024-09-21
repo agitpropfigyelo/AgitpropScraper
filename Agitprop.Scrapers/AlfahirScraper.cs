@@ -5,7 +5,7 @@ using Agitprop.Infrastructure;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Alfahir;
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument document)
     {
@@ -41,7 +41,7 @@ public class ArticleContentParser : IContentParser
     }
 }
 
-public class ArchiveLinkParser : ILinkParser
+internal class ArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
@@ -80,7 +80,7 @@ public class ArchiveLinkParser : ILinkParser
     }
 }
 
-public class ArchivePaginator : IPaginator
+internal class ArchivePaginator : IPaginator
 {
     public Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {

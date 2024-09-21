@@ -6,7 +6,7 @@ using Agitprop.Infrastructure;
 
 namespace Agitprop.Scrapers.Origo;
 
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
@@ -39,7 +39,7 @@ public class ArticleContentParser : IContentParser
         return this.ParseContentAsync(doc);
     }
 }
-public class ArchiveLinkParser : ILinkParser
+internal class ArchiveLinkParser : ILinkParser
 {
     private readonly Uri baseUri = new Uri("https://www.origo.hu");
 
@@ -69,7 +69,7 @@ public class ArchiveLinkParser : ILinkParser
     }
 }
 
-public class ArchivePaginator : DateBasedArchive, IPaginator
+internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
     public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
     {

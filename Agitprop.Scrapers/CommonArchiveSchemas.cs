@@ -3,7 +3,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers;
 
-public class DateBasedArchive
+internal class DateBasedArchive
 {
     protected static string GetDateBasedUrl(string urlBase, string current)
     {
@@ -20,7 +20,7 @@ public class DateBasedArchive
 }
 
 
-public class SitemapLinkParser
+internal class SitemapLinkParser
 {
     public List<string> GetLinks(string docString)
     {
@@ -38,7 +38,7 @@ public class SitemapLinkParser
     }
 }
 
-public class SitemapArchivePaginator
+internal class SitemapArchivePaginator
 {
     public string GetUrl(string currentUrl, HtmlDocument document)
     {

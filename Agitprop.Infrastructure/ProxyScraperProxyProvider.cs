@@ -9,7 +9,7 @@ namespace Agitprop.Infrastructure;
 public class ProxyScrapeProxyProvider : IProxyProvider
 {
     static readonly HttpClient client = new HttpClient();
-    private string proxyScraperUrl = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt";
+    private string proxyScraperUrl = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt";
     //TODO: request the list after every 5 min improve thread safety
     private DateTime lastAccessTime;
     private List<WebProxy> webProxies = new List<WebProxy>();
@@ -37,6 +37,7 @@ public class ProxyScrapeProxyProvider : IProxyProvider
 
     public async Task<WebProxy> GetProxyAsync()
     {
+        if (webProxies.Count == 0) await InitAsync();
         if ((DateTime.Now - lastAccessTime).TotalMinutes > 5) await InitAsync();
         int index = rnd.Next(0, webProxies.Count);
 

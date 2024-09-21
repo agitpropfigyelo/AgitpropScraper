@@ -8,7 +8,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Ripost;
 
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
@@ -42,7 +42,7 @@ public class ArticleContentParser : IContentParser
     }
 }
 
-public class ArchivePaginator : SitemapArchivePaginator, IPaginator
+internal class ArchivePaginator : SitemapArchivePaginator, IPaginator
 {
     public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
     {
@@ -63,7 +63,7 @@ public class ArchivePaginator : SitemapArchivePaginator, IPaginator
     }
 }
 
-public class ArchiveLinkParser : SitemapLinkParser, ILinkParser
+internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
     {
