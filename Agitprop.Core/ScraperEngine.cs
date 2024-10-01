@@ -21,7 +21,10 @@ public class ScraperEngine
 
 
         //resiliency pipeline, találj neki jobb helyet VAGY TODO: rakd össze a DI-t az egész projektre
-        var asd = new ResiliencePipelineBuilder();
+        var builder = new ResiliencePipelineBuilder();
+        //builder.AddRetry(new CircuitBreaker)
+
+
         Logger.LogInformation("Start {class}.{method}", nameof(ScraperEngine), nameof(RunAsync));
 
         ScraperConfig config = await ConfigStorage.GetConfigAsync();
@@ -43,9 +46,9 @@ public class ScraperEngine
 
             await Parallel.ForEachAsync(Scheduler.GetAllAsync(cancellationToken), options, async (jobIn, token) =>
             {
+                token.ThrowIfCancellationRequested();
                 Console.WriteLine(idk);
                 Interlocked.Increment(ref idk);
-                token.ThrowIfCancellationRequested();
                 Logger.LogDebug($"Running: {idk} - {jobIn}");
                 if (jobIn is ScrapingJob job)
                 {
