@@ -13,6 +13,19 @@ internal class Program
 
     private static async Task Main(string[] args)
     {
+
+
+
+
+
+
+
+
+
+
+
+
+        //old code
         var startJobFactory = new StartJobFactory();
         var logger = new FileLogger(@"C:\Users\Forty\Repos\agitprop2\logs");
         var proxyProvider = new ProxyScrapeProxyProvider();

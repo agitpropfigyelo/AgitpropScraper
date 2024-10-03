@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
     <ProjectReference Include="..\Agitprop.Scrapers\Agitprop.Scrapers.csproj" />
+    <ProjectReference Include="..\Agitprop.Infrastructure.InMemory\Agitprop.Infrastructure.InMemory.csproj" />
 
   </ItemGroup>
 
