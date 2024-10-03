@@ -14,17 +14,6 @@ internal class Program
     private static async Task Main(string[] args)
     {
 
-
-
-
-
-
-
-
-
-
-
-
         //old code
         var startJobFactory = new StartJobFactory();
         var logger = new FileLogger(@"C:\Users\Forty\Repos\agitprop2\logs");
@@ -35,7 +24,7 @@ internal class Program
         var scb = new ScraperConfigBuilder();
         var spiderBuilder = new SpiderBuilder();
         var sink = new AgitpropSink(nerService, dbService, logger);
-        var cookieStorage = new InMemoryCookieStorage();
+        var cookieStorage = new CookieStorage();
         var scheduler = new InMemoryScheduler();
         int ScrapingLimit = 10 + (int)await dbService.GetVisitedLinksCount();
 

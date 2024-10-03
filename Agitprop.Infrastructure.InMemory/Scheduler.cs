@@ -1,11 +1,10 @@
-﻿using System.Reflection.Metadata;
-using System.Threading.Channels;
+﻿using System.Threading.Channels;
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.InMemory;
 
-public class InMemoryScheduler : IScheduler
+public class Scheduler : IScheduler
 {
     private readonly Channel<ScrapingJob> _jobChannel = Channel.CreateUnbounded<ScrapingJob>();
 

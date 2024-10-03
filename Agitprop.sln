@@ -21,6 +21,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Pup
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Selenium", "Agitprop.Infrastructure.Selenium\Agitprop.Infrastructure.Selenium.csproj", "{B5D8BCA6-9D85-4C85-85F0-42E7C09EB5FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Worker", "Agitprop.Worker\Agitprop.Worker.csproj", "{04A04F33-AD00-4E9A-B12D-004A1DDF4259}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.SurrealDB", "Agitprop.Infrastructure.SurrealDB\Agitprop.Infrastructure.SurrealDB.csproj", "{BE0C5330-4FDB-4152-8F96-2CC0FB0E21A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +67,14 @@ Global
 		{B5D8BCA6-9D85-4C85-85F0-42E7C09EB5FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5D8BCA6-9D85-4C85-85F0-42E7C09EB5FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5D8BCA6-9D85-4C85-85F0-42E7C09EB5FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04A04F33-AD00-4E9A-B12D-004A1DDF4259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04A04F33-AD00-4E9A-B12D-004A1DDF4259}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04A04F33-AD00-4E9A-B12D-004A1DDF4259}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04A04F33-AD00-4E9A-B12D-004A1DDF4259}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE0C5330-4FDB-4152-8F96-2CC0FB0E21A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE0C5330-4FDB-4152-8F96-2CC0FB0E21A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE0C5330-4FDB-4152-8F96-2CC0FB0E21A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE0C5330-4FDB-4152-8F96-2CC0FB0E21A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

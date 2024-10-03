@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Agitprop.Core.Exceptions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Infrastructure;
 
@@ -54,6 +56,14 @@ public class FileLogger : ILogger
 {
     private string filePath;
     private static object _lock = new object();
+    private IConfiguration configuration;
+
+    public FileLogger(IConfiguration configuration)
+    {
+        this.configuration = configuration;
+        this.filePath = configuration["LogFile"] ?? throw new MissingConfigurationValueException("LogFile path missing from config");
+    }
+
     public FileLogger(string path)
     {
         filePath = path;

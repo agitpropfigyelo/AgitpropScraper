@@ -1,10 +1,10 @@
 ﻿using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.InMemory;
 
 
-public class InMemoryScraperConfigStore : IScraperConfigStore
+public class ScraperConfigStore : IScraperConfigStore
 {
     private ScraperConfig _config;
 

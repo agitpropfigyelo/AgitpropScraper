@@ -15,6 +15,7 @@ public class SpiderBuilder
     private IScraperConfigStore ScraperConfigStore;
     private ILinkTracker LinkTracker;
     private IStaticPageLoader? StaticPageLoader;
+    private IHttpClientFactory httpClientFactory;
     private IBrowserPageLoader? BrowserPageLoader;
     private IProxyProvider? ProxyProvider;
     private CookieContainer Cookies { get; } = new();

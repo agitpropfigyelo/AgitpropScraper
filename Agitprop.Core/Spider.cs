@@ -3,6 +3,7 @@ using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Core;
@@ -15,6 +16,7 @@ public class Spider : ISpider
     private IStaticPageLoader StaticPageLoader;
     private IBrowserPageLoader BrowserPageLoader;
     private IScraperConfigStore ScraperConfigStore;
+    private IConfiguration configuration;
 
     public Spider(List<ISink> sinks, ILinkTracker linkTracker, IStaticPageLoader staticPageLoader,
                   IBrowserPageLoader browserPageLoader, IScraperConfigStore scraperConfigStore, ILogger logger)

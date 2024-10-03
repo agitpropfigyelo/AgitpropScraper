@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using Agitprop.Core.Interfaces;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.InMemory;
 
-public class InMemoryCookieStorage : ICookiesStorage
+public class CookieStorage : ICookiesStorage
 {
     private CookieContainer _cookieContainer = new();
 

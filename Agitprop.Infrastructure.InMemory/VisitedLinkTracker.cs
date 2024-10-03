@@ -1,9 +1,9 @@
 ﻿using System.Collections.Immutable;
 using Agitprop.Core.Interfaces;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.InMemory;
 
-public class InMemoryVisitedLinkTracker : ILinkTracker
+public class VisitedLinkTracker : ILinkTracker
 {
     public bool DataCleanupOnStart { get; set; }
 
