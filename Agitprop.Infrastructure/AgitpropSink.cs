@@ -10,9 +10,9 @@ public class AgitpropSink : ISink
 
     INamedEntityRecognizer NerService;
     IAgitpropDataBaseService DataBase;
-    ILogger Logger;
+    ILogger<AgitpropSink> Logger;
 
-    public AgitpropSink(INamedEntityRecognizer nerService, IAgitpropDataBaseService dataBase, ILogger logger)
+    public AgitpropSink(INamedEntityRecognizer nerService, IAgitpropDataBaseService dataBase, ILogger<AgitpropSink> logger)
     {
         NerService = nerService;
         DataBase = dataBase;

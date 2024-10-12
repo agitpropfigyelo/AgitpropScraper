@@ -1,16 +1,17 @@
 using System.Reflection;
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.PageLoader;
 using Microsoft.Extensions.Logging;
 using PuppeteerExtraSharp;
 using PuppeteerExtraSharp.Plugins.ExtraStealth;
 using PuppeteerSharp;
 
-namespace Agitprop.Infrastructure.PageLoader;
+namespace Agitprop.Infrastructure.Puppeteer;
 
 internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageLoader
 {
-    public PuppeteerPageLoaderWithProxies(ILogger logger, IProxyProvider proxyProvider, ICookiesStorage cookieStorage) : base(logger)
+    public PuppeteerPageLoaderWithProxies(ILogger<PuppeteerPageLoaderWithProxies> logger, IProxyProvider proxyProvider, ICookiesStorage cookieStorage) : base(logger)
     {
         ProxyProvider = proxyProvider;
         CookieStorage = cookieStorage;
@@ -63,7 +64,7 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         extra.Use(new StealthPlugin());
         //extra.Use(new AnonymizeUaPlugin());
 
-        await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+        await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
             Headless = headless,
             ExecutablePath = executablePath,

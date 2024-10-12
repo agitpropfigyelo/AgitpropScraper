@@ -3,7 +3,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Factories;
 using Agitprop.Scrapers.Factories;
 
-namespace Agitprop.ConsoleApp;
+namespace Agitprop.Worker;
 
 public class StartJobFactory
 {

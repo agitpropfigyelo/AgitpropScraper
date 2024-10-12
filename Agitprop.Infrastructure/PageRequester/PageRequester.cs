@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 namespace Agitprop.Infrastructure.PageRequester;
 
-internal class PageRequester : IPageRequester
+public class PageRequester : IPageRequester
 {
     private static HttpClient? client;
 

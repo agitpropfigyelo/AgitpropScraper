@@ -1,17 +1,18 @@
 using System.Reflection;
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.PageLoader;
 using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
 
-namespace Agitprop.Infrastructure.PageLoader;
+namespace Agitprop.Infrastructure.Puppeteer;
 
 public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
 {
     private readonly ICookiesStorage _cookiesStorage;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public PuppeteerPageLoader(ILogger logger, ICookiesStorage cookiesStorage) : base(logger)
+    public PuppeteerPageLoader(ILogger<PuppeteerPageLoader> logger, ICookiesStorage cookiesStorage) : base(logger)
     {
         _cookiesStorage = cookiesStorage;
     }
@@ -40,7 +41,7 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         }
         PuppeteerSharp.BrowserData.InstalledBrowser idk = browserFetcher.GetInstalledBrowsers().First();
         Logger.LogInformation("{class}.{method}: Launching a browser", nameof(PuppeteerPageLoader), nameof(Load));
-        await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+        await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
             Headless = headless,
             ExecutablePath = browserFetcher.GetInstalledBrowsers().First().GetExecutablePath(),

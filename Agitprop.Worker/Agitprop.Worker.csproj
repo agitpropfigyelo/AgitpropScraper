@@ -16,5 +16,7 @@
     <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
     <ProjectReference Include="..\Agitprop.Infrastructure.InMemory\Agitprop.Infrastructure.InMemory.csproj" />
     <ProjectReference Include="..\Agitprop.Infrastructure.SurrealDB\Agitprop.Infrastructure.SurrealDB.csproj" />
+    <ProjectReference Include="..\Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj" />
+    <ProjectReference Include="..\Agitprop.Scrapers\Agitprop.Scrapers.csproj" />
   </ItemGroup>
 </Project>

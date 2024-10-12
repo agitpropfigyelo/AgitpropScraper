@@ -1,21 +1,31 @@
+using System.ComponentModel;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using PuppeteerSharp;
 
 namespace Agitprop.Core;
 
-public class ScraperEngine
+public class ScraperEngine : BackgroundService
 {
-    public IScraperConfigStore ConfigStorage { get; init; }
+    public ScraperEngine(ScraperConfig config, IScheduler scheduler, ISpider spider, ILogger<ScraperEngine> logger)
+    {
+        this.config = config;
+        Scheduler = scheduler;
+        Spider = spider;
+        Logger = logger;
+    }
+
+    public ScraperConfig config { get; init; }
     public IScheduler Scheduler { get; init; }
     public ISpider Spider { get; init; }
-    public ILogger Logger { get; init; }
-    public int ParallelismDegree { get; init; }
+    public ILogger<ScraperEngine> Logger { get; init; }
+    public int ParallelismDegree { get; init; } = 4;
 
-    public async Task RunAsync(CancellationToken cancellationToken = default, IProgress<int>? progress = default)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         await Scheduler.Initialization;
 
@@ -25,9 +35,7 @@ public class ScraperEngine
         //builder.AddRetry(new CircuitBreaker)
 
 
-        Logger.LogInformation("Start {class}.{method}", nameof(ScraperEngine), nameof(RunAsync));
-
-        ScraperConfig config = await ConfigStorage.GetConfigAsync();
+        Logger.LogInformation("Start {class}.{method}", nameof(ScraperEngine), nameof(ExecuteAsync));
 
         foreach (var job in config.StartJobs)
         {

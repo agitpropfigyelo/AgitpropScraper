@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Infrastructure.PageLoader;
 
-internal class HttpStaticPageLoader : IStaticPageLoader
+public class HttpStaticPageLoader : IStaticPageLoader
 {
-    public HttpStaticPageLoader(IPageRequester pageRequester, ICookiesStorage cookiesStorage, ILogger logger)
+    public HttpStaticPageLoader(IPageRequester pageRequester, ICookiesStorage cookiesStorage, ILogger<HttpStaticPageLoader> logger)
     {
         ServicePointManager.DefaultConnectionLimit = int.MaxValue;
         ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
@@ -24,7 +24,7 @@ internal class HttpStaticPageLoader : IStaticPageLoader
 
     public IPageRequester PageRequester { get; }
     public ICookiesStorage CookiesStorage { get; }
-    public ILogger Logger { get; }
+    public ILogger<HttpStaticPageLoader> Logger { get; }
 
     public async Task<string> Load(string url)
     {

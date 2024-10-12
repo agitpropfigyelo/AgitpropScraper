@@ -5,45 +5,44 @@ using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Agitprop.Core;
 
 public class Spider : ISpider
 {
-    private List<ISink> Sinks;
-    private ILogger Logger;
+    private List<ISink> Sinks = [];
+    private ILogger<Spider> Logger;
     private ILinkTracker LinkTracker;
-    private IStaticPageLoader StaticPageLoader;
     private IBrowserPageLoader BrowserPageLoader;
-    private IScraperConfigStore ScraperConfigStore;
-    private IConfiguration configuration;
+    private IStaticPageLoader StaticPageLoader;
 
-    public Spider(List<ISink> sinks, ILinkTracker linkTracker, IStaticPageLoader staticPageLoader,
-                  IBrowserPageLoader browserPageLoader, IScraperConfigStore scraperConfigStore, ILogger logger)
+    public Spider(ILogger<Spider> logger, ILinkTracker linkTracker, IBrowserPageLoader browserPageLoader, IStaticPageLoader staticPageLoader, ScraperConfig config)
     {
-        Sinks = sinks;
-        LinkTracker = linkTracker;
-        StaticPageLoader = staticPageLoader;
-        BrowserPageLoader = browserPageLoader;
-        ScraperConfigStore = scraperConfigStore;
         Logger = logger;
+        LinkTracker = linkTracker;
+        BrowserPageLoader = browserPageLoader;
+        StaticPageLoader = staticPageLoader;
+        Config = config;
     }
+
+    public ScraperConfig Config { get; init; }
+
 
     public async Task<List<ScrapingJob>> CrawlAsync(ScrapingJob job, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         await LinkTracker.Initialization;
 
-        var config = await ScraperConfigStore.GetConfigAsync();
 
-        if (config.UrlBlackList.Contains(job.Url)) return Enumerable.Empty<ScrapingJob>().ToList();
+        //if ((configuration["UrlBlacklist"] ?? new List<string>()).Contains(job.Url)) return Enumerable.Empty<ScrapingJob>().ToList();
 
-        await CheckCrawlLimit(config);
+        await CheckCrawlLimit();
         if (job.PageCategory != PageCategory.PageWithPagination) await LinkTracker.AddVisitedLinkAsync(job.Url); ;
         var htmlContent = job.PageType switch
         {
             PageType.Static => await LoadStaticPage(job),
-            PageType.Dynamic => await LoadDynamicPage(job, config.Headless),
+            PageType.Dynamic => await LoadDynamicPage(job, Config.Headless),
             _ => throw new NotImplementedException()
         };
 
@@ -54,7 +53,7 @@ public class Spider : ISpider
         {
             await ProcessTargetPage(job, doc, cancellationToken);
 
-            await CheckCrawlLimit(config);
+            await CheckCrawlLimit();
 
             return Enumerable.Empty<ScrapingJob>().ToList();
         }
@@ -120,15 +119,14 @@ public class Spider : ISpider
         return doc;
     }
 
-    private async Task CheckCrawlLimit(ScraperConfig config)
+    private async Task CheckCrawlLimit()
     {
-        if (await LinkTracker.GetVisitedLinksCount() >= config.PageCrawlLimit)
+        if (await LinkTracker.GetVisitedLinksCount() >= Config.PageCrawlLimit)
         {
             Logger.LogInformation("Page crawl limit has been reached");
-
             throw new PageCrawlLimitException("Page crawl limit has been reached.")
             {
-                PageCrawlLimit = config.PageCrawlLimit
+                PageCrawlLimit = Config.PageCrawlLimit,
             };
         }
     }
