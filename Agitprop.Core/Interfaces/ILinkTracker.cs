@@ -6,6 +6,4 @@ public interface ILinkTracker
     Task<List<string>> GetVisitedLinksAsync();
     Task<List<string>> GetNotVisitedLinks(IEnumerable<string> links);
     Task<long> GetVisitedLinksCount();
-
-    Task Initialization { get; }
 }

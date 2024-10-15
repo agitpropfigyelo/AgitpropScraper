@@ -16,10 +16,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Core\Agitprop.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="db_init.surql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 
 </Project>

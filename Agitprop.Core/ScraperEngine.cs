@@ -5,25 +5,29 @@ using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Polly.Registry;
 using PuppeteerSharp;
 
 namespace Agitprop.Core;
 
 public class ScraperEngine : BackgroundService
 {
-    public ScraperEngine(ScraperConfig config, IScheduler scheduler, ISpider spider, ILogger<ScraperEngine> logger)
+
+    public ScraperConfig config;
+    public IScheduler Scheduler;
+    public ISpider Spider;
+    public ILogger<ScraperEngine> Logger;
+    ResiliencePipelineProvider<string> ResiliencePipelineProvider;
+    public int ParallelismDegree = 1;
+
+    public ScraperEngine(ScraperConfig config, IScheduler scheduler, ISpider spider, ILogger<ScraperEngine> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider)
     {
         this.config = config;
         Scheduler = scheduler;
         Spider = spider;
         Logger = logger;
+        ResiliencePipelineProvider = resiliencePipelineProvider;
     }
-
-    public ScraperConfig config { get; init; }
-    public IScheduler Scheduler { get; init; }
-    public ISpider Spider { get; init; }
-    public ILogger<ScraperEngine> Logger { get; init; }
-    public int ParallelismDegree { get; init; } = 4;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -31,8 +35,7 @@ public class ScraperEngine : BackgroundService
 
 
         //resiliency pipeline, találj neki jobb helyet VAGY TODO: rakd össze a DI-t az egész projektre
-        var builder = new ResiliencePipelineBuilder();
-        //builder.AddRetry(new CircuitBreaker)
+        var pipeline = ResiliencePipelineProvider.GetPipeline("Spider");
 
 
         Logger.LogInformation("Start {class}.{method}", nameof(ScraperEngine), nameof(ExecuteAsync));
@@ -66,18 +69,9 @@ public class ScraperEngine : BackgroundService
 
                     try
                     {
-                        //   newJobs = await Executor.RetryAsync(() => Spider.CrawlAsync(job, cancellationToken));
-                        newJobs = await Spider.CrawlAsync(job, cancellationToken);
-                    }
-                    catch (NavigationException ex)//ez
-                    {
-                        Logger.LogError(ex, $"Failed to scrape {job.Url}");
+                        newJobs = await pipeline.ExecuteAsync(async ct => await Spider.CrawlAsync(jobIn, ct));
                     }
                     catch (InvalidOperationException ex)
-                    {
-                        Logger.LogError(ex, $"Failed to scrape {job.Url}");
-                    }
-                    catch (HttpRequestException ex)//ez
                     {
                         Logger.LogError(ex, $"Failed to scrape {job.Url}");
                     }

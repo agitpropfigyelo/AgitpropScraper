@@ -69,7 +69,7 @@ internal class ArchiveLinkParser : ILinkParser
     {
         HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//article/div/h1/a");
         var result = articles.Select(x => x.GetAttributeValue("href", ""))
-                             .Select(link => new ScrapingJobBuilder().SetUrl(link)
+                             .Select(link => new ScrapingJobBuilder().SetUrl("https://444.hu" + link)
                                                                      .SetPageCategory(PageCategory.TargetPage)
                                                                      .SetPageType(PageType.Static)
                                                                      .AddContentParser(new ArticleContentParser())

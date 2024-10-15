@@ -3,31 +3,28 @@ using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Agitprop.Core;
 
 public class Spider : ISpider
 {
-    private List<ISink> Sinks = [];
+    private IEnumerable<ISink> Sinks;
     private ILogger<Spider> Logger;
     private ILinkTracker LinkTracker;
     private IBrowserPageLoader BrowserPageLoader;
     private IStaticPageLoader StaticPageLoader;
+    private ScraperConfig Config;
 
-    public Spider(ILogger<Spider> logger, ILinkTracker linkTracker, IBrowserPageLoader browserPageLoader, IStaticPageLoader staticPageLoader, ScraperConfig config)
+    public Spider(IEnumerable<ISink> sinks, ILogger<Spider> logger, ILinkTracker linkTracker, IBrowserPageLoader browserPageLoader, IStaticPageLoader staticPageLoader, ScraperConfig config)
     {
+        Sinks = sinks;
         Logger = logger;
         LinkTracker = linkTracker;
         BrowserPageLoader = browserPageLoader;
         StaticPageLoader = staticPageLoader;
         Config = config;
     }
-
-    public ScraperConfig Config { get; init; }
-
 
     public async Task<List<ScrapingJob>> CrawlAsync(ScrapingJob job, CancellationToken cancellationToken = default)
     {

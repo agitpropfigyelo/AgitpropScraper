@@ -4,6 +4,7 @@ using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Infrastructure;
@@ -12,13 +13,13 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
 {
     private readonly HttpClient _client;
     private readonly string _baseUrl;
-    private ILogger Logger;
+    private ILogger<NamedEntityRecognizer> Logger;
 
 
-    public NamedEntityRecognizer(string baseUrl, ILogger logger)
+    public NamedEntityRecognizer(IConfiguration configuration, ILogger<NamedEntityRecognizer> logger)
     {
         _client = new HttpClient();
-        _baseUrl = baseUrl;
+        _baseUrl = configuration["NERbaseUrl"];
         Logger = logger;
     }
 
