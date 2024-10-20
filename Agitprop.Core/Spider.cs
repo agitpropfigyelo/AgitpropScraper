@@ -29,13 +29,9 @@ public class Spider : ISpider
     public async Task<List<ScrapingJob>> CrawlAsync(ScrapingJob job, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await LinkTracker.Initialization;
-
-
         //if ((configuration["UrlBlacklist"] ?? new List<string>()).Contains(job.Url)) return Enumerable.Empty<ScrapingJob>().ToList();
 
         await CheckCrawlLimit();
-        if (job.PageCategory != PageCategory.PageWithPagination) await LinkTracker.AddVisitedLinkAsync(job.Url); ;
         var htmlContent = job.PageType switch
         {
             PageType.Static => await LoadStaticPage(job),
@@ -70,6 +66,10 @@ public class Spider : ISpider
         if (job.PageCategory == PageCategory.PageWithPagination)
         {
             newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, htmlContent));
+        }
+        else
+        {
+            await LinkTracker.AddVisitedLinkAsync(job.Url);
         }
         return newJobs;
     }

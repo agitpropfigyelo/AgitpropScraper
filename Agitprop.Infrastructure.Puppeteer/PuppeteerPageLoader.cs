@@ -63,7 +63,7 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
             await page.SetCookieAsync(cookieParams);
         }
 
-        await page.GoToAsync(url, WaitUntilNavigation.DOMContentLoaded);
+        await page.GoToAsync(url, WaitUntilNavigation.Networkidle2);
 
         //await page.WaitForNetworkIdleAsync();
 

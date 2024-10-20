@@ -1,5 +1,6 @@
 ﻿using Agitprop.Core;
 using Agitprop.Core.Enums;
+using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure;
 using HtmlAgilityPack;
@@ -81,7 +82,7 @@ internal class ArchiveLinkParser : ILinkParser
 
 internal class ArticleContentParser : IContentParser
 {
-    Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
+    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
         var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[4]/div/div[2]/div[2]");
         if (!DateTime.TryParse(dateNode.InnerText, out DateTime date))
@@ -107,35 +108,10 @@ internal class ArticleContentParser : IContentParser
         });
     }
 
-
-    Task<ContentParserResult> IContentParser.ParseContentAsync(string html)
+    public Task<ContentParserResult> ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
-    }
-
-    Task<ContentParserResult> IContentParser.ParseContentAsync(HtmlDocument html)
-    {
-        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[3]/h1");
-        DateTime date = DateTime.Parse(dateNode.InnerText);
-
-        // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[3]/h1");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        // Select nodes with class "article-lead"
-        var articleNode = html.DocumentNode.SelectSingleNode("//div[contains(@class, '_14rkbdc0 _4r5fio3')]");
-        string articleText = articleNode.InnerText.Trim() + " ";
-
-        // Concatenate all text
-        string concatenatedText = titleText + articleText;
-
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.NegyNegyNegy,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
+        return ParseContentAsync(doc);
     }
 }

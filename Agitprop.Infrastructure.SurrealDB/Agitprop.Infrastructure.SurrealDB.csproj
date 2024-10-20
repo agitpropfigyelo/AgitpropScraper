@@ -6,12 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SurrealDb.Net" Version="0.5.1" />
-  </ItemGroup>
+  <!-- <ItemGroup>
+    <PackageReference Include="SurrealDb.Net" Version="6.0.0" />
+  </ItemGroup> -->
 
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Core\Agitprop.Core.csproj" />
+    <ProjectReference Include="..\..\surrealdb.net\SurrealDb.Net\SurrealDb.Net.csproj" />
   </ItemGroup>
 
   <ItemGroup>

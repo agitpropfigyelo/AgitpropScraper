@@ -1,4 +1,3 @@
-using System;
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.SurrealDB.Models;
@@ -18,6 +17,7 @@ namespace Agitprop.Infrastructure.SurrealDB
         {
             this.logger = logger;
             this.client = client;
+            this.client.Connect();
         }
 
         public async Task AddVisitedLinkAsync(string visitedLink)
@@ -44,8 +44,8 @@ namespace Agitprop.Infrastructure.SurrealDB
         {
             try
             {
-                FormattableString str = $"return array::complement([{string.Join(',', links.Select(x => $"'Name':'{x}'"))}],(SELECT Link FROM visitedLinks));";
-                var idk = await client.Query(str);
+                var str = $"return array::complement([{string.Join(',', links.Select(x => $"'Name':'{x}'"))}],(SELECT Link FROM visitedLinks));";
+                var idk = await client.RawQuery(str);
                 return [];
             }
             catch (System.Exception ex)
@@ -61,9 +61,13 @@ namespace Agitprop.Infrastructure.SurrealDB
         }
         public async Task<long> GetVisitedLinksCount()
         {
-            var str = "return count(Select * FROM visitedLinks);";
+            // var sd = await client.Select<VisitedLink>("visitedLinks");
+            // return sd.Count();
+            var str = "RETURN count((SELECT * FROM visitedLinks));";
             var result = await client.RawQuery(str);
-            return result.FirstOk.GetValue<long>();
+            var a = result.FirstResult;
+            var num = result.FirstOk.GetValue<long>();
+            return num;
         }
     }
 }

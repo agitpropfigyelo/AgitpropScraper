@@ -25,8 +25,8 @@ internal class Program
             DomainBlackList: [],
             DomainWhiteList: [],
             SearchDate: DateOnly.FromDateTime(DateTime.Now).AddDays(-1),
-            PageCrawlLimit: 1600,
-            Parallelism: 4,
+            PageCrawlLimit: 50,
+            Parallelism: 1,
             Headless: true);
 
         var builder = Host.CreateApplicationBuilder(args);
@@ -36,10 +36,16 @@ internal class Program
         {
             builder.AddRetry(new RetryStrategyOptions
             {
-                ShouldHandle = new PredicateBuilder().Handle<NavigationException>().Handle<HttpRequestException>(),
-                BackoffType = DelayBackoffType.Exponential,
-                Delay = TimeSpan.FromSeconds(5),
-                MaxRetryAttempts = 4,
+                ShouldHandle = args => args.Outcome switch
+                {
+                    { Exception: HttpRequestException } => PredicateResult.True(),
+                    { Exception: NavigationException } => PredicateResult.True(), // You can handle multiple exceptions
+                    { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
+                    _ => PredicateResult.False()
+                },
+                BackoffType = DelayBackoffType.Constant,
+                Delay = TimeSpan.FromSeconds(2),
+                MaxRetryAttempts = 7,
                 UseJitter = true,
             });
         });
