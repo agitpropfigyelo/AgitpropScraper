@@ -84,18 +84,20 @@ internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
-        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[4]/div/div[2]/div[2]");
+        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[3]/div[4]/div/div[2]/div[2]");
         if (!DateTime.TryParse(dateNode.InnerText, out DateTime date))
         {
             DateTime.Parse($"{DateTime.Now.Year}. {dateNode.InnerText}");
         }
         // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[2]/div[3]/h1");
+        var titleNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[3]/div[3]/h1");
         string titleText = titleNode.InnerText.Trim() + " ";
 
         // Select nodes with class "article-lead"
-        var articleNode = html.DocumentNode.SelectSingleNode("//div[contains(@class, '_14rkbdc0 _4r5fio3')]");
-        string articleText = articleNode.InnerText.Trim() + " ";
+// /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
+// /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
+        var articleNodes = html.DocumentNode.SelectNodes("/html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]//p");
+        var articleText =string.Join(" ", articleNodes.Select(x=>x.InnerText.Trim()));
 
         // Concatenate all text
         string concatenatedText = titleText + articleText;

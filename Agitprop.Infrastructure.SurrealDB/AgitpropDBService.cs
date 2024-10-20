@@ -4,6 +4,7 @@ using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.SurrealDB.Models;
 using Microsoft.Extensions.Logging;
 using SurrealDb.Net;
+using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Response;
 
 namespace Agitprop.Infrastructure.SurrealDB
@@ -14,23 +15,24 @@ namespace Agitprop.Infrastructure.SurrealDB
         private ILogger<AgitpropDBService> logger;
         private ISurrealDbClient client;
 
+        public AgitpropDBService(ILogger<AgitpropDBService> logger, ISurrealDbClient client)
+        {
+            this.logger = logger;
+            this.client = client;
+        }
 
         public async Task<int> CreateMentionsAsync(string url, ContentParserResult article, NamedEntityCollection entities)
         {
             try
             {
                 List<string> entids = [];
-                await client.Set("$date", article.PublishDate);
-                await client.Set("$url", url);
-                string src = $"source:{article.SourceSite}";
-                await client.Set("$src", $"source:{article.SourceSite}");
+                var src = RecordId.From("source", $"{article.SourceSite}");
                 foreach (var item in entities.All)
                 {
                     //entids.Add((await GetOrAddEntityAsync(client, item)).Id.ToString());
                     var entId = (await GetOrAddEntityAsync(item)).Id;
-                    await client.Set("$ent", entId);
-                    var str = $"RELATE $src->mentions->$ent SET Date=$date, Url=$url;";
-                    var idk = await client.Query($"RELATE {src}->mentions->{entId} SET Date={article.PublishDate}, Url={url};");
+                    var mention = new Mentions{In=src, Out=entId,Date=article.PublishDate,Url=url};
+                    var kdi = await client.Relate<Mentions,Mentions>("mentions",src,entId, mention);
                 }
             }
             catch (System.Exception ex)

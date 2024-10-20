@@ -9,6 +9,7 @@ using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
 using Agitprop.Infrastructure.SurrealDB;
 using Agitprop.Worker;
+using NReco.Logging.File;
 using Polly;
 using Polly.Retry;
 using PuppeteerSharp;
@@ -59,9 +60,11 @@ internal class Program
         builder.Services.AddHostedService<ScraperEngine>();
         builder.Services.AddSingleton(ScraperConfig);
         builder.Services.AddTransient<IScheduler, Scheduler>();
-        builder.Services.AddLogging((builder) =>
+        builder.Services.AddLogging(builder =>
         {
             builder.AddConsole();
+            builder.AddFile("..\\logs\\agitprop.log");
+            
         });
         builder.Services.AddTransient<ISpider, Spider>();
         builder.Services.AddTransient<ILinkTracker, Agitprop.Infrastructure.SurrealDB.VisitedLinkTracker>();

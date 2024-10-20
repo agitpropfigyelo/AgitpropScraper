@@ -46,7 +46,7 @@ public class Spider : ISpider
         {
             await ProcessTargetPage(job, doc, cancellationToken);
 
-            await CheckCrawlLimit();
+            await LinkTracker.AddVisitedLinkAsync(job.Url);
 
             return Enumerable.Empty<ScrapingJob>().ToList();
         }

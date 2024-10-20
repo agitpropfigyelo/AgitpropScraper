@@ -17,7 +17,6 @@ namespace Agitprop.Infrastructure.SurrealDB
         {
             this.logger = logger;
             this.client = client;
-            this.client.Connect();
         }
 
         public async Task AddVisitedLinkAsync(string visitedLink)
