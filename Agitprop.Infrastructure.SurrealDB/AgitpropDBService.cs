@@ -25,15 +25,10 @@ namespace Agitprop.Infrastructure.SurrealDB
         {
             try
             {
-                List<string> entids = [];
                 var src = RecordId.From("source", $"{article.SourceSite}");
-                foreach (var item in entities.All)
-                {
-                    //entids.Add((await GetOrAddEntityAsync(client, item)).Id.ToString());
-                    var entId = (await GetOrAddEntityAsync(item)).Id;
-                    var mention = new Mentions{In=src, Out=entId,Date=article.PublishDate,Url=url};
-                    var kdi = await client.Relate<Mentions,Mentions>("mentions",src,entId, mention);
-                }
+                var mention = new Mentions{Date=article.PublishDate,Url=url};
+                var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
+                var kdi = await client.Relate<Mentions,Mentions>("mentions",src,entIds, mention);
             }
             catch (System.Exception ex)
             {
