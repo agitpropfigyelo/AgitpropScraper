@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers", "Agitpr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scrapers.Tests", "Agitprop.Tests\Agitprop.Scrapers.Tests.csproj", "{96A0846C-3FEB-4E89-A29C-949E4427975D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleApp", "Agitprop.ConsoleApp\Agitprop.ConsoleApp.csproj", "{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure", "Agitprop.Infrastructure\Agitprop.Infrastructure.csproj", "{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ahitprop.Core.Tests", "Ahitprop.Core.Tests\Ahitprop.Core.Tests.csproj", "{C13AC629-0892-47F4-B554-F4FCB8A5B4A0}"
@@ -43,10 +41,6 @@ Global
 		{96A0846C-3FEB-4E89-A29C-949E4427975D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96A0846C-3FEB-4E89-A29C-949E4427975D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96A0846C-3FEB-4E89-A29C-949E4427975D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A60359E9-1BEB-4A03-9C84-D8C87228C9EC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU

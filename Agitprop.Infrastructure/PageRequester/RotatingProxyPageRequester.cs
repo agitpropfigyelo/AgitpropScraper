@@ -48,7 +48,8 @@ public class RotatingProxyPageRequester : IPageRequester
             UseCookies = true,
             UseProxy = true,
             Proxy = await ProxyProvider.GetProxyAsync(),
-            CookieContainer = CookieContainer
+            CookieContainer = CookieContainer,
+            ConnectTimeout=TimeSpan.FromSeconds(60),
         };
 
         return handler;

@@ -63,11 +63,11 @@ public class Spider : ISpider
                 Logger.LogWarning($"Failed to get links from site: {job.Url}");
             }
         }
-        if (job.PageCategory == PageCategory.PageWithPagination)
+        if (job.PageCategory == PageCategory.PageWithPagination && !Config.SearchDate.HasValue)
         {
             newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, htmlContent));
         }
-        else
+        if (job.PageCategory != PageCategory.PageWithPagination)
         {
             await LinkTracker.AddVisitedLinkAsync(job.Url);
         }
@@ -92,12 +92,19 @@ public class Spider : ISpider
             }
         }
 
-        Logger.LogInformation("Sending scraped data to sinks...");
-        var sinkTasks = Sinks.Select(sink => sink.EmitAsync(job.Url, results, cancellationToken));
+        if (results.Count == 0) throw new ContentParserException($"No content was scraped from: {job.Url}");
 
-        Logger.LogInformation("Waiting for sinks ...");
-        await Task.WhenAll(sinkTasks);
-        Logger.LogInformation("Finished waiting for sinks");
+        Logger.LogInformation($"Sending scraped data to sinks {job.Url}...");
+        //var sinkTasks = Sinks.Select(sink => sink.EmitAsync(job.Url, results, cancellationToken)).ToList();
+        //var asd = Sinks.Select(sink => sink.Emit(job.Url, results, cancellationToken)).ToList();
+        foreach (var item in Sinks)
+        {
+            item.Emit(job.Url, results, cancellationToken);
+        }
+
+        //Logger.LogInformation("Waiting for sinks ...");
+        //await Task.WhenAll(sinkTasks);
+        Logger.LogInformation($"Finished waiting for sinks {job.Url}");
     }
 
     private async Task<string> LoadDynamicPage(ScrapingJob job, bool headless)

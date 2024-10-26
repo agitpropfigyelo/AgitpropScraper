@@ -17,26 +17,24 @@ public class ScraperEngine : BackgroundService
     public IScheduler Scheduler;
     public ISpider Spider;
     public ILogger<ScraperEngine> Logger;
+    private IFailedJobLogger FailedJobLogger;
     ResiliencePipelineProvider<string> ResiliencePipelineProvider;
-    public int ParallelismDegree = 1;
 
-    public ScraperEngine(ScraperConfig config, IScheduler scheduler, ISpider spider, ILogger<ScraperEngine> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider)
+    public ScraperEngine(ScraperConfig config, IScheduler scheduler, ISpider spider, ILogger<ScraperEngine> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, IFailedJobLogger failedJobLogger)
     {
         this.config = config;
         Scheduler = scheduler;
         Spider = spider;
         Logger = logger;
         ResiliencePipelineProvider = resiliencePipelineProvider;
+        FailedJobLogger = failedJobLogger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         await Scheduler.Initialization;
-
-
-        //resiliency pipeline, találj neki jobb helyet VAGY TODO: rakd össze a DI-t az egész projektre
         var pipeline = ResiliencePipelineProvider.GetPipeline("Spider");
-
+        List<ScrapingJob> failedJobs = [];
 
         Logger.LogInformation("Start {class}.{method}", nameof(ScraperEngine), nameof(ExecuteAsync));
 
@@ -47,7 +45,7 @@ public class ScraperEngine : BackgroundService
             await Scheduler.AddAsync(job, cancellationToken);
         }
 
-        var options = new ParallelOptions { MaxDegreeOfParallelism = ParallelismDegree };
+        var options = new ParallelOptions { MaxDegreeOfParallelism = config.Parallelism };
 
         try
         {
@@ -60,7 +58,7 @@ public class ScraperEngine : BackgroundService
                 token.ThrowIfCancellationRequested();
                 Console.WriteLine(idk);
                 Interlocked.Increment(ref idk);
-                Logger.LogDebug($"Running: {idk} - {jobIn}");
+                Logger.LogInformation($"Running: {idk} - {jobIn.Url}");
                 if (jobIn is ScrapingJob job)
                 {
 
@@ -71,25 +69,37 @@ public class ScraperEngine : BackgroundService
                     {
                         newJobs = await pipeline.ExecuteAsync(async ct => await Spider.CrawlAsync(jobIn, ct));
                     }
-                    catch (InvalidOperationException ex)
+                    catch (Exception ex) when (
+                        ex is HttpRequestException ||
+                        ex is TaskCanceledException ||
+                        ex is TimeoutException ||
+                        ex is NavigationException ||
+                        ex is InvalidOperationException ||
+                        ex is ContentParserException ||
+                        ex is OperationCanceledException
+                        )
                     {
+                        failedJobs.Add(jobIn);
                         Logger.LogError(ex, $"Failed to scrape {job.Url}");
+                        await FailedJobLogger.LogFailedJobUrlAsync(jobIn.Url);
                     }
                     catch (PageAlreadyVisitedException ex)
                     {
-                        Logger.LogError(ex, $"Page has been already scraped {job.Url}");
+                        Logger.LogError(ex, $"Failed to scrape {job.Url}");
                     }
                     catch (Exception ex)
                     {
+                        failedJobs.Add(jobIn);
                         ex.Data.Add("url", job.Url);
+                        await FailedJobLogger.LogFailedJobUrlAsync(jobIn.Url);
                         throw;
                     }
 
-                    Logger.LogInformation($"{job.Url} received {newJobs.Count} new jobs");
+                    Logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
                     cancellationToken.ThrowIfCancellationRequested();
 
                     await Scheduler.AddAsync(newJobs, cancellationToken);
-                    Logger.LogInformation($"{job.Url} finished {idk}");
+                    Logger.LogInformation($"{job.Url} finished job: {idk}");
                 }
             });
             Logger.LogInformation("Finished jobs from scheduler");
@@ -98,19 +108,9 @@ public class ScraperEngine : BackgroundService
         {
             Logger.LogWarning(ex, "Shutting down due to page crawl limit {Limit}", ex.PageCrawlLimit);
         }
-        catch (TaskCanceledException ex)
-        {
-            Logger.LogWarning(ex, "Shutting down due to cancellation");
-            throw;
-        }
-        catch (OperationCanceledException ex)
-        {
-            Logger.LogWarning(ex, "Shutting down due tue cancelled operation");
-        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Shutting down due to unhandled exception");
-            throw;
         }
         finally
         {

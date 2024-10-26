@@ -19,15 +19,27 @@ public class AgitpropSink : ISink
         Logger = logger;
     }
 
-    public async Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
+    public void Emit(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
+    {
+        foreach (var article in data)
+        {
+            var entities = NerService.AnalyzeSingleAsync(article.Text).Result;
+            Logger.LogInformation($"Recieved named entitees for {url}");
+            var count = DataBase.CreateMentionsAsync(url, article, entities).Result;
+            Logger.LogInformation($"Inserted {count} mentions for {url}");
+        }
+    }
+
+    public Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
     {
         //var tasks=data.Select
         foreach (var article in data)
         {
-            var entities = await NerService.AnalyzeSingleAsync(article.Text);
+            var entities = NerService.AnalyzeSingleAsync(article.Text).Result;
             Logger.LogInformation($"Recieved named entitees for {url}");
-            var count = await DataBase.CreateMentionsAsync(url, article, entities);
+            var count = DataBase.CreateMentionsAsync(url, article, entities).Result;
             Logger.LogInformation($"Inserted {count} mentions for {url}");
         }
+        return Task.CompletedTask;
     }
 }

@@ -48,7 +48,7 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         });
 
         Logger.LogInformation("{class}.{method}: creating a new page", nameof(PuppeteerPageLoader), nameof(Load));
-        await using var page = await browser.NewPageAsync();
+        await using var page = (await browser.PagesAsync())[0];
 
         var cookies = await _cookiesStorage.GetAsync();
 

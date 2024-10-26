@@ -43,6 +43,8 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
 
 internal class ArchiveLinkParser : ILinkParser
 {
+    private readonly Uri baseUri = new Uri("https://www.hvg.hu");
+
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
     {
         HtmlDocument doc = new();
@@ -53,9 +55,9 @@ internal class ArchiveLinkParser : ILinkParser
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         var articleUrls = doc.DocumentNode.SelectNodes("//article/div/h1/a").Select(x => x.GetAttributeValue("href", "")).ToList();
-        var result = articleUrls.Select(static url =>
+        var result = articleUrls.Select(link =>
         {
-            return new ScrapingJobBuilder().SetUrl(url)
+            return new ScrapingJobBuilder().SetUrl(new Uri(baseUri, link).ToString())
                                            .SetPageType(PageType.Static)
                                            .SetPageCategory(PageCategory.TargetPage)
                                            .AddContentParser(new ArticleContentParser())

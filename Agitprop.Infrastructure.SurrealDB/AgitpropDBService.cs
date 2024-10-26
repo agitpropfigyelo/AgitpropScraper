@@ -29,6 +29,7 @@ namespace Agitprop.Infrastructure.SurrealDB
                 var mention = new Mentions{Date=article.PublishDate,Url=url};
                 var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
                 var kdi = await client.Relate<Mentions,Mentions>("mentions",src,entIds, mention);
+                logger.LogInformation($"{url} added mentions ({entIds.Count()})");
             }
             catch (System.Exception ex)
             {
@@ -40,6 +41,7 @@ namespace Agitprop.Infrastructure.SurrealDB
         private async Task<Entity> CreateEntityAsync(string entityName)
         {
             Entity result = await client.Create<Entity>("entity", new Entity { Name = entityName });
+            logger.LogInformation($"Added entity {result.Name}");
             return result;
         }
 
@@ -50,8 +52,9 @@ namespace Agitprop.Infrastructure.SurrealDB
                     { "en", entityName },
                 };
             SurrealDbResponse result = await client.RawQuery(selectEntityQuery, parameters);
-            Entity? ent = result.FirstOk.GetValues<Entity>().FirstOrDefault();
-            return ent ?? await CreateEntityAsync(entityName);
+            Entity? ent = result.FirstOk.GetValues<Entity>().FirstOrDefault()?? await CreateEntityAsync(entityName);
+            logger.LogInformation($"Get entity {entityName} : {ent.Id} - {ent.Name}");
+            return ent ;
         }
     }
 }

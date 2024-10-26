@@ -34,6 +34,8 @@ public class ArchivePaginator : IPaginator
 
 public class ArchiveLinkParser : ILinkParser
 {
+    private readonly Uri baseUri = new Uri("https://www.rtl.hu");
+
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
     {
         HtmlDocument doc = new();
@@ -44,7 +46,7 @@ public class ArchiveLinkParser : ILinkParser
     public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         var jobs = doc.DocumentNode.SelectNodes("//article").Select(x => x.FirstChild.GetAttributeValue("href", ""))
-                                   .Select(link => new ScrapingJobBuilder().SetUrl(link)
+                                   .Select(link => new ScrapingJobBuilder().SetUrl(new Uri(baseUri, link).ToString())
                                                                            .SetPageCategory(PageCategory.TargetPage)
                                                                            .SetPageType(PageType.Static)
                                                                            .AddContentParser(new ArticleContentParser())

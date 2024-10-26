@@ -20,18 +20,11 @@ internal class Program
     {
         var startJobFactory = new StartJobFactory();
 
-        var ScraperConfig = new ScraperConfig(
-            StartJobs: [startJobFactory.GetAgitpropScrapingJob(NewsSites.NegyNegyNegy)],
-            // StartJobs: Enum.GetValues(typeof(NewsSites)).Cast<NewsSites>().Select(s => startJobFactory.GetAgitpropScrapingJob(s)),
-            DomainBlackList: [],
-            DomainWhiteList: [],
-            SearchDate: DateOnly.FromDateTime(DateTime.Now).AddDays(-1),
-            PageCrawlLimit: 50,
-            Parallelism: 1,
-            Headless: true);
+        //TODO: me
 
         var builder = Host.CreateApplicationBuilder(args);
         builder.Configuration.AddJsonFile("appsettings.json", false);
+        builder.Configuration.AddJsonFile("sitesToScrape.json", false);
 
         builder.Services.AddResiliencePipeline("Spider", static builder =>
         {
@@ -40,14 +33,16 @@ internal class Program
                 ShouldHandle = args => args.Outcome switch
                 {
                     { Exception: HttpRequestException } => PredicateResult.True(),
+                    { Exception: TaskCanceledException } => PredicateResult.True(),
+                    { Exception: TimeoutException } => PredicateResult.True(),
                     { Exception: NavigationException } => PredicateResult.True(), // You can handle multiple exceptions
                     { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
                     _ => PredicateResult.False()
                 },
                 BackoffType = DelayBackoffType.Constant,
-                Delay = TimeSpan.FromSeconds(2),
-                MaxRetryAttempts = 7,
-                UseJitter = true,
+                Delay = TimeSpan.FromSeconds(0.2),
+                MaxRetryAttempts = 9,
+                UseJitter = false,
             });
         });
 
@@ -58,14 +53,27 @@ internal class Program
         builder.Services.AddTransient<ISink, AgitpropSink>();
 
         builder.Services.AddHostedService<ScraperEngine>();
+
+        var startDate = builder.Configuration.GetValue<DateOnly?>("SearchDate") ?? DateOnly.FromDateTime(DateTime.Now).AddDays(-1);
+
+        var ScraperConfig = new ScraperConfig(
+            // StartJobs: [startJobFactory.GetAgitpropScrapingJob(NewsSites.Huszonnegy, startDate)],
+            StartJobs: Enum.GetValues(typeof(NewsSites)).Cast<NewsSites>().Select(s => startJobFactory.GetAgitpropScrapingJob(s, startDate)),
+            DomainBlackList: [],
+            DomainWhiteList: [],
+            SearchDate: builder.Configuration.GetValue<DateOnly?>("SearchDate"),
+            PageCrawlLimit: builder.Configuration.GetValue<int?>("CrawlLimit") ?? int.MaxValue,
+            Parallelism: builder.Configuration.GetValue<int?>("ParellelismDegree") ?? 1,
+            Headless: builder.Configuration.GetValue<bool?>("Headless") ?? false);
         builder.Services.AddSingleton(ScraperConfig);
         builder.Services.AddTransient<IScheduler, Scheduler>();
         builder.Services.AddLogging(builder =>
         {
             builder.AddConsole();
             builder.AddFile("..\\logs\\agitprop.log");
-            
+
         });
+        builder.Services.AddSingleton<IFailedJobLogger, FileFailedJobLogger>();
         builder.Services.AddTransient<ISpider, Spider>();
         builder.Services.AddTransient<ILinkTracker, Agitprop.Infrastructure.SurrealDB.VisitedLinkTracker>();
 
