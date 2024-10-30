@@ -20,8 +20,6 @@ internal class Program
     {
         var startJobFactory = new StartJobFactory();
 
-        //TODO: me
-
         var builder = Host.CreateApplicationBuilder(args);
         builder.Configuration.AddJsonFile("appsettings.json", false);
         builder.Configuration.AddJsonFile("sitesToScrape.json", false);
@@ -69,11 +67,11 @@ internal class Program
         builder.Services.AddTransient<IScheduler, Scheduler>();
         builder.Services.AddLogging(builder =>
         {
-            builder.AddConsole();
-            builder.AddFile("..\\logs\\agitprop.log");
+            builder.AddFile($"..\\logs\\{DateTime.Now:yyyy-mm-dd_HH-dd-ss}_agitprop.log");
 
         });
         builder.Services.AddSingleton<IFailedJobLogger, FileFailedJobLogger>();
+        builder.Services.AddSingleton<IProgressReporter, ConsoleProgressReporter>();
         builder.Services.AddTransient<ISpider, Spider>();
         builder.Services.AddTransient<ILinkTracker, Agitprop.Infrastructure.SurrealDB.VisitedLinkTracker>();
 

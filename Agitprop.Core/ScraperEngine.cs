@@ -18,9 +18,10 @@ public class ScraperEngine : BackgroundService
     public ISpider Spider;
     public ILogger<ScraperEngine> Logger;
     private IFailedJobLogger FailedJobLogger;
+    private IProgressReporter progressReporter;
     ResiliencePipelineProvider<string> ResiliencePipelineProvider;
 
-    public ScraperEngine(ScraperConfig config, IScheduler scheduler, ISpider spider, ILogger<ScraperEngine> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, IFailedJobLogger failedJobLogger)
+    public ScraperEngine(ScraperConfig config, IScheduler scheduler, ISpider spider, ILogger<ScraperEngine> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, IFailedJobLogger failedJobLogger, IProgressReporter progressReporter)
     {
         this.config = config;
         Scheduler = scheduler;
@@ -28,6 +29,7 @@ public class ScraperEngine : BackgroundService
         Logger = logger;
         ResiliencePipelineProvider = resiliencePipelineProvider;
         FailedJobLogger = failedJobLogger;
+        this.progressReporter = progressReporter;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -56,18 +58,17 @@ public class ScraperEngine : BackgroundService
             await Parallel.ForEachAsync(Scheduler.GetAllAsync(cancellationToken), options, async (jobIn, token) =>
             {
                 token.ThrowIfCancellationRequested();
-                Console.WriteLine(idk);
                 Interlocked.Increment(ref idk);
-                Logger.LogInformation($"Running: {idk} - {jobIn.Url}");
                 if (jobIn is ScrapingJob job)
                 {
 
-                    Logger.LogInformation($"{job.Url} start crawling url ");
+                    Logger.LogInformation($"Crawling started: {job.Url} ");
+                    progressReporter.ReportJobStarted(jobIn.Url);
                     List<ScrapingJob> newJobs = [];
 
                     try
                     {
-                        newJobs = await pipeline.ExecuteAsync(async ct => await Spider.CrawlAsync(jobIn, ct));
+                        newJobs = await pipeline.ExecuteAsync(async ct => await Spider.CrawlAsync(jobIn, progressReporter, ct));
                     }
                     catch (Exception ex) when (
                         ex is HttpRequestException ||
@@ -81,25 +82,29 @@ public class ScraperEngine : BackgroundService
                     {
                         failedJobs.Add(jobIn);
                         Logger.LogError(ex, $"Failed to scrape {job.Url}");
+                        progressReporter.ReportJobFailed(jobIn.Url);
                         await FailedJobLogger.LogFailedJobUrlAsync(jobIn.Url);
                     }
                     catch (PageAlreadyVisitedException ex)
                     {
+                        progressReporter.ReportJobSkipped(jobIn.Url);
                         Logger.LogError(ex, $"Failed to scrape {job.Url}");
                     }
                     catch (Exception ex)
                     {
                         failedJobs.Add(jobIn);
                         ex.Data.Add("url", job.Url);
+                        progressReporter.ReportJobFailed(jobIn.Url);
                         await FailedJobLogger.LogFailedJobUrlAsync(jobIn.Url);
                         throw;
                     }
 
                     Logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     await Scheduler.AddAsync(newJobs, cancellationToken);
-                    Logger.LogInformation($"{job.Url} finished job: {idk}");
+                    progressReporter.ReportNewJobsScheduled(newJobs.Count);
+
+                    Logger.LogInformation($"Crawling finished {jobIn.Url}");
+                    progressReporter.ReportJobSuccess(job.Url);
                 }
             });
             Logger.LogInformation("Finished jobs from scheduler");

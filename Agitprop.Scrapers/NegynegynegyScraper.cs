@@ -37,6 +37,7 @@ internal class ArchiveScrollAction : IBrowserAction
 {
     public async Task ExecuteAsync(IPage page)
     {
+
         await page.WaitForSelectorAsync("#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0");
         await page.ClickAsync("#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button.css-1ruupc0");
         bool hasNext = true;
@@ -94,10 +95,10 @@ internal class ArticleContentParser : IContentParser
         string titleText = titleNode.InnerText.Trim() + " ";
 
         // Select nodes with class "article-lead"
-// /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
-// /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
+        // /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
+        // /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
         var articleNodes = html.DocumentNode.SelectNodes("/html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]//p");
-        var articleText =string.Join(" ", articleNodes.Select(x=>x.InnerText.Trim()));
+        var articleText = string.Join(" ", articleNodes.Select(x => x.InnerText.Trim()));
 
         // Concatenate all text
         string concatenatedText = titleText + articleText;

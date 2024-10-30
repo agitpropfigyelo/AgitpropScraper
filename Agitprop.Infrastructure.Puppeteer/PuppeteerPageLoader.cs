@@ -65,9 +65,6 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
 
         await page.GoToAsync(url, WaitUntilNavigation.Networkidle2);
 
-        //await page.WaitForNetworkIdleAsync();
-
-
         if (pageActions != null)
         {
             Logger.LogInformation("{class}.{method}: performing page actions", nameof(PuppeteerPageLoader), nameof(Load));
