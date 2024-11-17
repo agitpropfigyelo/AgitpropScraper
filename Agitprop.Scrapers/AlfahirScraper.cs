@@ -1,7 +1,7 @@
 ﻿using Agitprop.Core;
+using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Alfahir;
@@ -43,9 +43,9 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : ILinkParser
 {
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        List<ScrapingJob> jobs = [];
+        List<ScrapingJobDescription> jobs = [];
         HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='article']");
         foreach (var item in articleNodes)
         {
@@ -54,11 +54,11 @@ internal class ArchiveLinkParser : ILinkParser
         return Task.FromResult(jobs);
     }
 
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        List<ScrapingJob> jobs = [];
+        List<ScrapingJobDescription> jobs = [];
         HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='article']");
         foreach (var item in articleNodes)
         {
@@ -67,50 +67,50 @@ internal class ArchiveLinkParser : ILinkParser
         return Task.FromResult(jobs);
     }
 
-    private ScrapingJob CreateJob(HtmlNode nodeIn)
+    private ScrapingJobDescription CreateJob(HtmlNode nodeIn)
     {
         var link = nodeIn.SelectSingleNode(".//a[@class='article-title-link']").GetAttributeValue<string>("href", "");
-        var builder = new ScrapingJobBuilder().SetUrl("https://alfahir.hu" + link)
-                                              .SetPageCategory(PageCategory.TargetPage)
-                                              .SetPageType(PageType.Static)
-                                              .AddContentParser(new ArticleContentParser())
-                                              .AddLinkParser(new ArchiveLinkParser());
 
-        return builder.Build();
+        return new ScrapingJobDescription
+        {
+            Url = new Uri($"https://alfahir.hu{link}"),
+            Type = PageContentType.Article,
+            Sinks = { },
+        };
     }
 }
 
 internal class ArchivePaginator : IPaginator
 {
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
         var url = "https://alfahir.hu/hirek/oldalak/1";
         if (int.TryParse(new Uri(currentUrl).Segments.Last(), out var counter))
         {
             url = $"https://alfahir.hu/hirek/oldalak/{++counter}";
         }
-        var result = new ScrapingJobBuilder().SetUrl(url)
-                                             .SetPageType(PageType.Static)
-                                             .SetPageCategory(PageCategory.PageWithPagination)
-                                             .AddPagination(new ArchivePaginator())
-                                             .AddLinkParser(new ArchiveLinkParser())
-                                             .Build();
+        var result = new ScrapingJobDescription
+        {
+            Url = new Uri(url),
+            Type = PageContentType.Archive,
+            Sinks = { },
+        };
         return Task.FromResult(result);
     }
 
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         var url = "https://alfahir.hu/hirek/oldalak/1";
         if (int.TryParse(new Uri(currentUrl).Segments.Last(), out var counter))
         {
             url = $"https://alfahir.hu/hirek/oldalak/{++counter}";
         }
-        var result = new ScrapingJobBuilder().SetUrl(url)
-                                             .SetPageType(PageType.Static)
-                                             .SetPageCategory(PageCategory.PageWithPagination)
-                                             .AddPagination(new ArchivePaginator())
-                                             .AddLinkParser(new ArchiveLinkParser())
-                                             .Build();
+        var result = new ScrapingJobDescription
+        {
+            Url = new Uri(url),
+            Type = PageContentType.Archive,
+            Sinks = { },
+        };
         return Task.FromResult(result);
     }
 }

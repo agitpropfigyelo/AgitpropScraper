@@ -1,71 +1,10 @@
 ﻿using Agitprop.Core;
+using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure;
 using HtmlAgilityPack;
-using PuppeteerSharp;
-
 
 namespace Agitprop.Scrapers.Hvg;
-
-internal class ArchivePaginator : DateBasedArchive, IPaginator
-{
-    public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
-    {
-        return new ScrapingJobBuilder().SetUrl(GetDateBasedUrl("http://hvg.hu/frisshirek", currentUrl))
-                                       .SetPageType(PageType.Static)
-                                       .SetPageCategory(PageCategory.PageWithPagination)
-                                       .AddPagination(new ArchivePaginator())
-                                       .AddLinkParser(new ArchiveLinkParser())
-                                       .AddPageAction(new PageAction(PageActionType.Click, ["#qc-cmp2-ui > div.qc-cmp2-footer.qc-cmp2-footer-overlay.qc-cmp2-footer-scrolled > div > button:nth-child(2)"]))
-                                       .AddPageAction(new PageAction(PageActionType.ScrollToEnd))
-                                       .Build();
-    }
-
-    protected static new string GetDateBasedUrl(string urlBase, string current)
-    {
-        var currentUrl = new Uri(current);
-        var nextDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
-        if (DateOnly.TryParse(string.Join(".", currentUrl.Segments[^1]), out DateOnly date))
-        {
-            nextDate = date.AddDays(-1);
-        }
-        return $"{urlBase}/{nextDate.Year:D4}.{nextDate.Month:D2}.{nextDate.Day:D2}";
-    }
-
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
-    }
-}
-
-internal class ArchiveLinkParser : ILinkParser
-{
-    private readonly Uri baseUri = new Uri("https://www.hvg.hu");
-
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
-    {
-        HtmlDocument doc = new();
-        doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
-    }
-
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
-    {
-        var articleUrls = doc.DocumentNode.SelectNodes("//article/div/h1/a").Select(x => x.GetAttributeValue("href", "")).ToList();
-        var result = articleUrls.Select(link =>
-        {
-            return new ScrapingJobBuilder().SetUrl(new Uri(baseUri, link).ToString())
-                                           .SetPageType(PageType.Static)
-                                           .SetPageCategory(PageCategory.TargetPage)
-                                           .AddContentParser(new ArticleContentParser())
-                                           .Build();
-        }).ToList();
-        return Task.FromResult(result);
-    }
-}
 
 internal class ArticleContentParser : IContentParser
 {
@@ -102,5 +41,60 @@ internal class ArticleContentParser : IContentParser
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
         return this.ParseContentAsync(doc);
+    }
+}
+
+internal class ArchivePaginator : DateBasedArchive, IPaginator
+{
+    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
+    {
+        return new ScrapingJobDescription
+        {
+            Url = new Uri(GetDateBasedUrl("http://hvg.hu/frisshirek", currentUrl)),
+            Type = PageContentType.Archive,
+            Sinks = { },
+        };
+    }
+
+    protected static new string GetDateBasedUrl(string urlBase, string current)
+    {
+        var currentUrl = new Uri(current);
+        var nextDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
+        if (DateOnly.TryParse(string.Join(".", currentUrl.Segments[^1]), out DateOnly date))
+        {
+            nextDate = date.AddDays(-1);
+        }
+        return $"{urlBase}/{nextDate.Year:D4}.{nextDate.Month:D2}.{nextDate.Day:D2}";
+    }
+
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(docString);
+        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+    }
+}
+
+internal class ArchiveLinkParser : ILinkParser
+{
+    private readonly Uri baseUri = new Uri("https://www.hvg.hu");
+
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
+    {
+        HtmlDocument doc = new();
+        doc.LoadHtml(docString);
+        return this.GetLinksAsync(baseUrl, doc);
+    }
+
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    {
+        var articleUrls = doc.DocumentNode.SelectNodes("//article/div/h1/a").Select(x => x.GetAttributeValue("href", "")).ToList();
+        var result = articleUrls.Select(link => new ScrapingJobDescription
+        {
+            Url = new Uri(baseUri, link),
+            Type = PageContentType.Article,
+            Sinks = { },
+        }).ToList();
+        return Task.FromResult(result);
     }
 }

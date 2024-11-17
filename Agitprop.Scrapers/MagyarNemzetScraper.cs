@@ -1,4 +1,5 @@
 ﻿using Agitprop.Core;
+using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure;
@@ -47,20 +48,20 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchivePaginator : IPaginator
 {
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
         var uri = new Uri(currentUrl);
         var currentDate = DateOnly.ParseExact(uri.Segments[^1].Replace("_sitemap.xml", ""), "yyyyMM");
         var nextJobDate = currentDate.AddMonths(-1);
-        return Task.FromResult(new ScrapingJobBuilder().SetUrl($"{uri.GetLeftPart(UriPartial.Authority)}/{nextJobDate:yyyyMM}_sitemap.xml")
-                                       .SetPageType(PageType.Static)
-                                       .SetPageCategory(PageCategory.PageWithPagination)
-                                       .AddContentParser(new ArticleContentParser())
-                                       .AddPagination(new ArchivePaginator())
-                                       .Build());
+        return Task.FromResult(new ScrapingJobDescription
+        {
+            Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/{nextJobDate:yyyyMM}_sitemap.xml"),
+            Type = PageContentType.Archive,
+            Sinks = { }
+        });
     }
 
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
@@ -70,23 +71,29 @@ internal class ArchivePaginator : IPaginator
 
 internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        var result = base.GetLinks(doc.ToString()).Select(link => new ScrapingJobBuilder().SetUrl(link)
-                                                                                .SetPageType(PageType.Static)
-                                                                                .SetPageCategory(PageCategory.TargetPage)
-                                                                                .AddContentParser(new ArticleContentParser())
-                                                                                .Build()).ToList();
+        var result = base.GetLinks(doc.ToString())
+                         .Select(link => new ScrapingJobDescription
+                         {
+                             Url = new Uri(link),
+                             Type = PageContentType.Article,
+                             Sinks = { }
+                         })
+                         .ToList();
         return Task.FromResult(result);
     }
 
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
-        var result = base.GetLinks(docString).Select(link => new ScrapingJobBuilder().SetUrl(link)
-                                                                                .SetPageType(PageType.Static)
-                                                                                .SetPageCategory(PageCategory.TargetPage)
-                                                                                .AddContentParser(new ArticleContentParser())
-                                                                                .Build()).ToList();
+        var result = base.GetLinks(docString)
+                        .Select(link => new ScrapingJobDescription
+                        {
+                            Url = new Uri(link),
+                            Type = PageContentType.Article,
+                            Sinks = { }
+                        })
+                        .ToList();
         return Task.FromResult(result);
     }
 }

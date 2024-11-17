@@ -1,35 +1,11 @@
 ﻿using System.Net;
 using Agitprop.Core;
+using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Kuruczinfo;
-
-
-internal class ArchiveLinkParser : ILinkParser
-{
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
-    {
-        var jobs = doc.DocumentNode.SelectNodes(".//div[@class='alcikkheader']/a").Select(x => x.GetAttributeValue<string>("href", "")).Select(url =>
-        {
-            return new ScrapingJobBuilder().SetUrl(url)
-                                           .SetPageCategory(PageCategory.TargetPage)
-                                           .SetPageType(PageType.Static)
-                                           .AddContentParser(new ArticleContentParser())
-                                           .Build();
-        }).ToList();
-        return Task.FromResult(jobs);
-    }
-
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
-    {
-        HtmlDocument doc = new();
-        doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
-    }
-}
 
 internal class ArticleContentParser : IContentParser
 {
@@ -70,21 +46,45 @@ internal class ArticleContentParser : IContentParser
     }
 }
 
+internal class ArchiveLinkParser : ILinkParser
+{
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    {
+        var jobs = doc.DocumentNode.SelectNodes(".//div[@class='alcikkheader']/a")
+                                   .Select(x => x.GetAttributeValue<string>("href", ""))
+                                   .Select(url => new ScrapingJobDescription
+                                   {
+                                       Url = new Uri(url),
+                                       Type = PageContentType.Article,
+                                       Sinks = { },
+                                   })
+                                   .ToList();
+        return Task.FromResult(jobs);
+    }
+
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
+    {
+        HtmlDocument doc = new();
+        doc.LoadHtml(docString);
+        return this.GetLinksAsync(baseUrl, doc);
+    }
+}
+
 public class ArchivePaginator : IPaginator
 {
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
         int pageNum = int.Parse(currentUrl.Split("/")[^2]) + 20;
-        var result = new ScrapingJobBuilder().SetUrl($"https://kuruc.info/to/1/{pageNum}/")
-                                             .SetPageType(PageType.Static)
-                                             .SetPageCategory(PageCategory.PageWithPagination)
-                                             .AddPagination(new ArchivePaginator())
-                                             .AddLinkParser(new ArchiveLinkParser())
-                                             .Build();
+        var result = new ScrapingJobDescription
+        {
+            Url = new Uri($"https://kuruc.info/to/1/{pageNum}/"),
+            Type = PageContentType.Archive,
+            Sinks = { }
+        };
         return Task.FromResult(result);
     }
 
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);

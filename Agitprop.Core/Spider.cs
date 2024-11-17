@@ -1,4 +1,5 @@
-﻿using Agitprop.Core.Enums;
+﻿using Agitprop.Core.Contracts;
+using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
@@ -26,7 +27,7 @@ public class Spider : ISpider
         Config = config;
     }
 
-    public async Task<List<ScrapingJob>> CrawlAsync(ScrapingJob job, IProgressReporter progressReporter, CancellationToken cancellationToken = default)
+    public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, IProgressReporter progressReporter, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         //if ((configuration["UrlBlacklist"] ?? new List<string>()).Contains(job.Url)) return Enumerable.Empty<ScrapingJob>().ToList();
@@ -50,10 +51,10 @@ public class Spider : ISpider
 
             await LinkTracker.AddVisitedLinkAsync(job.Url);
 
-            return Enumerable.Empty<ScrapingJob>().ToList();
+            return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
 
-        List<ScrapingJob> newJobs = [];
+        List<ScrapingJobDescription> newJobs = [];
         foreach (var linkParser in job.LinkParsers)
         {
             try

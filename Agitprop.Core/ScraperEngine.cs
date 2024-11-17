@@ -4,7 +4,6 @@ using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Polly;
 using Polly.Registry;
 using PuppeteerSharp;
 

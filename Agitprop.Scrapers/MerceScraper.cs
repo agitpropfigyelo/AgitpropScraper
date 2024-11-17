@@ -1,7 +1,7 @@
 ﻿using Agitprop.Core;
+using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure;
 using HtmlAgilityPack;
 
 namespace Agitprop.Scrapers.Merce;
@@ -40,23 +40,23 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : ILinkParser
 {
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
         HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//article/a");
-        var result = articles.Select(x => x.GetAttributeValue("href", "")).Select(link =>
-        {
-            return new ScrapingJobBuilder().SetUrl(link)
-                                           .SetPageType(PageType.Static)
-                                           .SetPageCategory(PageCategory.TargetPage)
-                                           .AddContentParser(new ArticleContentParser())
-                                           .Build();
-        }).ToList();
+        var result = articles.Select(x => x.GetAttributeValue("href", ""))
+                             .Select(link => new ScrapingJobDescription
+                             {
+                                 Url = new Uri(link),
+                                 Type = PageContentType.Article,
+                                 Sinks = { }
+                             })
+                             .ToList();
         return Task.FromResult(result);
     }
 
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         return this.GetLinksAsync(baseUrl, doc);
     }
@@ -64,17 +64,17 @@ internal class ArchiveLinkParser : ILinkParser
 
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
-    public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
+    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
-        return new ScrapingJobBuilder().SetUrl(GetDateBasedUrl("https://merce.hu", currentUrl))
-                                   .SetPageType(PageType.Static)
-                                   .SetPageCategory(PageCategory.PageWithPagination)
-                                   .AddPagination(new ArchivePaginator())
-                                   .AddLinkParser(new ArchiveLinkParser())
-                                   .Build();
+        return new ScrapingJobDescription
+        {
+            Url = new Uri(GetDateBasedUrl("https://merce.hu", currentUrl)),
+            Type = PageContentType.Archive,
+            Sinks = { },
+        };
     }
 
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);

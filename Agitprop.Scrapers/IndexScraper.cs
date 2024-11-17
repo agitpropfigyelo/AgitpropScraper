@@ -1,9 +1,7 @@
-﻿using System.Globalization;
-using System.Xml;
-using Agitprop.Core;
+﻿using Agitprop.Core;
+using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure;
 using HtmlAgilityPack;
 
 
@@ -53,17 +51,18 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
-        var result = GetLinks(docString).Select(link => new ScrapingJobBuilder().SetUrl(link)
-                                                    .SetPageType(PageType.Static)
-                                                    .SetPageCategory(PageCategory.TargetPage)
-                                                    .AddContentParser(new ArticleContentParser())
-                                                    .Build()).ToList();
+        var result = GetLinks(docString).Select(link => new ScrapingJobDescription
+        {
+            Url = new Uri(link),
+            Type = PageContentType.Article,
+            Sinks = { },
+        }).ToList();
         return Task.FromResult(result);
     }
 
-    public Task<List<ScrapingJob>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         return this.GetLinksAsync(baseUrl, doc.ToString());
     }
@@ -71,20 +70,20 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 
 internal class ArchivePaginator : IPaginator
 {
-    public ScrapingJob GetNextPage(string currentUrl, HtmlDocument document)
+    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
         var uri = new Uri(currentUrl);
         var currentDate = DateOnly.ParseExact(uri.Segments[^1].Replace("cikkek_", "").Replace(".xml", ""), "yyyyMM");
         var nextJobDate = currentDate.AddMonths(-1);
-        return new ScrapingJobBuilder().SetUrl($"{uri.GetLeftPart(UriPartial.Authority)}/sitemap/cikkek_{nextJobDate:yyyyMM}.xml")
-                                       .SetPageType(PageType.Static)
-                                       .SetPageCategory(PageCategory.PageWithPagination)
-                                       .AddContentParser(new ArticleContentParser())
-                                       .AddPagination(new ArchivePaginator())
-                                       .Build();
+        return new ScrapingJobDescription
+        {
+            Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/sitemap/cikkek_{nextJobDate:yyyyMM}.xml"),
+            Type = PageContentType.Archive,
+            Sinks = { },
+        };
     }
 
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);

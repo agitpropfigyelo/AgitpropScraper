@@ -1,6 +1,8 @@
-﻿namespace Agitprop.Core.Interfaces;
+﻿using Agitprop.Core.Contracts;
+
+namespace Agitprop.Core.Interfaces;
 
 public interface IPaginator
 {
-    public Task<ScrapingJob> GetNextPageAsync(string currentUrl, string docString);
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString);
 }
