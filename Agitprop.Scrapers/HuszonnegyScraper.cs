@@ -50,7 +50,6 @@ internal class ArchiveLinkParser : ILinkParser
                           {
                               Url = new Uri(url),
                               Type = PageContentType.Article,
-                              Sinks = { }
                           })
                           .ToList();
         return Task.FromResult(result);
@@ -73,7 +72,6 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         {
             Url = new Uri(url),
             Type = PageContentType.Archive,
-            Sinks = { }
         };
         return await Task.FromResult(job);
     }

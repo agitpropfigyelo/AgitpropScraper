@@ -84,7 +84,6 @@ public class ConsoleProgressReporter : IProgressReporter
         {
             sb.AppendLine($"- [{job.Value}]: {job.Key.Truncate(100)}...");
         }
-
         Console.Clear();
         Console.Write(sb.ToString());
     }

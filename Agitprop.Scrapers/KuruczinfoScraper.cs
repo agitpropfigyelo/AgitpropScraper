@@ -56,7 +56,6 @@ internal class ArchiveLinkParser : ILinkParser
                                    {
                                        Url = new Uri(url),
                                        Type = PageContentType.Article,
-                                       Sinks = { },
                                    })
                                    .ToList();
         return Task.FromResult(jobs);
@@ -79,7 +78,6 @@ public class ArchivePaginator : IPaginator
         {
             Url = new Uri($"https://kuruc.info/to/1/{pageNum}/"),
             Type = PageContentType.Archive,
-            Sinks = { }
         };
         return Task.FromResult(result);
     }

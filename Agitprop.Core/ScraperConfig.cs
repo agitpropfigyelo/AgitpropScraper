@@ -1,4 +1,3 @@
-using Agitprop.Infrastructure.Interfaces;
 
 namespace Agitprop.Core;
 
@@ -10,4 +9,6 @@ public record ScraperConfig(
     int PageCrawlLimit,
     int Parallelism,
     bool Headless
-);
+)
+{
+}

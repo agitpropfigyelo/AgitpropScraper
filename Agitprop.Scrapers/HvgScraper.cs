@@ -52,7 +52,6 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         {
             Url = new Uri(GetDateBasedUrl("http://hvg.hu/frisshirek", currentUrl)),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
     }
 
@@ -93,7 +92,6 @@ internal class ArchiveLinkParser : ILinkParser
         {
             Url = new Uri(baseUri, link),
             Type = PageContentType.Article,
-            Sinks = { },
         }).ToList();
         return Task.FromResult(result);
     }

@@ -4,6 +4,7 @@ services:
     build: ./NER # Path to your Python service Dockerfile or source code
     depends_on:
       - surrealdb
+      - rabbitmq
     ports:
       - 5000:5000
     networks:
@@ -21,6 +22,18 @@ services:
       - 8000:8000
     networks:
       - agitprop-net
+
+  rabbitmq:
+    image: masstransit/rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672 # RabbitMQ management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - agitprop-net
+
 networks:
   agitprop-net:
     driver: bridge

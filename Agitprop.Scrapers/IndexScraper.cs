@@ -57,7 +57,6 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
         {
             Url = new Uri(link),
             Type = PageContentType.Article,
-            Sinks = { },
         }).ToList();
         return Task.FromResult(result);
     }
@@ -79,7 +78,6 @@ internal class ArchivePaginator : IPaginator
         {
             Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/sitemap/cikkek_{nextJobDate:yyyyMM}.xml"),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
     }
 

@@ -7,7 +7,6 @@ namespace Agitprop.Consumer.Consumers
     using Agitprop.Infrastructure.Interfaces;
     using Agitprop.Core;
     using Agitprop.Core.Interfaces;
-    using System.Threading;
     using Agitprop.Scrapers.Factories;
     using Polly.Registry;
     using Microsoft.Extensions.Logging;
@@ -26,21 +25,34 @@ namespace Agitprop.Consumer.Consumers
         private ILogger<ScrapingJobConsumer> logger;
         ResiliencePipelineProvider<string> ResiliencePipelineProvider;
 
+        public ScrapingJobConsumer(ISpider spider, ScrapingJobFactory factory, ILogger<ScrapingJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, IProgressReporter progressReporter = default)
+        {
+            this.spider = spider;
+            this.progressReporter = progressReporter;
+            this.factory = factory;
+            this.logger = logger;
+            ResiliencePipelineProvider = resiliencePipelineProvider;
+
+        }
 
         public async Task Consume(ConsumeContext<ScrapingJobDescription> context)
         {
 
-            //kiszedni a descriptor-t és átalakítani scrapingjob-á
             ScrapingJobDescription descriptor = context.Message;
             var source = descriptor.Url.Host;
             var job = CreateJob(descriptor);
-            //futtatni a scrapingjob-ot
-            // var idk = await spider.CrawlAsync(job, progressReporter);
 
             var pipeline = ResiliencePipelineProvider.GetPipeline("Spider");
             try
             {
+                logger.LogInformation($"Crawling started: {job.Url} ");
                 var newJobs = await pipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, progressReporter, ct));
+                logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
+                await context.PublishBatch(newJobs);
+                progressReporter?.ReportNewJobsScheduled(newJobs.Count);
+
+                logger.LogInformation($"Crawling finished {job.Url}");
+                progressReporter?.ReportJobSuccess(job.Url);
             }
             catch (Exception ex) when (
                 ex is HttpRequestException ||
@@ -53,21 +65,20 @@ namespace Agitprop.Consumer.Consumers
                 )
             {
                 logger.LogError(ex, $"Failed to scrape {job.Url}");
-                progressReporter.ReportJobFailed(job.Url);
+                progressReporter?.ReportJobFailed(job.Url);
             }
             catch (PageAlreadyVisitedException ex)
             {
-                progressReporter.ReportJobSkipped(job.Url);
+                progressReporter?.ReportJobSkipped(job.Url);
                 logger.LogError(ex, $"Failed to scrape {job.Url}");
             }
             catch (Exception ex)
             {
                 ex.Data.Add("url", job.Url);
-                progressReporter.ReportJobFailed(job.Url);
+                progressReporter?.ReportJobFailed(job.Url);
                 throw;
             }
             //írd vissza az új task-okat a broker-be
-
             //ha target page, hívd meg a sink-eket
         }
 
@@ -103,7 +114,7 @@ namespace Agitprop.Consumer.Consumers
                 case PageContentType.Archive:
                     return factory.GetArchiveScrapingJob(site, jobDescription.Url.ToString());
                 case PageContentType.Article:
-                    return factory.GetArchiveScrapingJob(site, jobDescription.Url.ToString());
+                    return factory.GetArticleScrapingJob(site, jobDescription.Url.ToString());
                 default:
                     throw new ArgumentException($"Content type \"{jobDescription.Type}\" is not supported {jobDescription.Url}");
 

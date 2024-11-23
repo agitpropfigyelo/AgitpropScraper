@@ -57,7 +57,7 @@ public class ArchivePaginator : IPaginator
         {
             newUlr = $"https://rtl.hu/legfrissebb?oldal={++page}";
         }
-        return new ScrapingJobDescription { Url = new Uri(newUlr), Type = PageContentType.Archive, Sinks = { } };
+        return new ScrapingJobDescription { Url = new Uri(newUlr), Type = PageContentType.Archive };
     }
 
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
@@ -86,7 +86,6 @@ public class ArchiveLinkParser : ILinkParser
                                    {
                                        Url = new Uri(baseUri, link),
                                        Type = PageContentType.Article,
-                                       Sinks = { }
                                    })
                                    .ToList();
 

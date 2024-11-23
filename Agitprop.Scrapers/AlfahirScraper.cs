@@ -75,7 +75,6 @@ internal class ArchiveLinkParser : ILinkParser
         {
             Url = new Uri($"https://alfahir.hu{link}"),
             Type = PageContentType.Article,
-            Sinks = { },
         };
     }
 }
@@ -93,7 +92,6 @@ internal class ArchivePaginator : IPaginator
         {
             Url = new Uri(url),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
         return Task.FromResult(result);
     }
@@ -109,7 +107,6 @@ internal class ArchivePaginator : IPaginator
         {
             Url = new Uri(url),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
         return Task.FromResult(result);
     }

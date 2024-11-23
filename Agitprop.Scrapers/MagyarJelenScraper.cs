@@ -49,7 +49,6 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         {
             Url = new Uri(nextUrl ?? GetDateBasedUrl("https://magyarjelen.hu", currentUrl)),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
     }
 
@@ -71,7 +70,6 @@ internal class ArchiveLinkParser : ILinkParser
                           {
                               Url = new Uri(url),
                               Type = PageContentType.Article,
-                              Sinks = { }
                           })
                           .ToList();
         return Task.FromResult(idk);

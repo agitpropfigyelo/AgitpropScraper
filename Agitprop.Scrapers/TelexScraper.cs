@@ -48,7 +48,6 @@ public class ArchiveLinkParser : ILinkParser
         {
             Url = new Uri(url),
             Type = PageContentType.Article,
-            Sinks = { }
         }).ToList());
     }
 
@@ -73,7 +72,6 @@ public class ArchivePaginator : IPaginator
         {
             Url = new Uri(newUlr),
             Type = PageContentType.Archive,
-            Sinks = { }
         });
     }
 

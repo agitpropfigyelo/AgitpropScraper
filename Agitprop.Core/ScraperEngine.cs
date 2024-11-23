@@ -62,12 +62,12 @@ public class ScraperEngine : BackgroundService
                 {
 
                     Logger.LogInformation($"Crawling started: {job.Url} ");
-                    progressReporter.ReportJobStarted(jobIn.Url);
+                    progressReporter?.ReportJobStarted(jobIn.Url);
                     List<ScrapingJob> newJobs = [];
 
                     try
                     {
-                        newJobs = await pipeline.ExecuteAsync(async ct => await Spider.CrawlAsync(jobIn, progressReporter, ct));
+                        //newJobs = await pipeline.ExecuteAsync(async ct => await Spider.CrawlAsync(jobIn, progressReporter, ct));
                     }
                     catch (Exception ex) when (
                         ex is HttpRequestException ||
@@ -81,29 +81,29 @@ public class ScraperEngine : BackgroundService
                     {
                         failedJobs.Add(jobIn);
                         Logger.LogError(ex, $"Failed to scrape {job.Url}");
-                        progressReporter.ReportJobFailed(jobIn.Url);
+                        progressReporter?.ReportJobFailed(jobIn.Url);
                         await FailedJobLogger.LogFailedJobUrlAsync(jobIn.Url);
                     }
                     catch (PageAlreadyVisitedException ex)
                     {
-                        progressReporter.ReportJobSkipped(jobIn.Url);
+                        progressReporter?.ReportJobSkipped(jobIn.Url);
                         Logger.LogError(ex, $"Failed to scrape {job.Url}");
                     }
                     catch (Exception ex)
                     {
                         failedJobs.Add(jobIn);
                         ex.Data.Add("url", job.Url);
-                        progressReporter.ReportJobFailed(jobIn.Url);
+                        progressReporter?.ReportJobFailed(jobIn.Url);
                         await FailedJobLogger.LogFailedJobUrlAsync(jobIn.Url);
                         throw;
                     }
 
                     Logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
                     await Scheduler.AddAsync(newJobs, cancellationToken);
-                    progressReporter.ReportNewJobsScheduled(newJobs.Count);
+                    progressReporter?.ReportNewJobsScheduled(newJobs.Count);
 
                     Logger.LogInformation($"Crawling finished {jobIn.Url}");
-                    progressReporter.ReportJobSuccess(job.Url);
+                    progressReporter?.ReportJobSuccess(job.Url);
                 }
             });
             Logger.LogInformation("Finished jobs from scheduler");

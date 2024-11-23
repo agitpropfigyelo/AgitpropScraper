@@ -63,7 +63,6 @@ internal class ArchiveLinkParser : ILinkParser
                           {
                               Url = new Uri(link),
                               Type = PageContentType.Article,
-                              Sinks = { },
                           })
                           .ToList();
         return Task.FromResult(result);
@@ -78,7 +77,6 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         {
             Url = new Uri(GetDateBasedUrl("https://www.origo.hu/hirarchivum", currentUrl)),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
     }
 

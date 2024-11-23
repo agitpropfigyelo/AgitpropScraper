@@ -53,7 +53,6 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         {
             Url = new Uri(GetDateBasedUrl("https://444.hu", currentUrl)),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
     }
 
@@ -107,7 +106,6 @@ internal class ArchiveLinkParser : ILinkParser
                              {
                                  Url = new Uri($"https://444.hu{link}"),
                                  Type = PageContentType.Article,
-                                 Sinks = { },
                              }).ToList();
         return Task.FromResult(result);
     }

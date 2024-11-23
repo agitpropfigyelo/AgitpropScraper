@@ -53,7 +53,6 @@ internal class ArchivePaginator : SitemapArchivePaginator, IPaginator
         {
             Url = new Uri(base.GetUrl(currentUrl, document)),
             Type = PageContentType.Archive,
-            Sinks = { },
         };
     }
 
@@ -73,7 +72,6 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
         {
             Url = new Uri(link),
             Type = PageContentType.Article,
-            Sinks = { }
         })
                                         .ToList();
         return Task.FromResult(result);
@@ -85,7 +83,6 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
         {
             Url = new Uri(link),
             Type = PageContentType.Article,
-            Sinks = { }
         }).ToList();
         return Task.FromResult(result);
     }

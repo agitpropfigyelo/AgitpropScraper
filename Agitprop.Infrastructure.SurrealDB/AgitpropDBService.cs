@@ -26,9 +26,9 @@ namespace Agitprop.Infrastructure.SurrealDB
             try
             {
                 var src = RecordId.From("source", $"{article.SourceSite}");
-                var mention = new Mentions{Date=article.PublishDate,Url=url};
+                var mention = new Mentions { Date = article.PublishDate, Url = url };
                 var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
-                var kdi = await client.Relate<Mentions,Mentions>("mentions",src,entIds, mention);
+                var kdi = await client.Relate<Mentions, Mentions>("mentions", src, entIds, mention);
                 logger.LogInformation($"{url} added mentions ({entIds.Count()})");
             }
             catch (System.Exception ex)
@@ -52,9 +52,9 @@ namespace Agitprop.Infrastructure.SurrealDB
                     { "en", entityName },
                 };
             SurrealDbResponse result = await client.RawQuery(selectEntityQuery, parameters);
-            Entity? ent = result.FirstOk.GetValues<Entity>().FirstOrDefault()?? await CreateEntityAsync(entityName);
-            logger.LogInformation($"Get entity {entityName} : {ent.Id} - {ent.Name}");
-            return ent ;
+            Entity ent = result.FirstOk.GetValues<Entity>().FirstOrDefault() ?? await CreateEntityAsync(entityName);
+            logger.LogInformation($"Get entity {entityName} : {ent.Id.DeserializeId<string>()} - {ent.Name}");
+            return ent;
         }
     }
 }

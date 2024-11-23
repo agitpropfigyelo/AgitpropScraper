@@ -11,7 +11,7 @@ cymem==2.0.8
 Flask==3.0.2
 gitdb==4.0.11
 GitPython==3.1.41
-hu-core-news-lg @ https://huggingface.co/huspacy/hu_core_news_lg/resolve/main/hu_core_news_lg-any-py3-none-any.whl#sha256=347c1c54a8de2254f6ec40a1563a940400a34ba76a39261f2a980a59311e9402
+hu-core-news-lg @ https://huggingface.co/huspacy/hu_core_news_lg/resolve/main/hu_core_news_lg-any-py3-none-any.whl
 huspacy==0.11.0
 idna==3.6
 itsdangerous==2.1.2
@@ -29,7 +29,7 @@ requests==2.31.0
 setuptools==69.0.3
 smart-open==6.4.0
 smmap==5.0.1
-spacy==3.7.4
+spacy==3.8.0
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 srsly==2.4.8
