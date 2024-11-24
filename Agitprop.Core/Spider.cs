@@ -32,7 +32,6 @@ public class Spider : ISpider
     {
         cancellationToken.ThrowIfCancellationRequested();
         //if ((configuration["UrlBlacklist"] ?? new List<string>()).Contains(job.Url)) return Enumerable.Empty<ScrapingJob>().ToList();
-
         await CheckCrawlLimit();
         progressReporter?.ReportJobProgress(job.Url, "FETCHING");
         var htmlContent = job.PageType switch

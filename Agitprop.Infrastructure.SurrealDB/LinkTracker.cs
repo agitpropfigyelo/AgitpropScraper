@@ -68,5 +68,10 @@ namespace Agitprop.Infrastructure.SurrealDB
             var num = result.FirstOk.GetValue<long>();
             return num;
         }
+
+        public Task<bool> WasLinkVisited(string link)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

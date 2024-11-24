@@ -31,5 +31,10 @@ public class VisitedLinkTracker : ILinkTracker
         return Task.FromResult((long)visitedUrls.Count);
     }
 
+    public Task<bool> WasLinkVisited(string link)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task Initialization => Task.CompletedTask;
 }
