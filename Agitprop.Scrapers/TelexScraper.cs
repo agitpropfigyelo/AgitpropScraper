@@ -6,7 +6,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-public class ArticleContentParser : IContentParser
+internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
@@ -39,40 +39,51 @@ public class ArticleContentParser : IContentParser
     }
 }
 
-public class ArchiveLinkParser : ILinkParser
+internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
-    {
-        var articles = doc.DocumentNode.SelectNodes("//div[@class='list__item__info']").Select(x => x.FirstChild.GetAttributeValue("href", ""));
-        return Task.FromResult(articles.Select(url => new ScrapingJobDescription
-        {
-            Url = new Uri(url),
-            Type = PageContentType.Article,
-        }).ToList());
-    }
-
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        var result = GetLinks(docString).Select(link => new ScrapingJobDescription
+        {
+            Url = new Uri(link),
+            Type = PageContentType.Article,
+        }).ToList();
+        return Task.FromResult(result);
+    }
+
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    {
+        return this.GetLinksAsync(baseUrl, doc.ToString());
     }
 }
-public class ArchivePaginator : IPaginator
+internal class ArchivePaginator : IPaginator
 {
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
-        var url = new Uri(currentUrl);
-        var newUlr = $"https://telex.hu/legfrissebb?oldal=1";
-        if (int.TryParse(url.Query.Split('=')[1], out var page))
-        {
-            newUlr = $"https://telex.hu/legfrissebb?oldal={++page}";
-        }
+
+        if (string.IsNullOrWhiteSpace(currentUrl))
+            throw new ArgumentException("Current URL cannot be null or empty.", nameof(currentUrl));
+
+        // Parse the current URL to extract date components
+        var uri = new Uri(currentUrl);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        if (segments.Length < 4 || !DateTime.TryParse($"{segments[1]}-{segments[2]}-{segments[3]}", out var currentDate))
+            throw new ArgumentException("The URL does not match the expected date format.");
+
+        // Increment the date
+        var nextDate = currentDate.AddDays(1);
+
+        // Construct the next URL
+        var nextUrl = $"{uri.Scheme}://{uri.Host}/sitemap/{nextDate:yyyy/MM/dd}/news.xml";
+
         return Task.FromResult(new ScrapingJobDescription
         {
-            Url = new Uri(newUlr),
+            Url = new Uri(nextUrl),
             Type = PageContentType.Archive,
         });
+
+
     }
 
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
