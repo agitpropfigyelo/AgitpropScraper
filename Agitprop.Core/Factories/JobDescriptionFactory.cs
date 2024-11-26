@@ -1,7 +1,7 @@
 using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 
-namespace Agitprop.Core;
+namespace Agitprop.Core.Factories;
 
 public static class JobDescriptionFactory
 {

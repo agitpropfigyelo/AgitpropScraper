@@ -3,7 +3,7 @@ using RabbitMQ.Client;
 using System.Text;
 using System.CommandLine;
 using Agitprop.Core.Enums;
-using Agitprop.Core;
+using Agitprop.Core.Factories;
 
 class Program
 {

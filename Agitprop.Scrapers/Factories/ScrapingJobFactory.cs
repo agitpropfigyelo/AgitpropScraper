@@ -1,4 +1,3 @@
-using Agitprop.Infrastructure;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Factories;
 using Agitprop.Core;
@@ -13,35 +12,26 @@ public class ScrapingJobFactory
 
     public ScrapingJob GetArticleScrapingJob(NewsSites source, string url)
     {
-        var ScrapingJobBuilder = new ScrapingJobBuilder();
-        ScrapingJobBuilder.SetUrl(url);
-        ScrapingJobBuilder.SetPageCategory(PageCategory.TargetPage);
-        ScrapingJobBuilder.AddLinkParser(LinkParserFactory.GetLinkParser(source));
-        ScrapingJobBuilder.AddContentParser(ContentParserFactory.GetContentParser(source));
-
-        return ScrapingJobBuilder.Build();
+        return new ScrapingJob
+        {
+            Url = url,
+            PageCategory = PageCategory.TargetPage,
+            PageType = PageType.Static,
+            LinkParsers = [LinkParserFactory.GetLinkParser(source)],
+            ContentParsers = [ContentParserFactory.GetContentParser(source)]
+        };
     }
     public ScrapingJob GetArchiveScrapingJob(NewsSites source, string url)
     {
-        var ScrapingJobBuilder = new ScrapingJobBuilder();
-        ScrapingJobBuilder.SetUrl(url);
-        ScrapingJobBuilder.SetPageCategory(PageCategory.PageWithPagination);
-        ScrapingJobBuilder.AddLinkParser(LinkParserFactory.GetLinkParser(source));
-        ScrapingJobBuilder.AddPagination(PaginatorFactory.GetPaginator(source));
-        ScrapingJobBuilder.AddContentParser(ContentParserFactory.GetContentParser(source));
-
-        if (source == NewsSites.NegyNegyNegy)
+        return new ScrapingJob
         {
-            ScrapingJobBuilder.SetPageType(PageType.Dynamic);
-            PageAction action = new(PageActionType.Execute, new Negynegynegy.ArchiveScrollAction());
-            ScrapingJobBuilder.AddPageAction(action);
-        }
-        else
-        {
-            ScrapingJobBuilder.SetPageType(PageType.Static);
-
-        }
-
-        return ScrapingJobBuilder.Build();
+            Url = url,
+            PageCategory = PageCategory.PageWithPagination,
+            PageType = source == NewsSites.NegyNegyNegy ? PageType.Dynamic : PageType.Static,
+            Actions = source == NewsSites.NegyNegyNegy ? [new(PageActionType.Execute, new Negynegynegy.ArchiveScrollAction())] : default,
+            LinkParsers = [LinkParserFactory.GetLinkParser(source)],
+            ContentParsers = [ContentParserFactory.GetContentParser(source)],
+            Pagination = PaginatorFactory.GetPaginator(source)
+        };
     }
 }
