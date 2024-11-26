@@ -72,14 +72,6 @@ namespace Agitprop.Consumer.Consumers
                 progressReporter?.ReportJobSkipped(job.Url);
                 logger.LogError(ex, $"Failed to scrape {job.Url}");
             }
-            catch (Exception ex)
-            {
-                ex.Data.Add("url", job.Url);
-                progressReporter?.ReportJobFailed(job.Url);
-                throw;
-            }
-            //írd vissza az új task-okat a broker-be
-            //ha target page, hívd meg a sink-eket
         }
 
         private NewsSites GetNewssiteFromUrl(Uri url)
