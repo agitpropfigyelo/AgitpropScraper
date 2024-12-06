@@ -29,7 +29,6 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
 
     public async Task<string> Load(string url, List<PageAction>? pageActions = null, bool headless = true)
     {
-        using var _ = Logger.LogMethodDuration();
         if (executablePath == null)
         {
 

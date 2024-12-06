@@ -28,8 +28,6 @@ public class HttpStaticPageLoader : IStaticPageLoader
 
     public async Task<string> Load(string url)
     {
-        using var _ = Logger.LogMethodDuration();
-
         PageRequester.CookieContainer = await CookiesStorage.GetAsync(); // TODO move to init factory func
 
         var response = await PageRequester.GetAsync(url);

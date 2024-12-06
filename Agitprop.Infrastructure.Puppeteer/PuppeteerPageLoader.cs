@@ -21,8 +21,6 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
     {
         Logger.LogInformation("{class}.{method}", nameof(PuppeteerPageLoader), nameof(Load));
 
-        using var _ = Logger.LogMethodDuration();
-
         var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
         {
             Path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
