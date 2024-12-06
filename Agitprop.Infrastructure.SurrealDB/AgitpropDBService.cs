@@ -1,4 +1,3 @@
-using System;
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.SurrealDB.Models;

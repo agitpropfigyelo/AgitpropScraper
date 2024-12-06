@@ -6,19 +6,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- <ItemGroup>
-    <PackageReference Include="SurrealDb.Net" Version="6.0.0" />
-  </ItemGroup> -->
-
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Core\Agitprop.Core.csproj" />
-    <ProjectReference Include="..\..\surrealdb.net\SurrealDb.Net\SurrealDb.Net.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="db_init.surql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SurrealDb.Net" Version="0.6.0" />
   </ItemGroup>
 
 </Project>
