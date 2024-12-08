@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY *.csproj ./
-COPY Agitprop.Core/*.csproj ./Agitprop.Core/
-COPY Agitprop.Infrastructure.InMemory/*.csproj ./Agitprop.Infrastructure.InMemory/
-COPY Agitprop.Infrastructure.Puppeteer/*.csproj ./Agitprop.Infrastructure.Puppeteer/
-COPY Agitprop.Infrastructure.SurrealDB/*.csproj ./Agitprop.Infrastructure.SurrealDB/
-COPY Agitprop.Scrapers/*.csproj ./Agitprop.Scrapers/
+COPY ../Agitprop.Core/*.csproj ./Agitprop.Core/
+COPY ../Agitprop.Infrastructure.InMemory/*.csproj ./Agitprop.Infrastructure.InMemory/
+COPY ../Agitprop.Infrastructure.Puppeteer/*.csproj ./Agitprop.Infrastructure.Puppeteer/
+COPY ../Agitprop.Infrastructure.SurrealDB/*.csproj ./Agitprop.Infrastructure.SurrealDB/
+COPY ../Agitprop.Scrapers/*.csproj ./Agitprop.Scrapers/
 
 RUN dotnet restore
 
