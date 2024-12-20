@@ -96,13 +96,13 @@ namespace Agitprop.Consumer
 
                 });
 
+                services.AddHostedService<RssFeedReader>();
                 services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
 
                 services.AddTransient<IAgitpropDataBaseService, AgitpropDBService>();
                 services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
                 services.AddTransient<ISink, AgitpropSink>();
 
-                //services.AddSingleton<IProgressReporter, ConsoleProgressReporter>();
                 services.AddTransient<ISpider, Spider>();
                 services.AddTransient<ILinkTracker, VisitedLinkTracker>();
                 services.AddSingleton<ScrapingJobFactory>();

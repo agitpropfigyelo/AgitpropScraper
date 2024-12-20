@@ -14,7 +14,7 @@ namespace Agitprop.Consumer.Consumers
     using PuppeteerSharp;
     using Agitprop.Core.Exceptions;
     using Agitprop.Core.Contracts;
-
+    using Polly;
 
     public class ScrapingJobConsumer :
         IConsumer<ScrapingJobDescription>
@@ -23,7 +23,7 @@ namespace Agitprop.Consumer.Consumers
         private IProgressReporter progressReporter;
         private ScrapingJobFactory factory;
         private ILogger<ScrapingJobConsumer> logger;
-        ResiliencePipelineProvider<string> ResiliencePipelineProvider;
+        private ResiliencePipeline resiliencePipeline;
 
         public ScrapingJobConsumer(ISpider spider, ScrapingJobFactory factory, ILogger<ScrapingJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, IProgressReporter progressReporter = default)
         {
@@ -31,7 +31,7 @@ namespace Agitprop.Consumer.Consumers
             this.progressReporter = progressReporter;
             this.factory = factory;
             this.logger = logger;
-            ResiliencePipelineProvider = resiliencePipelineProvider;
+            resiliencePipeline = resiliencePipelineProvider.GetPipeline("Spider");
 
         }
 
@@ -42,11 +42,10 @@ namespace Agitprop.Consumer.Consumers
             var source = descriptor.Url.Host;
             var job = CreateJob(descriptor);
 
-            var pipeline = ResiliencePipelineProvider.GetPipeline("Spider");
             try
             {
                 logger.LogInformation($"Crawling started: {job.Url} ");
-                var newJobs = await pipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, progressReporter, ct));
+                var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, progressReporter, ct));
                 logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
                 await context.PublishBatch(newJobs);
                 progressReporter?.ReportNewJobsScheduled(newJobs.Count);

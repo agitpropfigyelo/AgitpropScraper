@@ -10,13 +10,17 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="MassTransit" Version="[8.*,9.0)" />
     <PackageReference Include="NReco.Logging.File" Version="1.2.1" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Core\Agitprop.Core.csproj" />
-    <ProjectReference Include="..\Agitprop.Infrastructure.InMemory\Agitprop.Infrastructure.InMemory.csproj" />
-    <ProjectReference Include="..\Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj" />
-    <ProjectReference Include="..\Agitprop.Infrastructure.SurrealDB\Agitprop.Infrastructure.SurrealDB.csproj" />
+    <ProjectReference
+      Include="..\Agitprop.Infrastructure.InMemory\Agitprop.Infrastructure.InMemory.csproj" />
+    <ProjectReference
+      Include="..\Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj" />
+    <ProjectReference
+      Include="..\Agitprop.Infrastructure.SurrealDB\Agitprop.Infrastructure.SurrealDB.csproj" />
     <ProjectReference Include="..\Agitprop.Scrapers\Agitprop.Scrapers.csproj" />
   </ItemGroup>
 </Project>
