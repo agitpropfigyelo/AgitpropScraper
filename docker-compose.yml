@@ -1,7 +1,6 @@
-version: '3.9'
 services:
   python-processor:
-    build: ./NER # Path to your Python service Dockerfile or source code
+    image: ghcr.io/agitpropfigyelo/pythonnerservice:latest
     depends_on:
       - surrealdb
       - rabbitmq
