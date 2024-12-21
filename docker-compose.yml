@@ -1,9 +1,14 @@
 services:
-  python-processor:
-    image: ghcr.io/agitpropfigyelo/pythonnerservice:latest
+  consumer:
+    image: ghcr.io/agitpropfigyelo/python-consumer:latest
     depends_on:
       - surrealdb
       - rabbitmq
+    networks:
+      - agitprop-net
+
+  python-processor:
+    image: ghcr.io/agitpropfigyelo/python-ner-service:latest
     ports:
       - 5000:5000
     networks:
