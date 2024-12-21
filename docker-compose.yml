@@ -1,6 +1,6 @@
 services:
   consumer:
-    image: ghcr.io/agitpropfigyelo/agitpropfigyelo/agitprop-consumer:latest
+    image: ghcr.io/agitpropfigyelo/agitprop-consumer:latest
     depends_on:
       - surrealdb
       - rabbitmq
