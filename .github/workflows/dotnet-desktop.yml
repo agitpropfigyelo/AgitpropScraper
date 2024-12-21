@@ -33,8 +33,6 @@ jobs:
     - name: Build and push container
       uses: docker/build-push-action@v4
       with:
-        context: ./Agitprop.Consumer # Explicitly set the build context to the root folder
-        file: ./Agitprop.Consumer/Dockerfile # Explicitly specify the Dockerfile in the root folder
         push: true
         tags: |
           ghcr.io/${{ github.repository_owner }}/agitprop-consumer:${{ github.ref_name }}
