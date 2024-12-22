@@ -24,6 +24,7 @@ using Agitprop.Infrastructure.InMemory;
 using Agitprop.Infrastructure.Puppeteer;
 using VisitedLinkTracker = Agitprop.Infrastructure.SurrealDB.VisitedLinkTracker;
 using Agitprop.Scrapers.Factories;
+using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Consumer
 {
@@ -39,6 +40,11 @@ namespace Agitprop.Consumer
             .ConfigureAppConfiguration((hostBuilder, config) =>
             {
                 config.AddJsonFile("appsettings.json", false, true);
+                if (hostBuilder.HostingEnvironment.IsDevelopment())
+                {
+                    Console.WriteLine("Development environment detected. Loading appsettings.Development.json");
+                    config.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+                }
             })
             .ConfigureServices((hostContext, services) =>
             {
