@@ -84,7 +84,7 @@ namespace Agitprop.Consumer.Consumers
                 "magyarnemzet.hu" => NewsSites.MagyarNemzet,
                 "pestisracok.hu" => NewsSites.PestiSracok,
                 "magyarjelen.hu" => NewsSites.MagyarJelen,
-                "kurucz.info" => NewsSites.Kuruczinfo,
+                "kuruc.info" => NewsSites.Kurucinfo,
                 "alfahir.hu" => NewsSites.Alfahir,
                 "24.hu" => NewsSites.Huszonnegy,
                 "444.hu" => NewsSites.NegyNegyNegy,

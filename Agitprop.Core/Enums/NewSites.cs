@@ -9,7 +9,7 @@ public enum NewsSites
     MagyarNemzet,
     PestiSracok,
     MagyarJelen,
-    Kuruczinfo,
+    Kurucinfo,
     Alfahir,
     Huszonnegy,
     NegyNegyNegy,

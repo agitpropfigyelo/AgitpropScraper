@@ -51,7 +51,7 @@ UPDATE source:Alfahir CONTENT { Src: NULL, id: source:Alfahir };
 UPDATE source:HVG CONTENT { Src: NULL, id: source:HVG };
 UPDATE source:Huszonnegy CONTENT { Src: NULL, id: source:Huszonnegy };
 UPDATE source:Index CONTENT { Src: NULL, id: source:Index };
-UPDATE source:Kuruczinfo CONTENT { Src: NULL, id: source:Kuruczinfo };
+UPDATE source:Kurucinfo CONTENT { Src: NULL, id: source:Kurucinfo };
 UPDATE source:MagyarJelen CONTENT { Src: NULL, id: source:MagyarJelen };
 UPDATE source:MagyarNemzet CONTENT { Src: NULL, id: source:MagyarNemzet };
 UPDATE source:Mandiner CONTENT { Src: NULL, id: source:Mandiner };

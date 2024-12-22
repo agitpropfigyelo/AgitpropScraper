@@ -17,7 +17,7 @@ public class PaginatorFactory : IPaginatorFactory
             NewsSites.MagyarNemzet => new Magyarnemzet.ArchivePaginator(),
             NewsSites.PestiSracok => new Pestisracok.ArchivePaginator(),
             NewsSites.MagyarJelen => new Magyarjelen.ArchivePaginator(),
-            NewsSites.Kuruczinfo => new Kuruczinfo.ArchivePaginator(),
+            NewsSites.Kurucinfo => new Kurucinfo.ArchivePaginator(),
             NewsSites.Alfahir => new Alfahir.ArchivePaginator(),
             NewsSites.Huszonnegy => new Huszonnegy.ArchivePaginator(),
             NewsSites.NegyNegyNegy => new Negynegynegy.ArchivePaginator(),

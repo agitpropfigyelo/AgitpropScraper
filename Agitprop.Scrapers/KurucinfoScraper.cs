@@ -5,7 +5,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Kuruczinfo;
+namespace Agitprop.Scrapers.Kurucinfo;
 
 internal class ArticleContentParser : IContentParser
 {
@@ -33,7 +33,7 @@ internal class ArticleContentParser : IContentParser
         return Task.FromResult(new ContentParserResult()
         {
             PublishDate = date,
-            SourceSite = NewsSites.Kuruczinfo,
+            SourceSite = NewsSites.Kurucinfo,
             Text = Helper.CleanUpText(concatenatedText)
         });
     }

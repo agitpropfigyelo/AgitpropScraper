@@ -21,7 +21,7 @@ public class ContentParserFactory : IContentParserFactory
             NewsSites.MagyarNemzet => new Magyarnemzet.ArticleContentParser(),
             NewsSites.PestiSracok => new Pestisracok.ArticleContentParser(),
             NewsSites.MagyarJelen => new Magyarjelen.ArticleContentParser(),
-            NewsSites.Kuruczinfo => new Kuruczinfo.ArticleContentParser(),
+            NewsSites.Kurucinfo => new Kurucinfo.ArticleContentParser(),
             NewsSites.Alfahir => new Alfahir.ArticleContentParser(),
             NewsSites.Huszonnegy => new Huszonnegy.ArticleContentParser(),
             NewsSites.NegyNegyNegy => new Negynegynegy.ArticleContentParser(),

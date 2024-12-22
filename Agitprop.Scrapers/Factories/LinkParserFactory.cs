@@ -17,7 +17,7 @@ public class LinkParserFactory : ILinkParserFactory
             NewsSites.MagyarNemzet => new Magyarnemzet.ArchiveLinkParser(),
             NewsSites.PestiSracok => new Pestisracok.ArchiveLinkParser(),
             NewsSites.MagyarJelen => new Magyarjelen.ArchiveLinkParser(),
-            NewsSites.Kuruczinfo => new Kuruczinfo.ArchiveLinkParser(),
+            NewsSites.Kurucinfo => new Kurucinfo.ArchiveLinkParser(),
             NewsSites.Alfahir => new Alfahir.ArchiveLinkParser(),
             NewsSites.Huszonnegy => new Huszonnegy.ArchiveLinkParser(),
             NewsSites.NegyNegyNegy => new Negynegynegy.ArchiveLinkParser(),

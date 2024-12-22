@@ -26,6 +26,8 @@ public class RssFeedReader : IHostedService, IDisposable
 
     public RssFeedReader(IConfiguration configuration, ILogger<RssFeedReader> logger, IServiceScopeFactory scopeFactory)
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
         _logger = logger;
         _feeds = configuration.GetSection("RssFeedReader:Feeds").Get<string[]>();
         _scopeFactory = scopeFactory;
