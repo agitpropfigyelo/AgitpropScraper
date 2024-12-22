@@ -99,6 +99,7 @@ namespace Agitprop.Consumer
                 services.AddLogging(builder =>
                 {
                     builder.AddFile($"..\\logs\\{DateTime.Now:yyyy-mm-dd_HH-dd-ss}_agitprop.log");
+                    builder.AddConsole();
 
                 });
 
