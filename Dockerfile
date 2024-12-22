@@ -23,4 +23,4 @@ RUN apt-get update && apt-get install -y locales \
     && localedef -i en_US -f ISO-8859-2 en_US.ISO-8859-2
 WORKDIR /App
 COPY --from=build-env /App/Agitprop.Consumer/out .
-ENTRYPOINT ["dotnet", "Agitprop.Consumer.exe"]
+ENTRYPOINT ["dotnet", "Agitprop.Consumer.dll"]
