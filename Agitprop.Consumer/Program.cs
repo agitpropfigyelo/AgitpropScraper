@@ -43,7 +43,7 @@ namespace Agitprop.Consumer
                 if (hostBuilder.HostingEnvironment.IsDevelopment())
                 {
                     Console.WriteLine("Development environment detected. Loading appsettings.Development.json");
-                    config.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+                    config.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true);
                 }
             })
             .ConfigureServices((hostContext, services) =>
@@ -64,7 +64,7 @@ namespace Agitprop.Consumer
 
                     x.UsingRabbitMq((context, cfg) =>
                     {
-                        cfg.Host("localhost", "/", h =>
+                        cfg.Host(hostContext.Configuration.GetValue<string>("RabbitMQ"), "/", h =>
                         {
                             h.Username("guest");
                             h.Password("guest");
