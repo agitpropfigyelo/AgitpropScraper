@@ -16,14 +16,12 @@ services:
 
   surrealdb:
     image: surrealdb/surrealdb:latest
-    user: root
-    command: start file:mydatabase.db
-    environment:
-      - SURREAL_USER=root
-      - SURREAL_PASS=root
-      - SURREAL_LOG=trace
+    container_name: surrealdb
     ports:
-      - 8000:8000
+      - "8000:8000" # Expose the port to the host
+    volumes:
+      - ./mydata:/mydata # Persist data
+    command: start --user root --pass root file:/mydata/mydatabase.db
     networks:
       - agitprop-net
 
