@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Core", "Agitprop.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure", "Agitprop.Infrastructure\Agitprop.Infrastructure.csproj", "{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.InMemory", "Agitprop.Infrastructure.InMemory\Agitprop.Infrastructure.InMemory.csproj", "{5AECA70D-A5BD-4B71-BD73-714F6F1F0BBD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Puppeteer", "Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj", "{77DABB6D-5834-475E-AFD5-A184A355BF5D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Consumer", "Agitprop.Consumer\Agitprop.Consumer.csproj", "{1CBAD7FA-FB04-4121-9575-39E2DBE41605}"
@@ -31,10 +29,6 @@ Global
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5AECA70D-A5BD-4B71-BD73-714F6F1F0BBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5AECA70D-A5BD-4B71-BD73-714F6F1F0BBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5AECA70D-A5BD-4B71-BD73-714F6F1F0BBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5AECA70D-A5BD-4B71-BD73-714F6F1F0BBD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{77DABB6D-5834-475E-AFD5-A184A355BF5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{77DABB6D-5834-475E-AFD5-A184A355BF5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77DABB6D-5834-475E-AFD5-A184A355BF5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
