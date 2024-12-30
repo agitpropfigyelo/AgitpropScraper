@@ -45,11 +45,11 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
-    public NewsfeedJobDescrpition GetNextPage(string currentUrl, HtmlDocument document)
+    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
         return new NewsfeedJobDescrpition
         {
-            Url = new Uri(GetDateBasedUrl("http://hvg.hu/frisshirek", currentUrl)),
+            Url = new Uri(GetDateBasedUrl("http://hvg.hu/frisshirek", currentUrl)).ToString(),
             Type = PageContentType.Archive,
         };
     }
@@ -65,7 +65,7 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         return $"{urlBase}/{nextDate.Year:D4}.{nextDate.Month:D2}.{nextDate.Day:D2}";
     }
 
-    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
@@ -77,21 +77,21 @@ internal class ArchiveLinkParser : ILinkParser
 {
     private readonly Uri baseUri = new Uri("https://www.hvg.hu");
 
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
         return GetLinksAsync(baseUrl, doc);
     }
 
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         var articleUrls = doc.DocumentNode.SelectNodes("//article/div/h1/a").Select(x => x.GetAttributeValue("href", "")).ToList();
         var result = articleUrls.Select(link => new NewsfeedJobDescrpition
         {
-            Url = new Uri(baseUri, link),
+            Url = new Uri(baseUri, link).ToString(),
             Type = PageContentType.Article,
-        }).ToList();
+        }).Cast<ScrapingJobDescription>().ToList();
         return Task.FromResult(result);
     }
 }

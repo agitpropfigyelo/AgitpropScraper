@@ -63,8 +63,8 @@ class Program
 
         foreach (var site in sites)
         {
-            var job = JobDescriptionFactory.GetAgitpropScrapingJob(site, date);
-            var message = JsonSerializer.Serialize(job);
+            //TODO: fix this
+            var message = JsonSerializer.Serialize("job");
             var body = Encoding.UTF8.GetBytes(message);
 
             await channel.BasicPublishAsync(exchange: "",

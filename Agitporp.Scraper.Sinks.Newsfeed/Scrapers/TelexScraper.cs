@@ -40,24 +40,24 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
         var result = GetLinks(docString).Select(link => new NewsfeedJobDescrpition
         {
-            Url = new Uri(link),
+            Url = new Uri(link).ToString(),
             Type = PageContentType.Article,
-        }).ToList();
+        }).Cast<ScrapingJobDescription>().ToList();
         return Task.FromResult(result);
     }
 
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         return this.GetLinksAsync(baseUrl, doc.ToString());
     }
 }
 internal class ArchivePaginator : IPaginator
 {
-    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
 
         if (string.IsNullOrWhiteSpace(currentUrl))
@@ -78,14 +78,14 @@ internal class ArchivePaginator : IPaginator
 
         return Task.FromResult(new NewsfeedJobDescrpition
         {
-            Url = new Uri(nextUrl),
+            Url = new Uri(nextUrl).ToString(),
             Type = PageContentType.Archive,
-        });
+        } as ScrapingJobDescription);
 
 
     }
 
-    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);

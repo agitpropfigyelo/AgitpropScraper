@@ -44,18 +44,18 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
         var result = GetLinks(docString).Select(link => new NewsfeedJobDescrpition
         {
-            Url = new Uri(link),
+            Url = new Uri(link).ToString(),
             Type = PageContentType.Article,
 
-        }).ToList();
+        }).Cast<ScrapingJobDescription>().ToList();
         return Task.FromResult(result);
     }
 
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         return this.GetLinksAsync(baseUrl, doc.ToString());
     }
@@ -63,19 +63,19 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 
 internal class ArchivePaginator : IPaginator
 {
-    public NewsfeedJobDescrpition GetNextPage(string currentUrl, HtmlDocument document)
+    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
         var uri = new Uri(currentUrl);
         var currentDate = DateOnly.ParseExact(uri.Segments[^1].Replace("_sitemap.xml", ""), "yyyyMM");
         var nextJobDate = currentDate.AddMonths(-1);
         return new NewsfeedJobDescrpition
         {
-            Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/{nextJobDate:yyyyMM}_sitemap.xml"),
+            Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/{nextJobDate:yyyyMM}_sitemap.xml").ToString(),
             Type = PageContentType.Archive,
         };
     }
 
-    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);

@@ -39,7 +39,7 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : ILinkParser
 {
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
@@ -47,15 +47,14 @@ internal class ArchiveLinkParser : ILinkParser
         var result = articles.Select(x => x.GetAttributeValue("href", ""))
                              .Select(link => new NewsfeedJobDescrpition
                              {
-                                 Url = new Uri(link),
+                                 Url = new Uri(link).ToString(),
                                  Type = PageContentType.Article,
 
-                             })
-                             .ToList();
+                             }).Cast<ScrapingJobDescription>().ToList();
         return Task.FromResult(result);
     }
 
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         return this.GetLinksAsync(baseUrl, doc);
     }
@@ -63,16 +62,16 @@ internal class ArchiveLinkParser : ILinkParser
 
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
-    public NewsfeedJobDescrpition GetNextPage(string currentUrl, HtmlDocument document)
+    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
         return new NewsfeedJobDescrpition
         {
-            Url = new Uri(GetDateBasedUrl("https://merce.hu", currentUrl)),
+            Url = new Uri(GetDateBasedUrl("https://merce.hu", currentUrl)).ToString(),
             Type = PageContentType.Archive,
         };
     }
 
-    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
+    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);

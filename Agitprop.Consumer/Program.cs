@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
@@ -14,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using NReco.Logging.File;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure.SurrealDB;
 using Agitprop.Infrastructure;
 using Agitprop.Infrastructure.Interfaces;
 using Agitprop.Core;
@@ -22,9 +19,8 @@ using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
 using Agitprop.Infrastructure.InMemory;
 using Agitprop.Infrastructure.Puppeteer;
-using VisitedLinkTracker = Agitprop.Infrastructure.SurrealDB.VisitedLinkTracker;
-using Agitprop.Scrapers.Factories;
 using Microsoft.Extensions.Logging;
+using Agitporp.Scraper.Sinks.Newsfeed;
 
 namespace Agitprop.Consumer
 {
@@ -106,13 +102,10 @@ namespace Agitprop.Consumer
                 services.AddHostedService<RssFeedReader>();
                 services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
 
-                services.AddTransient<IAgitpropDataBaseService, AgitpropDBService>();
-                services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
-                services.AddTransient<ISink, AgitpropSink>();
+                services.AddNewsfeedSink();
 
                 services.AddTransient<ISpider, Spider>();
                 services.AddTransient<ILinkTracker, VisitedLinkTracker>();
-                services.AddSingleton<ScrapingJobFactory>();
 
                 services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
                 services.AddTransient<ICookiesStorage, CookieStorage>();
