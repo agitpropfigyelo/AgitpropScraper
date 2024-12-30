@@ -1,5 +1,4 @@
-﻿using Agitprop.Core.Contracts;
-using Agitprop.Core.Enums;
+﻿using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
@@ -28,12 +27,9 @@ public class Spider : ISpider
         Configuration = configuration;
     }
 
-    public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, IProgressReporter progressReporter, CancellationToken cancellationToken = default)
+    public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        //if ((configuration["UrlBlacklist"] ?? new List<string>()).Contains(job.Url)) return Enumerable.Empty<ScrapingJob>().ToList();
-        await CheckCrawlLimit();
-        progressReporter?.ReportJobProgress(job.Url, "FETCHING");
         var htmlContent = job.PageType switch
         {
             PageType.Static => await LoadStaticPage(job),
@@ -46,7 +42,6 @@ public class Spider : ISpider
 
         if (job.PageCategory == PageCategory.TargetPage)
         {
-            progressReporter?.ReportJobProgress(job.Url, "PROCESSING");
             await ProcessTargetPage(job, doc, cancellationToken);
 
             await LinkTracker.AddVisitedLinkAsync(job.Url);
@@ -80,7 +75,6 @@ public class Spider : ISpider
     private async Task ProcessTargetPage(ScrapingJob job, HtmlDocument doc, CancellationToken cancellationToken = default)
     {
         List<ContentParserResult> results = [];
-        //await job.ContentParsers.Select(async parser => await parser.ParseContentAsync(doc)).ToDictionary();
         foreach (var contentParser in job.ContentParsers)
         {
             try
@@ -98,15 +92,11 @@ public class Spider : ISpider
         if (results.Count == 0) throw new ContentParserException($"No content was scraped from: {job.Url}");
 
         Logger.LogInformation($"Sending scraped data to sinks {job.Url}...");
-        //var sinkTasks = Sinks.Select(sink => sink.EmitAsync(job.Url, results, cancellationToken)).ToList();
-        //var asd = Sinks.Select(sink => sink.Emit(job.Url, results, cancellationToken)).ToList();
         foreach (var item in Sinks)
         {
             item.Emit(job.Url, results, cancellationToken);
         }
 
-        //Logger.LogInformation("Waiting for sinks ...");
-        //await Task.WhenAll(sinkTasks);
         Logger.LogInformation($"Finished waiting for sinks {job.Url}");
     }
 
@@ -125,17 +115,4 @@ public class Spider : ISpider
 
         return doc;
     }
-
-    private async Task CheckCrawlLimit()
-    {
-        if (await LinkTracker.GetVisitedLinksCount() >= (Configuration.GetValue<int?>("PageCrawlLimit") ?? int.MaxValue))
-        {
-            Logger.LogInformation("Page crawl limit has been reached");
-            throw new PageCrawlLimitException("Page crawl limit has been reached.")
-            {
-                PageCrawlLimit = Configuration.GetValue<int>("PageCrawlLimit"),
-            };
-        }
-    }
-
 }

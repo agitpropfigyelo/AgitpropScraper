@@ -1,9 +1,10 @@
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 
-namespace Agitporp.Scraper.Sinks.Newsfeed;
-
-public record NewsfeedJobDescrpition
+namespace Agitporp.Scraper.Sinks.Newsfeed
 {
-    public string Url { get; init; }
-    public PageContentType Type { get; init; }
+    public class NewsfeedJobDescrpition : ScrapingJobDescription
+    {
+        public PageContentType Type { get; init; }
+    }
 }
