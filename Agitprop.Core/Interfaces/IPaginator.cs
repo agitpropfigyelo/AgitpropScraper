@@ -1,6 +1,4 @@
-﻿using Agitprop.Core.Contracts;
-
-namespace Agitprop.Core.Interfaces;
+﻿namespace Agitprop.Core.Interfaces;
 
 public interface IPaginator
 {
