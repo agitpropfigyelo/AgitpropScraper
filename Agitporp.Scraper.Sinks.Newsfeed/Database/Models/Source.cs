@@ -1,6 +1,6 @@
 using SurrealDb.Net.Models;
 
-namespace Agitprop.Infrastructure.SurrealDB.Models
+namespace Agitporp.Scraper.Sinks.Newsfeed.Database.Models
 {
     internal class Source : Record
     {
