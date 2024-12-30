@@ -1,5 +1,4 @@
 ﻿using Agitprop.Core;
-using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
@@ -41,9 +40,9 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
     {
-        var result = GetLinks(docString).Select(link => new ScrapingJobDescription
+        var result = GetLinks(docString).Select(link => new NewsfeedJobDescrpition
         {
             Url = new Uri(link),
             Type = PageContentType.Article,
@@ -51,14 +50,14 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
         return Task.FromResult(result);
     }
 
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         return this.GetLinksAsync(baseUrl, doc.ToString());
     }
 }
 internal class ArchivePaginator : IPaginator
 {
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
 
         if (string.IsNullOrWhiteSpace(currentUrl))
@@ -77,7 +76,7 @@ internal class ArchivePaginator : IPaginator
         // Construct the next URL
         var nextUrl = $"{uri.Scheme}://{uri.Host}/sitemap/{nextDate:yyyy/MM/dd}/news.xml";
 
-        return Task.FromResult(new ScrapingJobDescription
+        return Task.FromResult(new NewsfeedJobDescrpition
         {
             Url = new Uri(nextUrl),
             Type = PageContentType.Archive,
@@ -86,7 +85,7 @@ internal class ArchivePaginator : IPaginator
 
     }
 
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
+    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);

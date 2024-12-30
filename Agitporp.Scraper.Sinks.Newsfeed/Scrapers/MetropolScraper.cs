@@ -1,11 +1,9 @@
-﻿using Agitporp.Scraper.Sinks.Newsfeed.Scrapers;
-using Agitprop.Core;
-using Agitprop.Core.Contracts;
+﻿using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Metropol;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Metropol;
 
 internal class ArticleContentParser : IContentParser
 {
@@ -41,23 +39,23 @@ internal class ArticleContentParser : IContentParser
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
+        return ParseContentAsync(doc);
     }
 }
 
 
 internal class ArchivePaginator : SitemapArchivePaginator, IPaginator
 {
-    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
+    public NewsfeedJobDescrpition GetNextPage(string currentUrl, HtmlDocument document)
     {
-        return new ScrapingJobDescription
+        return new NewsfeedJobDescrpition
         {
-            Url = new Uri(base.GetUrl(currentUrl, document)),
+            Url = new Uri(GetUrl(currentUrl, document)),
             Type = PageContentType.Archive,
         };
     }
 
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
+    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
@@ -67,9 +65,9 @@ internal class ArchivePaginator : SitemapArchivePaginator, IPaginator
 
 internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
     {
-        var result = GetLinks(docString).Select(link => new ScrapingJobDescription
+        var result = GetLinks(docString).Select(link => new NewsfeedJobDescrpition
         {
             Url = new Uri(link),
             Type = PageContentType.Article,
@@ -78,9 +76,9 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
         return Task.FromResult(result);
     }
 
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        var result = GetLinks(doc.ToString()).Select(link => new ScrapingJobDescription
+        var result = GetLinks(doc.ToString()).Select(link => new NewsfeedJobDescrpition
         {
             Url = new Uri(link),
             Type = PageContentType.Article,

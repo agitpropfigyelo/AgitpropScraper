@@ -1,5 +1,4 @@
 ﻿using Agitprop.Core;
-using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
@@ -43,9 +42,9 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : ILinkParser
 {
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        List<ScrapingJobDescription> jobs = [];
+        List<NewsfeedJobDescrpition> jobs = [];
         HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='article']");
         foreach (var item in articleNodes)
         {
@@ -54,11 +53,11 @@ internal class ArchiveLinkParser : ILinkParser
         return Task.FromResult(jobs);
     }
 
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        List<ScrapingJobDescription> jobs = [];
+        List<NewsfeedJobDescrpition> jobs = [];
         HtmlNodeCollection articleNodes = doc.DocumentNode.SelectNodes(".//div[@class='article']");
         foreach (var item in articleNodes)
         {
@@ -67,11 +66,11 @@ internal class ArchiveLinkParser : ILinkParser
         return Task.FromResult(jobs);
     }
 
-    private ScrapingJobDescription CreateJob(HtmlNode nodeIn)
+    private NewsfeedJobDescrpition CreateJob(HtmlNode nodeIn)
     {
         var link = nodeIn.SelectSingleNode(".//a[@class='article-title-link']").GetAttributeValue<string>("href", "");
 
-        return new ScrapingJobDescription
+        return new NewsfeedJobDescrpition
         {
             Url = new Uri($"https://alfahir.hu{link}"),
             Type = PageContentType.Article,
@@ -81,14 +80,14 @@ internal class ArchiveLinkParser : ILinkParser
 
 internal class ArchivePaginator : IPaginator
 {
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
         var url = "https://alfahir.hu/hirek/oldalak/1";
         if (int.TryParse(new Uri(currentUrl).Segments.Last(), out var counter))
         {
             url = $"https://alfahir.hu/hirek/oldalak/{++counter}";
         }
-        var result = new ScrapingJobDescription
+        var result = new NewsfeedJobDescrpition
         {
             Url = new Uri(url),
             Type = PageContentType.Archive,
@@ -96,14 +95,14 @@ internal class ArchivePaginator : IPaginator
         return Task.FromResult(result);
     }
 
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
+    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
     {
         var url = "https://alfahir.hu/hirek/oldalak/1";
         if (int.TryParse(new Uri(currentUrl).Segments.Last(), out var counter))
         {
             url = $"https://alfahir.hu/hirek/oldalak/{++counter}";
         }
-        var result = new ScrapingJobDescription
+        var result = new NewsfeedJobDescrpition
         {
             Url = new Uri(url),
             Type = PageContentType.Archive,

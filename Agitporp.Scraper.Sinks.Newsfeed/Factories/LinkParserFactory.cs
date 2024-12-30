@@ -1,31 +1,30 @@
 ﻿using Agitprop.Core.Enums;
-using Agitprop.Core.Factories;
 using Agitprop.Core.Interfaces;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Factories;
 
-public class LinkParserFactory : ILinkParserFactory
+internal static class LinkParserFactory
 {
-    public ILinkParser GetLinkParser(NewsSites siteIn)
+    public static ILinkParser GetLinkParser(NewsSites siteIn)
     {
         return siteIn switch
         {
-            NewsSites.Origo => new Origo.ArchiveLinkParser(),
-            NewsSites.Ripost => new Ripost.ArchiveLinkParser(),
-            NewsSites.Mandiner => new Mandiner.ArchiveLinkParser(),
-            NewsSites.Metropol => new Metropol.ArchiveLinkParser(),
-            NewsSites.MagyarNemzet => new Magyarnemzet.ArchiveLinkParser(),
-            NewsSites.PestiSracok => new Pestisracok.ArchiveLinkParser(),
-            NewsSites.MagyarJelen => new Magyarjelen.ArchiveLinkParser(),
-            NewsSites.Kurucinfo => new Kurucinfo.ArchiveLinkParser(),
-            NewsSites.Alfahir => new Alfahir.ArchiveLinkParser(),
-            NewsSites.Huszonnegy => new Huszonnegy.ArchiveLinkParser(),
-            NewsSites.NegyNegyNegy => new Negynegynegy.ArchiveLinkParser(),
-            NewsSites.HVG => new Hvg.ArchiveLinkParser(),
-            NewsSites.Telex => new Telex.ArchiveLinkParser(),
-            NewsSites.RTL => new Rtl.ArchiveLinkParser(),
-            NewsSites.Index => new Index.ArchiveLinkParser(),
-            NewsSites.Merce => new Merce.ArchiveLinkParser(),
+            NewsSites.Origo => new Scrapers.Origo.ArchiveLinkParser(),
+            NewsSites.Ripost => new Scrapers.Ripost.ArchiveLinkParser(),
+            NewsSites.Mandiner => new Scrapers.Mandiner.ArchiveLinkParser(),
+            NewsSites.Metropol => new Scrapers.Metropol.ArchiveLinkParser(),
+            NewsSites.MagyarNemzet => new Scrapers.Magyarnemzet.ArchiveLinkParser(),
+            NewsSites.PestiSracok => new Scrapers.Pestisracok.ArchiveLinkParser(),
+            NewsSites.MagyarJelen => new Scrapers.Magyarjelen.ArchiveLinkParser(),
+            NewsSites.Kurucinfo => new Scrapers.Kurucinfo.ArchiveLinkParser(),
+            NewsSites.Alfahir => new Scrapers.Alfahir.ArchiveLinkParser(),
+            NewsSites.Huszonnegy => new Scrapers.Huszonnegy.ArchiveLinkParser(),
+            NewsSites.NegyNegyNegy => new Scrapers.Negynegynegy.ArchiveLinkParser(),
+            NewsSites.HVG => new Scrapers.Hvg.ArchiveLinkParser(),
+            NewsSites.Telex => new Scrapers.Telex.ArchiveLinkParser(),
+            NewsSites.RTL => new Scrapers.Rtl.ArchiveLinkParser(),
+            NewsSites.Index => new Scrapers.Index.ArchiveLinkParser(),
+            NewsSites.Merce => new Scrapers.Merce.ArchiveLinkParser(),
             _ => throw new ArgumentException($"Not supported news source: {siteIn}"),
         };
     }

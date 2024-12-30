@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Agitprop.Core;
+namespace Agitporp.Scraper.Sinks.Newsfeed;
 
 public record NamedEntityCollection
 {

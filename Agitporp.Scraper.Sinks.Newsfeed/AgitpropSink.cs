@@ -1,4 +1,5 @@
-﻿using Agitprop.Core;
+﻿using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
+using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;

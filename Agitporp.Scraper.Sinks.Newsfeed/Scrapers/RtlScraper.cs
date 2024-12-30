@@ -1,5 +1,4 @@
 ﻿using Agitprop.Core;
-using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
@@ -49,7 +48,7 @@ public class ArticleContentParser : IContentParser
 
 public class ArchivePaginator : IPaginator
 {
-    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
+    public NewsfeedJobDescrpition GetNextPage(string currentUrl, HtmlDocument document)
     {
         var url = new Uri(currentUrl);
         var newUlr = $"https://rtl.hu/legfrissebb?oldal=1";
@@ -57,10 +56,10 @@ public class ArchivePaginator : IPaginator
         {
             newUlr = $"https://rtl.hu/legfrissebb?oldal={++page}";
         }
-        return new ScrapingJobDescription { Url = new Uri(newUlr), Type = PageContentType.Archive };
+        return new NewsfeedJobDescrpition { Url = new Uri(newUlr), Type = PageContentType.Archive };
     }
 
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
+    public Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
@@ -72,17 +71,17 @@ public class ArchiveLinkParser : ILinkParser
 {
     private readonly Uri baseUri = new Uri("https://rtl.hu");
 
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
         return this.GetLinksAsync(baseUrl, doc);
     }
 
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         var jobs = doc.DocumentNode.SelectNodes("//article").Select(x => x.FirstChild.GetAttributeValue("href", ""))
-                                   .Select(link => new ScrapingJobDescription
+                                   .Select(link => new NewsfeedJobDescrpition
                                    {
                                        Url = new Uri(baseUri, link),
                                        Type = PageContentType.Article,

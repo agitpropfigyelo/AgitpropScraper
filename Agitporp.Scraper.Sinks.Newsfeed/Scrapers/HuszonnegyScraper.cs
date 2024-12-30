@@ -1,5 +1,4 @@
 ﻿using Agitprop.Core;
-using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
@@ -42,11 +41,11 @@ internal class ArticleContentParser : IContentParser
 
 internal class ArchiveLinkParser : ILinkParser
 {
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         var nodes = doc.DocumentNode.SelectNodes("//*[@id='content']/h2/a");
         var result = nodes.Select(x => x.GetAttributeValue("href", ""))
-                          .Select(url => new ScrapingJobDescription
+                          .Select(url => new NewsfeedJobDescrpition
                           {
                               Url = new Uri(url),
                               Type = PageContentType.Article,
@@ -54,7 +53,7 @@ internal class ArchiveLinkParser : ILinkParser
                           .ToList();
         return Task.FromResult(result);
     }
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
@@ -65,10 +64,10 @@ internal class ArchiveLinkParser : ILinkParser
 
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
-    public async Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public async Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
         var url = GetDateBasedUrl("https://24.hu", currentUrl);
-        var job = new ScrapingJobDescription
+        var job = new NewsfeedJobDescrpition
         {
             Url = new Uri(url),
             Type = PageContentType.Archive,
@@ -76,7 +75,7 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         return await Task.FromResult(job);
     }
 
-    public async Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
+    public async Task<NewsfeedJobDescrpition> GetNextPageAsync(string currentUrl, string docString)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
