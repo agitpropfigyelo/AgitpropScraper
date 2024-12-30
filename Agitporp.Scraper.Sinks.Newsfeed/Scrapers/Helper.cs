@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers;
 
 internal static class Helper
 {

@@ -3,16 +3,16 @@ using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Agitprop.Infrastructure;
+namespace Agitporp.Scraper.Sinks.Newsfeed;
 
-public class AgitpropSink : ISink
+public class NewsfeedSink : ISink
 {
 
     INamedEntityRecognizer NerService;
     IAgitpropDataBaseService DataBase;
-    ILogger<AgitpropSink> Logger;
+    ILogger<NewsfeedSink> Logger;
 
-    public AgitpropSink(INamedEntityRecognizer nerService, IAgitpropDataBaseService dataBase, ILogger<AgitpropSink> logger)
+    public NewsfeedSink(INamedEntityRecognizer nerService, IAgitpropDataBaseService dataBase, ILogger<NewsfeedSink> logger)
     {
         NerService = nerService;
         DataBase = dataBase;
@@ -32,7 +32,6 @@ public class AgitpropSink : ISink
 
     public Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
     {
-        //var tasks=data.Select
         foreach (var article in data)
         {
             var entities = NerService.AnalyzeSingleAsync(article.Text).Result;

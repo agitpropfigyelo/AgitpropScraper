@@ -4,7 +4,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Huszonnegy;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Huszonnegy;
 internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)

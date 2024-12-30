@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Consumer", "Agitpr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleJobAdder", "Agitprop.ConsoleJobAdder\Agitprop.ConsoleJobAdder.csproj", "{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitporp.Scraper.Sinks.Newsfeed", "Agitporp.Scraper.Sinks.Newsfeed\Agitporp.Scraper.Sinks.Newsfeed.csproj", "{B7D370AD-9D3C-4D61-B854-3776DC4540BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,6 @@
-﻿namespace Agitprop.Core.Interfaces;
+﻿using Agitprop.Core;
+
+namespace Agitporp.Scraper.Sinks.Newsfeed;
 
 public interface INamedEntityRecognizer
 {

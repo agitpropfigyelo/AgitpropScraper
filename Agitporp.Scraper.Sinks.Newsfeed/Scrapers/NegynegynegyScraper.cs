@@ -5,12 +5,13 @@ using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 using PuppeteerSharp;
 
-namespace Agitprop.Scrapers.Negynegynegy;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Negynegynegy;
 
 internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
+        //TODO: improve date parsing (today vs this year vs last year...)
         var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[3]/div[4]/div/div[2]/div[2]");
         if (!DateTime.TryParse(dateNode.InnerText, out DateTime date))
         {

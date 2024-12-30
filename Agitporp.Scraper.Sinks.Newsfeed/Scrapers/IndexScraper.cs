@@ -4,26 +4,31 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Mandiner;
+
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Index;
 
 internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
-        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/app-root/app-base/div[3]/app-slug-route-handler/app-article-page/section/div[2]/div/div[5]/div");
+        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='content']/div[4]/div[1]/div/div[1]/div[2]/span");
         DateTime date = DateTime.Parse(dateNode.InnerText);
 
-        // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='article-page-title']");
+        var titleNode = html.DocumentNode.SelectSingleNode("//div[@class='content-title']");
         string titleText = titleNode.InnerText.Trim() + " ";
 
-        // Select nodes with class "article-lead"
-        var leadNode = html.DocumentNode.SelectSingleNode("//p[@class='article-page-lead']");
+        var leadNode = html.DocumentNode.SelectSingleNode("//div[@class='lead']");
         string leadText = leadNode.InnerText.Trim() + " ";
 
-        // Select nodes with tag "origo-wysiwyg-box"
-        var boxNodes = html.DocumentNode.SelectNodes("//man-wysiwyg-box");
-        string boxText = Helper.ConcatenateNodeText(boxNodes);
+        var boxNode = html.DocumentNode.SelectSingleNode("//div[@class='cikk-torzs']");
+
+        var toRemove = boxNode.SelectNodes("//div[contains(@class, 'cikk-bottom-text-ad')]");
+        foreach (var item in toRemove)
+        {
+            item.Remove();
+        }
+
+        string boxText = boxNode.InnerText.Trim() + " ";
 
         // Concatenate all text
         string concatenatedText = titleText + leadText + boxText;
@@ -31,10 +36,11 @@ internal class ArticleContentParser : IContentParser
         return Task.FromResult(new ContentParserResult()
         {
             PublishDate = date,
-            SourceSite = NewsSites.Mandiner,
+            SourceSite = NewsSites.Index,
             Text = Helper.CleanUpText(concatenatedText)
         });
     }
+
     public Task<ContentParserResult> ParseContentAsync(string html)
     {
         var doc = new HtmlDocument();
@@ -51,7 +57,6 @@ internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
         {
             Url = new Uri(link),
             Type = PageContentType.Article,
-
         }).ToList();
         return Task.FromResult(result);
     }
@@ -67,11 +72,11 @@ internal class ArchivePaginator : IPaginator
     public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
         var uri = new Uri(currentUrl);
-        var currentDate = DateOnly.ParseExact(uri.Segments[^1].Replace("_sitemap.xml", ""), "yyyyMM");
+        var currentDate = DateOnly.ParseExact(uri.Segments[^1].Replace("cikkek_", "").Replace(".xml", ""), "yyyyMM");
         var nextJobDate = currentDate.AddMonths(-1);
         return new ScrapingJobDescription
         {
-            Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/{nextJobDate:yyyyMM}_sitemap.xml"),
+            Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/sitemap/cikkek_{nextJobDate:yyyyMM}.xml"),
             Type = PageContentType.Archive,
         };
     }

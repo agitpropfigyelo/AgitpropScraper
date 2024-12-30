@@ -1,4 +1,5 @@
-﻿using Agitprop.Core;
+﻿using Agitporp.Scraper.Sinks.Newsfeed.Scrapers;
+using Agitprop.Core;
 using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;

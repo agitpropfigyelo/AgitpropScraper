@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 using Agitprop.Core;
 using Agitprop.Core.Contracts;
 
-namespace Agitprop.Scrapers.Origo;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Origo;
 
 internal class ArticleContentParser : IContentParser
 {

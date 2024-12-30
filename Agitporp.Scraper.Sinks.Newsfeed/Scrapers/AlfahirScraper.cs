@@ -4,7 +4,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Alfahir;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Alfahir;
 internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument document)
@@ -37,7 +37,7 @@ internal class ArticleContentParser : IContentParser
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
+        return ParseContentAsync(doc);
     }
 }
 

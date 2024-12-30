@@ -2,7 +2,7 @@
 using Agitprop.Core.Factories;
 using Agitprop.Core.Interfaces;
 
-namespace Agitprop.Scrapers.Factories;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Factories;
 
 public class ContentParserFactory : IContentParserFactory
 {

@@ -4,7 +4,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Hvg;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Hvg;
 
 internal class ArticleContentParser : IContentParser
 {
@@ -40,7 +40,7 @@ internal class ArticleContentParser : IContentParser
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
+        return ParseContentAsync(doc);
     }
 }
 
@@ -70,7 +70,7 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+        return Task.FromResult(GetNextPage(currentUrl, doc));
     }
 }
 
@@ -82,7 +82,7 @@ internal class ArchiveLinkParser : ILinkParser
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
     }
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)

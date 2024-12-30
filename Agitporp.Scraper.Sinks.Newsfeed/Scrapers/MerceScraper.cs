@@ -4,7 +4,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Merce;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Merce;
 
 internal class ArticleContentParser : IContentParser
 {

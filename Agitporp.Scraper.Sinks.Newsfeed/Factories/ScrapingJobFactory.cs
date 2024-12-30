@@ -2,7 +2,7 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Factories;
 using Agitprop.Core;
 
-namespace Agitprop.Scrapers.Factories;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Factories;
 
 public class ScrapingJobFactory
 {

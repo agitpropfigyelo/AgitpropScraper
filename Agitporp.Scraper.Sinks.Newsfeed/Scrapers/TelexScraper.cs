@@ -1,10 +1,10 @@
-﻿namespace Agitprop.Scrapers.Telex;
-
-using Agitprop.Core;
+﻿using Agitprop.Core;
 using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
+
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Telex;
 
 internal class ArticleContentParser : IContentParser
 {

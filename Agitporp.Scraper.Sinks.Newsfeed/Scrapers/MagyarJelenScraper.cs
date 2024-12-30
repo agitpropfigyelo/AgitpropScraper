@@ -4,23 +4,22 @@ using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Pestisracok;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Magyarjelen;
 
 internal class ArticleContentParser : IContentParser
 {
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
-        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='left-content']/div[2]/span/time");
-        DateTime date = DateTime.Parse(dateNode.GetAttributeValue("datetime", ""));
+        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[5]/div[1]/div/div/span[2]/time");
+        DateTime date = DateTime.Parse(dateNode.InnerText);
 
         // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectNodes("//h1[contains(@class, 'story-title entry-title')]")[0];
+        var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='is-title post-title']");
         string titleText = titleNode.InnerText.Trim() + " ";
 
         // Select nodes with class "article-lead"
-        var articleNode = html.DocumentNode.SelectNodes("//div[contains(@class, 'wprt-container')]")[0];
+        var articleNode = html.DocumentNode.SelectSingleNode("//div[@class='post-content cf entry-content content-spacious']");
         string articleText = articleNode.InnerText.Trim() + " ";
-
 
         // Concatenate all text
         string concatenatedText = titleText + articleText;
@@ -28,7 +27,7 @@ internal class ArticleContentParser : IContentParser
         return Task.FromResult(new ContentParserResult()
         {
             PublishDate = date,
-            SourceSite = NewsSites.PestiSracok,
+            SourceSite = NewsSites.MagyarJelen,
             Text = Helper.CleanUpText(concatenatedText)
         });
     }
@@ -39,40 +38,41 @@ internal class ArticleContentParser : IContentParser
         doc.LoadHtml(html);
         return this.ParseContentAsync(doc);
     }
-
 }
 
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
+    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
-        return Task.FromResult(new ScrapingJobDescription
+        var nextUrl = document.DocumentNode.SelectSingleNode("//a[contains(@class,'next page-numbers')]")?.GetAttributeValue<string>("href", "");
+        return new ScrapingJobDescription
         {
-            Url = new Uri(GetDateBasedUrl("https://www.pestisracok.hu", currentUrl)),
+            Url = new Uri(nextUrl ?? GetDateBasedUrl("https://magyarjelen.hu", currentUrl)),
             Type = PageContentType.Archive,
-        });
+        };
     }
 
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetNextPageAsync(currentUrl, doc);
+        return Task.FromResult(this.GetNextPage(currentUrl, doc));
     }
 }
+
 internal class ArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        var result = doc.DocumentNode.SelectNodes("//*[@id='home-widget-wrap']/div/ul/li/div[1]/a")
-                                     .Select(x => x.GetAttributeValue("href", ""))
-                                     .Select(link => new ScrapingJobDescription
-                                     {
-                                         Url = new Uri(link),
-                                         Type = PageContentType.Article,
-                                     })
-                                     .ToList();
-        return Task.FromResult(result);
+        HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//div[@class='col-8 main-content']/section/div/div/article/div[1]/a");
+        var idk = articles.Select(x => x.GetAttributeValue("href", ""))
+                          .Select(url => new ScrapingJobDescription
+                          {
+                              Url = new Uri(url),
+                              Type = PageContentType.Article,
+                          })
+                          .ToList();
+        return Task.FromResult(idk);
     }
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)

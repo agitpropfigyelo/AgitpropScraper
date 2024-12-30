@@ -2,11 +2,9 @@
 using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure;
-using Agitprop.Scrapers.Index;
 using HtmlAgilityPack;
 
-namespace Agitprop.Scrapers.Magyarnemzet;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Magyarnemzet;
 
 internal class ArticleContentParser : IContentParser
 {
