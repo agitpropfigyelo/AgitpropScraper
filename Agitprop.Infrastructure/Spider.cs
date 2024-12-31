@@ -1,4 +1,5 @@
-﻿using Agitprop.Core.Enums;
+﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
@@ -6,7 +7,7 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Agitprop.Core;
+namespace Agitprop.Infrastructure;
 
 public class Spider : ISpider
 {

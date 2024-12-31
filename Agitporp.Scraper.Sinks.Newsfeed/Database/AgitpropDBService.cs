@@ -1,6 +1,6 @@
 using Agitporp.Scraper.Sinks.Newsfeed.Database.Models;
+using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
 using Agitprop.Core;
-using Agitprop.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using SurrealDb.Net;
 using SurrealDb.Net.Models;
@@ -8,13 +8,13 @@ using SurrealDb.Net.Models.Response;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Database;
 
-public class AgitpropDBService : IAgitpropDataBaseService
+public class NewsfeedDB : INewsfeedDB
 {
     private readonly static string selectEntityQuery = "select id from entity where Name=$en";
-    private ILogger<AgitpropDBService> logger;
+    private ILogger<NewsfeedDB> logger;
     private ISurrealDbClient client;
 
-    public AgitpropDBService(ILogger<AgitpropDBService> logger, ISurrealDbClient client)
+    public NewsfeedDB(ILogger<NewsfeedDB> logger, ISurrealDbClient client)
     {
         this.logger = logger;
         this.client = client;

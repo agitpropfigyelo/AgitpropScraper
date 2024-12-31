@@ -33,87 +33,76 @@ namespace Agitprop.Consumer
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((hostBuilder, config) =>
+            .ConfigureAppConfiguration(ConfigureApp)
+            .ConfigureServices(ConfigureServices);
+
+        private static void ConfigureApp(HostBuilderContext hostBuilder, IConfigurationBuilder config)
+        {
+            config.AddJsonFile("appsettings.json", false, true);
+            if (hostBuilder.HostingEnvironment.IsDevelopment())
             {
-                config.AddJsonFile("appsettings.json", false, true);
-                if (hostBuilder.HostingEnvironment.IsDevelopment())
-                {
-                    Console.WriteLine("Development environment detected. Loading appsettings.Development.json");
-                    config.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true);
-                }
-            })
-            .ConfigureServices((hostContext, services) =>
+                Console.WriteLine("Development environment detected. Loading appsettings.Development.json");
+                config.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true);
+            }
+        }
+
+        private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
+        {
+            services.AddMassTransit(x =>
             {
-                services.AddMassTransit(x =>
+                x.SetKebabCaseEndpointNameFormatter();
+                x.SetInMemorySagaRepositoryProvider();
+                var entryAssembly = Assembly.GetEntryAssembly();
+                x.AddConsumers(entryAssembly);
+                x.AddSagaStateMachines(entryAssembly);
+                x.AddSagas(entryAssembly);
+                x.AddActivities(entryAssembly);
+
+                x.UsingRabbitMq((context, cfg) =>
                 {
-                    x.SetKebabCaseEndpointNameFormatter();
-                    // By default, sagas are in-memory, but should be changed to a durable
-                    // saga repository.
-                    x.SetInMemorySagaRepositoryProvider();
-
-                    var entryAssembly = Assembly.GetEntryAssembly();
-
-                    x.AddConsumers(entryAssembly);
-                    x.AddSagaStateMachines(entryAssembly);
-                    x.AddSagas(entryAssembly);
-                    x.AddActivities(entryAssembly);
-
-                    x.UsingRabbitMq((context, cfg) =>
+                    cfg.Host(hostContext.Configuration.GetValue<string>("RabbitMQ"), "/", h =>
                     {
-                        cfg.Host(hostContext.Configuration.GetValue<string>("RabbitMQ"), "/", h =>
-                        {
-                            h.Username("guest");
-                            h.Password("guest");
-                        });
-
-                        cfg.ClearSerialization();
-                        cfg.AddRawJsonSerializer();
-                        cfg.ConfigureEndpoints(context);
+                        h.Username("guest");
+                        h.Password("guest");
                     });
+
+                    cfg.ClearSerialization();
+                    cfg.AddRawJsonSerializer();
+                    cfg.ConfigureEndpoints(context);
                 });
-
-                services.AddResiliencePipeline("Spider", static builder =>
-                {
-                    builder.AddRetry(new RetryStrategyOptions
-                    {
-                        ShouldHandle = args => args.Outcome switch
-                        {
-                            { Exception: HttpRequestException } => PredicateResult.True(),
-                            { Exception: TaskCanceledException } => PredicateResult.True(),
-                            { Exception: TimeoutException } => PredicateResult.True(),
-                            { Exception: NavigationException } => PredicateResult.True(), // You can handle multiple exceptions
-                            { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
-                            _ => PredicateResult.False()
-                        },
-                        BackoffType = DelayBackoffType.Constant,
-                        Delay = TimeSpan.FromSeconds(0.2),
-                        MaxRetryAttempts = 9,
-                        UseJitter = false,
-                    });
-                });
-
-                services.AddLogging(builder =>
-                {
-                    builder.AddFile($"..\\logs\\{DateTime.Now:yyyy-mm-dd_HH-dd-ss}_agitprop.log");
-                    builder.AddConsole();
-
-                });
-
-                services.AddHostedService<RssFeedReader>();
-                services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
-
-                services.AddNewsfeedSink();
-
-                services.AddTransient<ISpider, Spider>();
-                services.AddTransient<ILinkTracker, VisitedLinkTracker>();
-
-                services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
-                services.AddTransient<ICookiesStorage, CookieStorage>();
-
-                services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
-                //services.AddTransient<IPageRequester, PageRequester>();
-                services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
-                services.AddTransient<IProxyProvider, ProxyScrapeProxyProvider>();
             });
+
+            services.AddResiliencePipeline("Spider", static builder =>
+            {
+                builder.AddRetry(new RetryStrategyOptions
+                {
+                    ShouldHandle = args => args.Outcome switch
+                    {
+                        { Exception: HttpRequestException } => PredicateResult.True(),
+                        { Exception: TaskCanceledException } => PredicateResult.True(),
+                        { Exception: TimeoutException } => PredicateResult.True(),
+                        { Exception: NavigationException } => PredicateResult.True(),
+                        { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
+                        _ => PredicateResult.False()
+                    },
+                    BackoffType = DelayBackoffType.Constant,
+                    Delay = TimeSpan.FromSeconds(0.2),
+                    MaxRetryAttempts = 9,
+                    UseJitter = false,
+                });
+            });
+
+            services.AddLogging(ConfigureLogging);
+            services.AddHostedService<RssFeedReader>();
+            services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
+            services.AddNewsfeedSink(hostContext.Configuration);
+            services.ConfigureInfrastructure();
+        }
+
+        private static void ConfigureLogging(ILoggingBuilder builder)
+        {
+            builder.AddFile($"..\\logs\\{DateTime.Now:yyyy-mm-dd_HH-dd-ss}_agitprop.log");
+            builder.AddConsole();
+        }
     }
 }

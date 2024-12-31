@@ -1,6 +1,5 @@
 ﻿using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
 using Agitprop.Core;
-using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -10,10 +9,10 @@ public class NewsfeedSink : ISink
 {
 
     INamedEntityRecognizer NerService;
-    IAgitpropDataBaseService DataBase;
+    INewsfeedDB DataBase;
     ILogger<NewsfeedSink> Logger;
 
-    public NewsfeedSink(INamedEntityRecognizer nerService, IAgitpropDataBaseService dataBase, ILogger<NewsfeedSink> logger)
+    public NewsfeedSink(INamedEntityRecognizer nerService, INewsfeedDB dataBase, ILogger<NewsfeedSink> logger)
     {
         NerService = nerService;
         DataBase = dataBase;

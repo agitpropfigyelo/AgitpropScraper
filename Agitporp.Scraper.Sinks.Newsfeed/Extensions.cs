@@ -1,18 +1,38 @@
 using System;
+using Agitporp.Scraper.Sinks.Newsfeed.Database;
 using Agitporp.Scraper.Sinks.Newsfeed.Factories;
 using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
 using Agitprop.Core;
 using Agitprop.Core.Enums;
+using Agitprop.Core.Exceptions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed;
 
 public static class Extensions
 {
-    public static IServiceCollection AddNewsfeedSink(this IServiceCollection services)
+    public static IServiceCollection AddNewsfeedSink(this IServiceCollection services, IConfiguration configuration)
     {
-        //TODO: properly
-        services.AddSingleton<INamedEntityRecognizer, NamedEntityRecognizer>();
+        var newsfeedConfig = configuration.GetSection("NewsfeedSink") ?? throw new MissingConfigurationValueException("Missing config section for NewsfeedSink");
+        var surrealDbConnectionString = newsfeedConfig.GetConnectionString("SurrealDB");
+        if (string.IsNullOrEmpty(surrealDbConnectionString))
+        {
+            throw new MissingConfigurationValueException("Missing config for SurrealDB");
+        }
+
+        var nerBaseUrl = newsfeedConfig["NERbaseUrl"];
+        if (string.IsNullOrEmpty(nerBaseUrl))
+        {
+            throw new MissingConfigurationValueException("Missing config for NERbaseUrl");
+        }
+
+        var headless = newsfeedConfig.GetValue<bool>("Headless");
+
+        services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
+        services.AddTransient<INewsfeedDB, NewsfeedDB>();
+        services.AddSurreal(surrealDbConnectionString);
+
         return services;
     }
 

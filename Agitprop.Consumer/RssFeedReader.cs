@@ -6,13 +6,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using Agitprop.Core.Contracts;
 using Agitprop.Core.Enums;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Agitprop.Core;
+using Agitporp.Scraper.Sinks.Newsfeed;
 
 namespace Agitprop.Consumer;
 
@@ -74,9 +75,9 @@ public class RssFeedReader : IHostedService, IDisposable
 
                 if (feed != null)
                 {
-                    var news = feed.Items.Select(item => new ScrapingJobDescription
+                    var news = feed.Items.Select(item => new NewsfeedJobDescrpition
                     {
-                        Url = item.Links.FirstOrDefault()?.Uri,
+                        Url = item.Links.FirstOrDefault()?.Uri.ToString(),
                         Type = PageContentType.Article // Assuming all RSS feed items are articles
                     });
                     _logger.LogDebug($"New articles: {news.ToList()}");

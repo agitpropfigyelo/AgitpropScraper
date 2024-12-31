@@ -11,6 +11,7 @@ namespace Agitprop.Infrastructure.Puppeteer;
 
 internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageLoader
 {
+    //TODO: itt valami nem OK, debug & fix
     public PuppeteerPageLoaderWithProxies(ILogger<PuppeteerPageLoaderWithProxies> logger, IProxyProvider proxyProvider, ICookiesStorage cookieStorage) : base(logger)
     {
         ProxyProvider = proxyProvider;
