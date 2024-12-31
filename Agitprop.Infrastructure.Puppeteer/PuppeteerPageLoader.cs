@@ -1,4 +1,7 @@
 using System.Reflection;
+using Agitprop.Core;
+using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.PageLoader;
 using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
 

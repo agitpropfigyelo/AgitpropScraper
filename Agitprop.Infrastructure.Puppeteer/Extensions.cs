@@ -4,15 +4,17 @@ using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Infrastructure.Puppeteer;
 
 public static class Extensions
 {
-    public static IServiceCollection ConfigureInfrastructureWithoutBrowser(this IServiceCollection services, bool useProxies = false)
+    public static IServiceCollection ConfigureInfrastructureWithBrowser(this IServiceCollection services, bool useProxies = false)
     {
         services.AddTransient<ISpider, Spider>();
         services.AddTransient<ICookiesStorage, CookieStorage>();
         services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
+        //TODO: Puppeteer not working w/ proxies
+        services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
         if (useProxies)
         {
             services.AddTransient<IPageRequester, RotatingProxyPageRequester>();

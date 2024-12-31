@@ -11,16 +11,9 @@ using PuppeteerSharp;
 using Microsoft.Extensions.DependencyInjection;
 using NReco.Logging.File;
 using Agitprop.Core.Exceptions;
-using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Interfaces;
-using Agitprop.Core;
-using Agitprop.Infrastructure.PageLoader;
-using Agitprop.Infrastructure.PageRequester;
-using Agitprop.Infrastructure.InMemory;
-using Agitprop.Infrastructure.Puppeteer;
 using Microsoft.Extensions.Logging;
 using Agitporp.Scraper.Sinks.Newsfeed;
+using Agitprop.Infrastructure;
 
 namespace Agitprop.Consumer
 {
@@ -96,7 +89,7 @@ namespace Agitprop.Consumer
             services.AddHostedService<RssFeedReader>();
             services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
             services.AddNewsfeedSink(hostContext.Configuration);
-            services.ConfigureInfrastructure();
+            services.ConfigureInfrastructureWithoutBrowser();
         }
 
         private static void ConfigureLogging(ILoggingBuilder builder)
