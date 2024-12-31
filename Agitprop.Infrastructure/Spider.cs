@@ -13,16 +13,14 @@ public class Spider : ISpider
 {
     private IEnumerable<ISink> Sinks;
     private ILogger<Spider> Logger;
-    private ILinkTracker LinkTracker;
     private IBrowserPageLoader BrowserPageLoader;
     private IStaticPageLoader StaticPageLoader;
     private IConfiguration Configuration;
 
-    public Spider(IEnumerable<ISink> sinks, ILogger<Spider> logger, ILinkTracker linkTracker, IBrowserPageLoader browserPageLoader, IStaticPageLoader staticPageLoader, IConfiguration configuration)
+    public Spider(IEnumerable<ISink> sinks, ILogger<Spider> logger, IBrowserPageLoader browserPageLoader, IStaticPageLoader staticPageLoader, IConfiguration configuration)
     {
         Sinks = sinks;
         Logger = logger;
-        LinkTracker = linkTracker;
         BrowserPageLoader = browserPageLoader;
         StaticPageLoader = staticPageLoader;
         Configuration = configuration;
@@ -45,7 +43,7 @@ public class Spider : ISpider
         {
             await ProcessTargetPage(job, doc, cancellationToken);
 
-            await LinkTracker.AddVisitedLinkAsync(job.Url);
+            //await LinkTracker.AddVisitedLinkAsync(job.Url);
 
             return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
@@ -68,7 +66,7 @@ public class Spider : ISpider
         }
         if (job.PageCategory != PageCategory.PageWithPagination)
         {
-            await LinkTracker.AddVisitedLinkAsync(job.Url);
+            // await LinkTracker.AddVisitedLinkAsync(job.Url);
         }
         return newJobs;
     }

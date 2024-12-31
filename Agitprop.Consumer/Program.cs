@@ -10,10 +10,9 @@ using System.Net.Http;
 using PuppeteerSharp;
 using Microsoft.Extensions.DependencyInjection;
 using NReco.Logging.File;
-using Agitprop.Core.Exceptions;
 using Microsoft.Extensions.Logging;
 using Agitporp.Scraper.Sinks.Newsfeed;
-using Agitprop.Infrastructure;
+using Agitprop.Infrastructure.Puppeteer;
 
 namespace Agitprop.Consumer
 {
@@ -35,7 +34,7 @@ namespace Agitprop.Consumer
             if (hostBuilder.HostingEnvironment.IsDevelopment())
             {
                 Console.WriteLine("Development environment detected. Loading appsettings.Development.json");
-                config.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile("appsettings.development.json", optional: false, reloadOnChange: true);
             }
         }
 
@@ -47,13 +46,10 @@ namespace Agitprop.Consumer
                 x.SetInMemorySagaRepositoryProvider();
                 var entryAssembly = Assembly.GetEntryAssembly();
                 x.AddConsumers(entryAssembly);
-                x.AddSagaStateMachines(entryAssembly);
-                x.AddSagas(entryAssembly);
-                x.AddActivities(entryAssembly);
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(hostContext.Configuration.GetValue<string>("RabbitMQ"), "/", h =>
+                    cfg.Host(hostContext.Configuration.GetValue<string>("Infrastructure:RabbitMQ"), "/", h =>
                     {
                         h.Username("guest");
                         h.Password("guest");
@@ -87,9 +83,9 @@ namespace Agitprop.Consumer
 
             services.AddLogging(ConfigureLogging);
             services.AddHostedService<RssFeedReader>();
-            services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
+            //services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
             services.AddNewsfeedSink(hostContext.Configuration);
-            services.ConfigureInfrastructureWithoutBrowser();
+            services.ConfigureInfrastructureWithBrowser();
         }
 
         private static void ConfigureLogging(ILoggingBuilder builder)
