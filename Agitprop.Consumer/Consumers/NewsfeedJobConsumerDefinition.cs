@@ -8,7 +8,7 @@ namespace Agitprop.Consumer.Consumers
     {
         public NewsfeedJobConsumerDefinition(IConfiguration configuration)
         {
-            var concurLimit = configuration.GetValue<int?>("ConcurrencyLimit");
+            var concurLimit = configuration.GetValue<int?>("Infrastructure:RabbitMQ");
             if (concurLimit.HasValue) ConcurrentMessageLimit = concurLimit;
         }
         protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<NewsfeedJobConsumer> consumerConfigurator, IRegistrationContext context)
