@@ -77,7 +77,7 @@ public class RssFeedReader : IHostedService, IDisposable
                 {
                     var news = feed.Items.Select(item => new NewsfeedJobDescrpition
                     {
-                        Url = item.Links.FirstOrDefault()?.Uri.ToString(),
+                        Url = item.Links.FirstOrDefault()?.Uri.GetLeftPart(UriPartial.Path),
                         Type = PageContentType.Article // Assuming all RSS feed items are articles
                     });
                     _logger.LogDebug($"New articles: {news.ToList()}");

@@ -15,19 +15,17 @@ public static class Extensions
     public static IServiceCollection AddNewsfeedSink(this IServiceCollection services, IConfiguration configuration)
     {
         var newsfeedConfig = configuration.GetSection("NewsfeedSink") ?? throw new MissingConfigurationValueException("Missing config section for NewsfeedSink");
-        var surrealDbConnectionString = newsfeedConfig.GetConnectionString("SurrealDB");
+        var surrealDbConnectionString = newsfeedConfig.GetConnectionString("NewsfeedSink:SurrealDB");
         if (string.IsNullOrEmpty(surrealDbConnectionString))
         {
             throw new MissingConfigurationValueException("Missing config for SurrealDB");
         }
 
-        var nerBaseUrl = newsfeedConfig["NERbaseUrl"];
+        var nerBaseUrl = newsfeedConfig["NewsfeedSink:NERbaseUrl"];
         if (string.IsNullOrEmpty(nerBaseUrl))
         {
             throw new MissingConfigurationValueException("Missing config for NERbaseUrl");
         }
-
-        var headless = newsfeedConfig.GetValue<bool>("Headless");
 
         services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
         services.AddTransient<INewsfeedDB, NewsfeedDB>();
@@ -35,6 +33,7 @@ public static class Extensions
 
         return services;
     }
+
 
     public static ScrapingJob ConvertToScrapingJob(this NewsfeedJobDescrpition description)
     {
