@@ -11,22 +11,20 @@ namespace Agitprop.Infrastructure;
 
 public class Spider : ISpider
 {
-    private IEnumerable<ISink> Sinks;
     private ILogger<Spider> Logger;
     private IBrowserPageLoader BrowserPageLoader;
     private IStaticPageLoader StaticPageLoader;
     private IConfiguration Configuration;
 
-    public Spider(IEnumerable<ISink> sinks, ILogger<Spider> logger, IBrowserPageLoader browserPageLoader, IStaticPageLoader staticPageLoader, IConfiguration configuration)
+    public Spider(ILogger<Spider> logger, IBrowserPageLoader browserPageLoader, IStaticPageLoader staticPageLoader, IConfiguration configuration)
     {
-        Sinks = sinks;
         Logger = logger;
         BrowserPageLoader = browserPageLoader;
         StaticPageLoader = staticPageLoader;
         Configuration = configuration;
     }
 
-    public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, CancellationToken cancellationToken = default)
+    public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, IEnumerable<ISink> sinks, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var htmlContent = job.PageType switch
@@ -41,7 +39,7 @@ public class Spider : ISpider
 
         if (job.PageCategory == PageCategory.TargetPage)
         {
-            await ProcessTargetPage(job, doc, cancellationToken);
+            await ProcessTargetPage(job, doc, sinks, cancellationToken);
 
             //await LinkTracker.AddVisitedLinkAsync(job.Url);
 
@@ -71,7 +69,7 @@ public class Spider : ISpider
         return newJobs;
     }
 
-    private async Task ProcessTargetPage(ScrapingJob job, HtmlDocument doc, CancellationToken cancellationToken = default)
+    private async Task ProcessTargetPage(ScrapingJob job, HtmlDocument doc, IEnumerable<ISink> sinks, CancellationToken cancellationToken = default)
     {
         List<ContentParserResult> results = [];
         foreach (var contentParser in job.ContentParsers)
@@ -91,7 +89,7 @@ public class Spider : ISpider
         if (results.Count == 0) throw new ContentParserException($"No content was scraped from: {job.Url}");
 
         Logger.LogInformation($"Sending scraped data to sinks {job.Url}...");
-        foreach (var item in Sinks)
+        foreach (var item in sinks)
         {
             item.Emit(job.Url, results, cancellationToken);
         }

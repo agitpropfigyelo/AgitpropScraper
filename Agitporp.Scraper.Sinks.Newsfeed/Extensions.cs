@@ -15,13 +15,13 @@ public static class Extensions
     public static IServiceCollection AddNewsfeedSink(this IServiceCollection services, IConfiguration configuration)
     {
         var newsfeedConfig = configuration.GetSection("NewsfeedSink") ?? throw new MissingConfigurationValueException("Missing config section for NewsfeedSink");
-        var surrealDbConnectionString = newsfeedConfig.GetConnectionString("NewsfeedSink:SurrealDB");
+        var surrealDbConnectionString = newsfeedConfig.GetValue<string>("SurrealDB");
         if (string.IsNullOrEmpty(surrealDbConnectionString))
         {
             throw new MissingConfigurationValueException("Missing config for SurrealDB");
         }
 
-        var nerBaseUrl = newsfeedConfig["NewsfeedSink:NERbaseUrl"];
+        var nerBaseUrl = newsfeedConfig["NERbaseUrl"];
         if (string.IsNullOrEmpty(nerBaseUrl))
         {
             throw new MissingConfigurationValueException("Missing config for NERbaseUrl");

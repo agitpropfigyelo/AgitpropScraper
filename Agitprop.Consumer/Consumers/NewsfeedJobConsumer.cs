@@ -23,13 +23,14 @@ namespace Agitprop.Consumer.Consumers
         private ISpider spider;
         private ILogger<NewsfeedJobConsumer> logger;
         private ResiliencePipeline resiliencePipeline;
+        private IEnumerable<ISink> sinks;
 
-        public NewsfeedJobConsumer(ISpider spider, ILogger<NewsfeedJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider)
+        public NewsfeedJobConsumer(ISpider spider, ILogger<NewsfeedJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, IEnumerable<ISink> sinks)
         {
             this.spider = spider;
             this.logger = logger;
             resiliencePipeline = resiliencePipelineProvider.GetPipeline("Spider");
-
+            this.sinks = sinks;
         }
 
         public async Task Consume(ConsumeContext<NewsfeedJobDescrpition> context)
@@ -40,7 +41,7 @@ namespace Agitprop.Consumer.Consumers
             try
             {
                 logger.LogInformation($"Crawling started: {job.Url} ");
-                var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, ct));
+                var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sinks, ct));
                 logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
                 await context.PublishBatch(newJobs.Cast<List<NewsfeedJobDescrpition>>());
 
