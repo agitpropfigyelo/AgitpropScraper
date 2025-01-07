@@ -29,6 +29,12 @@ public static class Extensions
         }
 
         services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
+
+        services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
+        {
+            client.BaseAddress = new Uri(nerBaseUrl);
+        });
+
         services.AddTransient<INewsfeedDB, NewsfeedDB>();
         services.AddTransient<NewsfeedSink>();
         services.AddSurreal(surrealDbConnectionString);

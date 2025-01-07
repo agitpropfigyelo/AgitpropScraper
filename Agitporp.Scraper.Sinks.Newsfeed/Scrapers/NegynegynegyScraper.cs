@@ -12,7 +12,8 @@ internal class ArticleContentParser : IContentParser
     {
         //TODO: improve date parsing (today vs this year vs last year...)
         var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[3]/div[4]/div/div[2]/div[2]");
-        if (!DateTime.TryParse(dateNode.InnerText, out DateTime date))
+        var successfulParse = DateTime.TryParse(dateNode.InnerText, out DateTime date);
+        if (!successfulParse)
         {
             DateTime.Parse($"{DateTime.Now.Year}. {dateNode.InnerText}");
         }
