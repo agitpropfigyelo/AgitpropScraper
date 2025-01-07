@@ -24,24 +24,21 @@ public class Spider : ISpider
         Configuration = configuration;
     }
 
-    public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, IEnumerable<ISink> sinks, CancellationToken cancellationToken = default)
+    public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, ISink sink, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var htmlContent = job.PageType switch
+        // Check if the link is already visited
+        if (await sink.CheckPageAlreadyVisited(job.Url))
         {
-            PageType.Static => await LoadStaticPage(job),
-            PageType.Dynamic => await LoadDynamicPage(job, Configuration.GetValue<bool>("Headless")),
-            _ => throw new NotImplementedException()
-        };
+            Logger.LogInformation($"Page already visited: {job.Url}");
+            return Enumerable.Empty<ScrapingJobDescription>().ToList();
+        }
 
-        HtmlDocument doc = new();
-        doc.LoadHtml(htmlContent);
+        var doc = await LoadPageAsync(job);
 
         if (job.PageCategory == PageCategory.TargetPage)
         {
-            await ProcessTargetPage(job, doc, sinks, cancellationToken);
-
-            //await LinkTracker.AddVisitedLinkAsync(job.Url);
+            await ProcessTargetPage(job, doc, sink, cancellationToken);
 
             return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
@@ -51,7 +48,7 @@ public class Spider : ISpider
         {
             try
             {
-                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, htmlContent));
+                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc.ToString()));
             }
             catch (Exception)
             {
@@ -60,17 +57,15 @@ public class Spider : ISpider
         }
         if (job.PageCategory == PageCategory.PageWithPagination && Configuration.GetValue<bool>("Continous"))
         {
-            newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, htmlContent));
+            newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, doc.ToString()));
         }
-        if (job.PageCategory != PageCategory.PageWithPagination)
-        {
-            // await LinkTracker.AddVisitedLinkAsync(job.Url);
-        }
+
         return newJobs;
     }
 
-    private async Task ProcessTargetPage(ScrapingJob job, HtmlDocument doc, IEnumerable<ISink> sinks, CancellationToken cancellationToken = default)
+    private async Task ProcessTargetPage(ScrapingJob job, HtmlDocument doc, ISink sink, CancellationToken cancellationToken = default)
     {
+
         List<ContentParserResult> results = [];
         foreach (var contentParser in job.ContentParsers)
         {
@@ -88,13 +83,24 @@ public class Spider : ISpider
 
         if (results.Count == 0) throw new ContentParserException($"No content was scraped from: {job.Url}");
 
-        Logger.LogInformation($"Sending scraped data to sinks {job.Url}...");
-        foreach (var item in sinks)
-        {
-            item.Emit(job.Url, results, cancellationToken);
-        }
+        Logger.LogInformation($"Sending scraped data to sink {job.Url}...");
+        await sink.EmitAsync(job.Url, results, cancellationToken);
 
-        Logger.LogInformation($"Finished waiting for sinks {job.Url}");
+        Logger.LogInformation($"Finished waiting for sink {job.Url}");
+    }
+
+    private async Task<HtmlDocument> LoadPageAsync(ScrapingJob job)
+    {
+        var htmlContent = job.PageType switch
+        {
+            PageType.Static => await LoadStaticPage(job),
+            PageType.Dynamic => await LoadDynamicPage(job, Configuration.GetValue<bool>("Headless")),
+            _ => throw new NotImplementedException()
+        };
+
+        HtmlDocument doc = new();
+        doc.LoadHtml(htmlContent);
+        return doc;
     }
 
     private async Task<string> LoadDynamicPage(ScrapingJob job, bool headless)

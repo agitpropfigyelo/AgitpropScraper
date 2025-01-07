@@ -61,9 +61,9 @@ public class RssFeedReader : IHostedService, IDisposable
         _timer?.Dispose();
     }
 
-    private List<ScrapingJobDescription> FetchScrapingJobs()
+    private List<NewsfeedJobDescrpition> FetchScrapingJobs()
     {
-        var scrapingJobs = new List<ScrapingJobDescription>();
+        var scrapingJobs = new List<NewsfeedJobDescrpition>();
 
         foreach (var feedUrl in _feeds)
         {

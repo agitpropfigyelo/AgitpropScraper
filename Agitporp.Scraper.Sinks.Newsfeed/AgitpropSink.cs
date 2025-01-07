@@ -19,6 +19,11 @@ public class NewsfeedSink : ISink
         Logger = logger;
     }
 
+    public async Task<bool> CheckPageAlreadyVisited(string url)
+    {
+        return await DataBase.IsUrlAlreadyExists(url);
+    }
+
     public void Emit(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
     {
         foreach (var article in data)
@@ -30,15 +35,14 @@ public class NewsfeedSink : ISink
         }
     }
 
-    public Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
+    public async Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
     {
         foreach (var article in data)
         {
-            var entities = NerService.AnalyzeSingleAsync(article.Text).Result;
+            var entities = await NerService.AnalyzeSingleAsync(article.Text);
             Logger.LogInformation($"Recieved named entitees for {url}");
-            var count = DataBase.CreateMentionsAsync(url, article, entities).Result;
+            var count = await DataBase.CreateMentionsAsync(url, article, entities);
             Logger.LogInformation($"Inserted {count} mentions for {url}");
         }
-        return Task.CompletedTask;
     }
 }

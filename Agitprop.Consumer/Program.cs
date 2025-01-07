@@ -46,7 +46,6 @@ namespace Agitprop.Consumer
                 x.SetInMemorySagaRepositoryProvider();
                 var entryAssembly = Assembly.GetEntryAssembly();
                 x.AddConsumers(entryAssembly);
-
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(hostContext.Configuration.GetValue<string>("Infrastructure:RabbitMQ"), "/", h =>

@@ -20,6 +20,7 @@ public class NewsfeedDB : INewsfeedDB
         this.client = client;
     }
 
+    //TODO: rework insertions, might gain performance
     public async Task<int> CreateMentionsAsync(string url, ContentParserResult article, NamedEntityCollection entities)
     {
         try
@@ -35,6 +36,12 @@ public class NewsfeedDB : INewsfeedDB
             logger.LogError($"Failed to create mentions: {url} EX: {ex.Message}");
         }
         return entities.All.Count;
+    }
+
+    public async Task<bool> IsUrlAlreadyExists(string url)
+    {
+        var result = await client.RawQuery("(SELECT Link FROM visitedLinks).Link.any(|$var| $var.is_string());", new Dictionary<string, object?> { { "var", url } });
+        return result.GetValue<bool>(0);
     }
 
     private async Task<Entity> CreateEntityAsync(string entityName)

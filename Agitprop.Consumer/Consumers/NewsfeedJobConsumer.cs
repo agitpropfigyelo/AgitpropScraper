@@ -1,10 +1,8 @@
 using System.Threading.Tasks;
 using MassTransit;
-using Agitprop.Core.Enums;
 using System;
 using Agitprop.Infrastructure.Interfaces;
 using Agitprop.Core;
-using Agitprop.Core.Interfaces;
 using Polly.Registry;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
@@ -23,14 +21,14 @@ namespace Agitprop.Consumer.Consumers
         private ISpider spider;
         private ILogger<NewsfeedJobConsumer> logger;
         private ResiliencePipeline resiliencePipeline;
-        private IEnumerable<ISink> sinks;
+        private NewsfeedSink sink;
 
-        public NewsfeedJobConsumer(ISpider spider, ILogger<NewsfeedJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, IEnumerable<ISink> sinks)
+        public NewsfeedJobConsumer(ISpider spider, ILogger<NewsfeedJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, NewsfeedSink sink)
         {
             this.spider = spider;
             this.logger = logger;
             resiliencePipeline = resiliencePipelineProvider.GetPipeline("Spider");
-            this.sinks = sinks;
+            this.sink = sink;
         }
 
         public async Task Consume(ConsumeContext<NewsfeedJobDescrpition> context)
@@ -41,7 +39,7 @@ namespace Agitprop.Consumer.Consumers
             try
             {
                 logger.LogInformation($"Crawling started: {job.Url} ");
-                var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sinks, ct));
+                var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sink, ct));
                 logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
                 await context.PublishBatch(newJobs.Cast<List<NewsfeedJobDescrpition>>());
 

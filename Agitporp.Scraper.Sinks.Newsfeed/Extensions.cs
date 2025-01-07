@@ -5,6 +5,7 @@ using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
 using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
+using Agitprop.Infrastructure.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +30,7 @@ public static class Extensions
 
         services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
         services.AddTransient<INewsfeedDB, NewsfeedDB>();
+        services.AddTransient<NewsfeedSink>();
         services.AddSurreal(surrealDbConnectionString);
 
         return services;
