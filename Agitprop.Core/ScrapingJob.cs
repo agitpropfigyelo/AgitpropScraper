@@ -14,8 +14,3 @@ public record ScrapingJob
     public IPaginator? Pagination { get; init; }
 
 }
-
-//TODO: csinalni valami serializert, hogy lehessen db-ben követni, hol tart
-//link
-//Routine: agitprop, linktree, egyebek
-//originsite: 444, 24hu, stb
