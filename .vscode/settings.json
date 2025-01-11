@@ -3,6 +3,6 @@
     "editor.defaultFormatter": "ms-dotnettools.csharp",
     "eslint.format.enable": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
+        "source.fixAll.eslint": "explicit"
     }
 }
