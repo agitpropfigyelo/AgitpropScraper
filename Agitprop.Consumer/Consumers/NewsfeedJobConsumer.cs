@@ -42,31 +42,12 @@ namespace Agitprop.Consumer.Consumers
 
             NewsfeedJobDescrpition descriptor = context.Message;
             var job = descriptor.ConvertToScrapingJob();
-            try
-            {
-                logger.LogInformation($"Crawling started: {job.Url} ");
-                var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sink, ct));
-                logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
-                await context.PublishBatch(newJobs.Cast<List<NewsfeedJobDescrpition>>());
+            logger.LogInformation($"Crawling started: {job.Url} ");
+            var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sink, ct));
+            logger.LogInformation($"{job.Url} new jobs received: {newJobs.Count}");
+            await context.PublishBatch(newJobs.Cast<List<NewsfeedJobDescrpition>>());
 
-                logger.LogInformation($"Crawling finished {job.Url}");
-            }
-            catch (Exception ex) when (
-                ex is HttpRequestException ||
-                ex is TaskCanceledException ||
-                ex is TimeoutException ||
-                ex is NavigationException ||
-                ex is InvalidOperationException ||
-                ex is ContentParserException ||
-                ex is OperationCanceledException
-                )
-            {
-                logger.LogError(ex, $"Failed to scrape {job.Url}");
-            }
-            catch (PageAlreadyVisitedException ex)
-            {
-                logger.LogError(ex, $"Failed to scrape {job.Url}");
-            }
+            logger.LogInformation($"Crawling finished {job.Url}");
         }
     }
 }

@@ -41,7 +41,6 @@ public class Spider : ISpider
         if (job.PageCategory == PageCategory.TargetPage)
         {
             await ProcessTargetPage(job, doc, sink, cancellationToken);
-
             return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
 
