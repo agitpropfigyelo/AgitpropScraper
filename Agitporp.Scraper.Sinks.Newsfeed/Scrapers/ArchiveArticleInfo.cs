@@ -1,4 +1,4 @@
-namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers;
+﻿namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers;
 
 public class ArchiveArticleInfo(string urlToArticle, DateTimeOffset publishDate)
 {

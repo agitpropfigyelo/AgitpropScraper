@@ -1,4 +1,4 @@
-namespace Agitprop.Core.Exceptions;
+﻿namespace Agitprop.Core.Exceptions;
 
 [Serializable]
 internal class PageCrawlLimitException : Exception

@@ -1,4 +1,4 @@
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 
 namespace Agitprop.Core.Factories;
 

@@ -1,4 +1,4 @@
-namespace Agitprop.Consumer.Consumers
+﻿namespace Agitprop.Consumer.Consumers
 {
     using MassTransit;
 

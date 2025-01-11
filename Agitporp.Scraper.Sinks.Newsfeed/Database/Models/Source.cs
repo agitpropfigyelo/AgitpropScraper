@@ -1,4 +1,4 @@
-using SurrealDb.Net.Models;
+﻿using SurrealDb.Net.Models;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Database.Models
 {

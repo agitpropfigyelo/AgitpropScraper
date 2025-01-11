@@ -1,4 +1,4 @@
-using Agitprop.Core.Enums;
+﻿using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 
 namespace Agitprop.Core.Factories;

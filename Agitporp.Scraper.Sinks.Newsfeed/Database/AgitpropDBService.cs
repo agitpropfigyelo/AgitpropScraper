@@ -1,4 +1,4 @@
-using Agitporp.Scraper.Sinks.Newsfeed.Database.Models;
+﻿using Agitporp.Scraper.Sinks.Newsfeed.Database.Models;
 using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
 
 using Agitprop.Core;

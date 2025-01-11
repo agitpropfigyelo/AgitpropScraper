@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;

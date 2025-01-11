@@ -1,4 +1,4 @@
-using Agitprop.Core;
+﻿using Agitprop.Core;
 using Agitprop.Core.Enums;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed

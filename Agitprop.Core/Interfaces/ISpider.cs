@@ -1,4 +1,4 @@
-using Agitprop.Core;
+﻿using Agitprop.Core;
 
 namespace Agitprop.Infrastructure.Interfaces;
 

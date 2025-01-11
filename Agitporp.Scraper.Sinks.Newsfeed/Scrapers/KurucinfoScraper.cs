@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 
 using Agitprop.Core;
 using Agitprop.Core.Enums;
