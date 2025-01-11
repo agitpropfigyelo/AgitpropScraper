@@ -1,16 +1,21 @@
-using System.Reflection;
+﻿using System.Reflection;
+
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
+
 using Microsoft.Extensions.Logging;
+
 using PuppeteerExtraSharp;
 using PuppeteerExtraSharp.Plugins.ExtraStealth;
+
 using PuppeteerSharp;
 
 namespace Agitprop.Infrastructure.Puppeteer;
 
 internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageLoader
 {
+    //TODO: itt valami nem OK, debug & fix
     public PuppeteerPageLoaderWithProxies(ILogger<PuppeteerPageLoaderWithProxies> logger, IProxyProvider proxyProvider, ICookiesStorage cookieStorage) : base(logger)
     {
         ProxyProvider = proxyProvider;

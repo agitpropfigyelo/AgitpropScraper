@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Core", "Agitprop.Core\Agitprop.Core.csproj", "{C58DF0E9-4A59-47AE-8E67-5CD6214E35ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure", "Agitprop.Infrastructure\Agitprop.Infrastructure.csproj", "{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Puppeteer", "Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj", "{77DABB6D-5834-475E-AFD5-A184A355BF5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Consumer", "Agitprop.Consumer\Agitprop.Consumer.csproj", "{1CBAD7FA-FB04-4121-9575-39E2DBE41605}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleJobAdder", "Agitprop.ConsoleJobAdder\Agitprop.ConsoleJobAdder.csproj", "{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitporp.Scraper.Sinks.Newsfeed", "Agitporp.Scraper.Sinks.Newsfeed\Agitporp.Scraper.Sinks.Newsfeed.csproj", "{B7D370AD-9D3C-4D61-B854-3776DC4540BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C58DF0E9-4A59-47AE-8E67-5CD6214E35ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C58DF0E9-4A59-47AE-8E67-5CD6214E35ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C58DF0E9-4A59-47AE-8E67-5CD6214E35ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C58DF0E9-4A59-47AE-8E67-5CD6214E35ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46B15793-7DE0-48BD-8DDF-BF498B4ADEAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77DABB6D-5834-475E-AFD5-A184A355BF5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77DABB6D-5834-475E-AFD5-A184A355BF5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77DABB6D-5834-475E-AFD5-A184A355BF5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77DABB6D-5834-475E-AFD5-A184A355BF5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CBAD7FA-FB04-4121-9575-39E2DBE41605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CBAD7FA-FB04-4121-9575-39E2DBE41605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CBAD7FA-FB04-4121-9575-39E2DBE41605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CBAD7FA-FB04-4121-9575-39E2DBE41605}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D370AD-9D3C-4D61-B854-3776DC4540BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

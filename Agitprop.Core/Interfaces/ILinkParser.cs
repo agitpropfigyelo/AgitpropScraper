@@ -1,5 +1,4 @@
-using Agitprop.Core.Contracts;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 
 namespace Agitprop.Core.Interfaces;
 

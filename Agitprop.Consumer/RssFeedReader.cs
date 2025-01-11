@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel.Syndication;
@@ -6,13 +6,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using Agitprop.Core.Contracts;
+
+using Agitporp.Scraper.Sinks.Newsfeed;
+
+using Agitprop.Core;
 using Agitprop.Core.Enums;
+
 using MassTransit;
+
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Agitprop.Consumer;
 
@@ -60,9 +65,9 @@ public class RssFeedReader : IHostedService, IDisposable
         _timer?.Dispose();
     }
 
-    private List<ScrapingJobDescription> FetchScrapingJobs()
+    private List<NewsfeedJobDescrpition> FetchScrapingJobs()
     {
-        var scrapingJobs = new List<ScrapingJobDescription>();
+        var scrapingJobs = new List<NewsfeedJobDescrpition>();
 
         foreach (var feedUrl in _feeds)
         {
@@ -74,9 +79,9 @@ public class RssFeedReader : IHostedService, IDisposable
 
                 if (feed != null)
                 {
-                    var news = feed.Items.Select(item => new ScrapingJobDescription
+                    var news = feed.Items.Select(item => new NewsfeedJobDescrpition
                     {
-                        Url = item.Links.FirstOrDefault()?.Uri,
+                        Url = item.Links.FirstOrDefault()?.Uri.GetLeftPart(UriPartial.Path),
                         Type = PageContentType.Article // Assuming all RSS feed items are articles
                     });
                     _logger.LogDebug($"New articles: {news.ToList()}");

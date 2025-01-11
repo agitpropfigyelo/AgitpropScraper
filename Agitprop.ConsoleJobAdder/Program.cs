@@ -1,9 +1,11 @@
-﻿using System.Text.Json;
-using RabbitMQ.Client;
+﻿using System.CommandLine;
 using System.Text;
-using System.CommandLine;
+using System.Text.Json;
+
 using Agitprop.Core.Enums;
 using Agitprop.Core.Factories;
+
+using RabbitMQ.Client;
 
 class Program
 {
@@ -63,8 +65,8 @@ class Program
 
         foreach (var site in sites)
         {
-            var job = JobDescriptionFactory.GetAgitpropScrapingJob(site, date);
-            var message = JsonSerializer.Serialize(job);
+            //TODO: fix this
+            var message = JsonSerializer.Serialize("job");
             var body = Encoding.UTF8.GetBytes(message);
 
             await channel.BasicPublishAsync(exchange: "",
