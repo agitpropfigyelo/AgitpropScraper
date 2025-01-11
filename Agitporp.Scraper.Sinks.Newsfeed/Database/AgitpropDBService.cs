@@ -14,13 +14,13 @@ namespace Agitporp.Scraper.Sinks.Newsfeed.Database;
 public class NewsfeedDB : INewsfeedDB
 {
     private readonly static string selectEntityQuery = "select id from entity where Name=$en";
-    private ILogger<NewsfeedDB> logger;
-    private ISurrealDbClient client;
+    private ILogger<NewsfeedDB> Logger;
+    private ISurrealDbClient Client;
 
     public NewsfeedDB(ILogger<NewsfeedDB> logger, ISurrealDbClient client)
     {
-        this.logger = logger;
-        this.client = client;
+        this.Logger = logger;
+        this.Client = client;
     }
 
     //TODO: rework insertions, might gain performance
@@ -31,26 +31,26 @@ public class NewsfeedDB : INewsfeedDB
             var src = RecordId.From("source", $"{article.SourceSite}");
             var mention = new Mentions { Date = article.PublishDate, Url = url };
             var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
-            var kdi = await client.Relate<Mentions, Mentions>("mentions", src, entIds, mention);
-            logger.LogInformation($"{url} added mentions ({entIds.Count()})");
+            var kdi = await Client.Relate<Mentions, Mentions>("mentions", src, entIds, mention);
+            Logger.LogInformation($"{url} added mentions ({entIds.Count()})");
         }
         catch (Exception ex)
         {
-            logger.LogError($"Failed to create mentions: {url} EX: {ex.Message}");
+            Logger.LogError($"Failed to create mentions: {url} EX: {ex.Message}");
         }
         return entities.All.Count;
     }
 
     public async Task<bool> IsUrlAlreadyExists(string url)
     {
-        var result = await client.RawQuery("(SELECT Link FROM visitedLinks).Link.any(|$var| $var.is_string());", new Dictionary<string, object?> { { "var", url } });
+        var result = await Client.RawQuery("(SELECT Link FROM visitedLinks).Link.any(|$var| $var.is_string());", new Dictionary<string, object?> { { "var", url } });
         return result.GetValue<bool>(0);
     }
 
     private async Task<Entity> CreateEntityAsync(string entityName)
     {
-        Entity result = await client.Create("entity", new Entity { Name = entityName });
-        logger.LogInformation($"Added entity {result.Name}");
+        Entity result = await Client.Create("entity", new Entity { Name = entityName });
+        Logger.LogInformation($"Added entity {result.Name}");
         return result;
     }
 
@@ -60,9 +60,9 @@ public class NewsfeedDB : INewsfeedDB
             {
                 { "en", entityName },
             };
-        SurrealDbResponse result = await client.RawQuery(selectEntityQuery, parameters);
+        SurrealDbResponse result = await Client.RawQuery(selectEntityQuery, parameters);
         Entity ent = result.FirstOk.GetValues<Entity>().FirstOrDefault() ?? await CreateEntityAsync(entityName);
-        logger.LogInformation($"Get entity {entityName} : {ent.Id.DeserializeId<string>()} - {ent.Name}");
+        Logger.LogInformation($"Get entity {entityName} : {ent.Id.DeserializeId<string>()} - {ent.Name}");
         return ent;
     }
 }
