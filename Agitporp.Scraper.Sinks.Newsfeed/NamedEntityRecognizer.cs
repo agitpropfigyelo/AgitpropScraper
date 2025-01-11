@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json;
+
 using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 

@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Infrastructure.Interfaces;
+namespace Agitprop.Infrastructure.Interfaces;
 
 public interface IStaticPageLoader
 {

@@ -1,7 +1,10 @@
 using Agitporp.Scraper.Sinks.Newsfeed.Database.Models;
 using Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
+
 using Agitprop.Core;
+
 using Microsoft.Extensions.Logging;
+
 using SurrealDb.Net;
 using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Response;

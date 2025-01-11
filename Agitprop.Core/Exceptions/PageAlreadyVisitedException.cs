@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Core;
+namespace Agitprop.Core;
 
 public class PageAlreadyVisitedException : Exception
 {

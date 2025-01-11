@@ -1,6 +1,8 @@
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
+
 using Microsoft.Extensions.Logging;
+
 using PuppeteerSharp;
 
 namespace Agitprop.Infrastructure.PageLoader;

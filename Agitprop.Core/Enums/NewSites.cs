@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Core.Enums;
+namespace Agitprop.Core.Enums;
 
 public enum NewsSites
 {

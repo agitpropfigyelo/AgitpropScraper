@@ -1,9 +1,11 @@
-﻿using System.Text.Json;
-using RabbitMQ.Client;
-using System.Text;
 using System.CommandLine;
+using System.Text;
+using System.Text.Json;
+
 using Agitprop.Core.Enums;
 using Agitprop.Core.Factories;
+
+using RabbitMQ.Client;
 
 class Program
 {

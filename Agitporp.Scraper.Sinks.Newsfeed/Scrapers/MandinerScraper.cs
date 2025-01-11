@@ -1,6 +1,7 @@
-﻿using Agitprop.Core;
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
+
 using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Mandiner;

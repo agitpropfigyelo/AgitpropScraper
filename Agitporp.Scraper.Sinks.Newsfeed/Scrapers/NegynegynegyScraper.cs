@@ -1,7 +1,9 @@
-﻿using Agitprop.Core;
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
+
 using HtmlAgilityPack;
+
 using PuppeteerSharp;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Negynegynegy;

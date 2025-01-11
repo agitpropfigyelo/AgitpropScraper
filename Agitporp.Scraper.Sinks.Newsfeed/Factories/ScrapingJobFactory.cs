@@ -1,6 +1,6 @@
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Factories;
-using Agitprop.Core;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Factories;
 

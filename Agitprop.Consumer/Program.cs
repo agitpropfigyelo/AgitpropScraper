@@ -1,18 +1,25 @@
 using System;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
+
+using Agitporp.Scraper.Sinks.Newsfeed;
+
+using Agitprop.Infrastructure.Puppeteer;
+
 using MassTransit;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+using NReco.Logging.File;
+
 using Polly;
 using Polly.Retry;
-using Microsoft.Extensions.Configuration;
-using System.Net.Http;
+
 using PuppeteerSharp;
-using Microsoft.Extensions.DependencyInjection;
-using NReco.Logging.File;
-using Microsoft.Extensions.Logging;
-using Agitporp.Scraper.Sinks.Newsfeed;
-using Agitprop.Infrastructure.Puppeteer;
 
 namespace Agitprop.Consumer
 {

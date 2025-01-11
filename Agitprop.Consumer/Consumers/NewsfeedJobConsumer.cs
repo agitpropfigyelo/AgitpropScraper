@@ -1,17 +1,23 @@
-using System.Threading.Tasks;
-using MassTransit;
 using System;
-using Agitprop.Infrastructure.Interfaces;
-using Agitprop.Core;
-using Polly.Registry;
-using Microsoft.Extensions.Logging;
-using System.Net.Http;
-using PuppeteerSharp;
-using Agitprop.Core.Exceptions;
-using Polly;
-using Agitporp.Scraper.Sinks.Newsfeed;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+using Agitporp.Scraper.Sinks.Newsfeed;
+
+using Agitprop.Core;
+using Agitprop.Core.Exceptions;
+using Agitprop.Infrastructure.Interfaces;
+
+using MassTransit;
+
+using Microsoft.Extensions.Logging;
+
+using Polly;
+using Polly.Registry;
+
+using PuppeteerSharp;
 
 namespace Agitprop.Consumer.Consumers
 {

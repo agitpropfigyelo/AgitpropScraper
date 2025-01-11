@@ -1,4 +1,4 @@
-﻿namespace Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
+namespace Agitporp.Scraper.Sinks.Newsfeed.Interfaces;
 
 public interface INamedEntityRecognizer
 {

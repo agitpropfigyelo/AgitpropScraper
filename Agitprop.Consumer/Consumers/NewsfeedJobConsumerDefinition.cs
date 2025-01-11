@@ -1,6 +1,7 @@
 namespace Agitprop.Consumer.Consumers
 {
     using MassTransit;
+
     using Microsoft.Extensions.Configuration;
 
 

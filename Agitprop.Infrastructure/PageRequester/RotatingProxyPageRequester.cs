@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Security;
+
 using Agitprop.Core.Interfaces;
 
 namespace Agitprop.Infrastructure.PageRequester;
@@ -49,7 +50,7 @@ public class RotatingProxyPageRequester : IPageRequester
             UseProxy = true,
             Proxy = await ProxyProvider.GetProxyAsync(),
             CookieContainer = CookieContainer,
-            ConnectTimeout=TimeSpan.FromSeconds(60),
+            ConnectTimeout = TimeSpan.FromSeconds(60),
         };
 
         return handler;

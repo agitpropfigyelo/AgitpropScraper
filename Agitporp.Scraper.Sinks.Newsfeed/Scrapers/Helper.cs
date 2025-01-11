@@ -1,5 +1,6 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.RegularExpressions;
+
 using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers;

@@ -2,6 +2,7 @@ using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Agitprop.Infrastructure;

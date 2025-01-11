@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Core.Interfaces;
+namespace Agitprop.Core.Interfaces;
 
 public interface IPaginator
 {

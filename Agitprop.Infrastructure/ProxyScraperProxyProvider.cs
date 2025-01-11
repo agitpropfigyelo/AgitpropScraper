@@ -1,6 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
+
 using Agitprop.Core.Interfaces;
+
 using TinyCsvParser;
 using TinyCsvParser.Mapping;
 

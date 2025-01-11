@@ -6,14 +6,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+
+using Agitporp.Scraper.Sinks.Newsfeed;
+
+using Agitprop.Core;
 using Agitprop.Core.Enums;
+
 using MassTransit;
+
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using Agitprop.Core;
-using Agitporp.Scraper.Sinks.Newsfeed;
 
 namespace Agitprop.Consumer;
 

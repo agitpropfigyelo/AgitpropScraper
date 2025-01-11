@@ -1,7 +1,9 @@
-﻿using System.Net;
+using System.Net;
+
 using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
+
 using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Kurucinfo;
