@@ -4,51 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Index;
-
-internal class ArticleContentParser : IContentParser
-{
-    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
-    {
-        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='content']/div[4]/div[1]/div/div[1]/div[2]/span");
-        DateTime date = DateTime.Parse(dateNode.InnerText);
-
-        var titleNode = html.DocumentNode.SelectSingleNode("//div[@class='content-title']");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        var leadNode = html.DocumentNode.SelectSingleNode("//div[@class='lead']");
-        string leadText = leadNode.InnerText.Trim() + " ";
-
-        var boxNode = html.DocumentNode.SelectSingleNode("//div[@class='cikk-torzs']");
-
-        var toRemove = boxNode.SelectNodes("//div[contains(@class, 'cikk-bottom-text-ad')]");
-        foreach (var item in toRemove)
-        {
-            item.Remove();
-        }
-
-        string boxText = boxNode.InnerText.Trim() + " ";
-
-        // Concatenate all text
-        string concatenatedText = titleText + leadText + boxText;
-
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.Index,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
-    }
-
-    public Task<ContentParserResult> ParseContentAsync(string html)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
-    }
-}
-
 internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)

@@ -6,44 +6,6 @@ using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Magyarnemzet;
 
-internal class ArticleContentParser : IContentParser
-{
-    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
-    {
-        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/app-root/app-base/div[2]/div/app-slug-route-handler/app-article/section/div/div[1]/app-article-header/div/div[3]/div[1]/div/span[2]");
-        DateTime date = DateTime.Parse(dateNode.InnerText);
-        // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='title']");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        // Select nodes with class "article-lead"
-        var leadNode = html.DocumentNode.SelectSingleNode("//h2[@class='lead']");
-        string leadText = leadNode.InnerText.Trim() + " ";
-
-        // Select nodes with tag "origo-wysiwyg-box"
-        var boxNodes = html.DocumentNode.SelectNodes("//app-article-text");
-        string boxText = Helper.ConcatenateNodeText(boxNodes);
-
-        // Concatenate all text
-        string concatenatedText = titleText + leadText + boxText;
-
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.MagyarNemzet,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
-    }
-
-    public Task<ContentParserResult> ParseContentAsync(string html)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
-    }
-
-}
-
 internal class ArchivePaginator : IPaginator
 {
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)

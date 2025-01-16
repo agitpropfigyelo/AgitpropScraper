@@ -5,40 +5,6 @@ using Agitprop.Core.Interfaces;
 using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Huszonnegy;
-internal class ArticleContentParser : IContentParser
-{
-    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
-    {
-        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='content']/div/div[1]/div[1]/div[5]/div[1]/div[2]/span");
-        DateTime date = DateTime.Parse(dateNode.InnerText);
-        // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='o-post__title']");
-        var titleText = titleNode.InnerText.Trim() + " ";
-
-        var leadNode = html.DocumentNode.SelectSingleNode("//h1[@class='o-post__lead lead post-lead cf _ce_measure_widget']");
-        var leadText = leadNode is not null ? leadNode.InnerText.Trim() + " " : "";
-
-        // Select nodes with class "article-lead"
-        var articleNode = html.DocumentNode.SelectSingleNode("//div[@class='o-post__body post-body']");
-        var articleText = articleNode.InnerText.Trim() + " ";
-
-        // Concatenate all text
-        var concatenatedText = titleText + leadText + articleText;
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.Huszonnegy,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
-    }
-
-    public Task<ContentParserResult> ParseContentAsync(string html)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
-    }
-}
 
 internal class ArchiveLinkParser : ILinkParser
 {
@@ -60,7 +26,6 @@ internal class ArchiveLinkParser : ILinkParser
         return this.GetLinksAsync(baseUrl, doc);
     }
 }
-
 
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {

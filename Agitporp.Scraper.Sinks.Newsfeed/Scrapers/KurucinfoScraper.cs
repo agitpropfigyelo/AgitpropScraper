@@ -8,45 +8,6 @@ using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Kurucinfo;
 
-internal class ArticleContentParser : IContentParser
-{
-    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
-    {
-        //TODO: a weboldal iso-8859-2 encoding-al van, valahogy ki kéne kupálni, hogy jó legyen
-        //Convert this mofo to utf8, like all other normal newssite is, also fucked up using of html encoding
-        //document= document.LoadHtml();
-
-        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='cikkcontent']/div/p[1]/span[1]");
-        DateTime date = DateTime.Parse(dateNode.InnerText);
-
-        // Select nodes with class "article-title"       
-        var titleNode = html.DocumentNode.SelectSingleNode("//div[@class='focikkheader']");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        // Select nodes with class "article-lead"
-        var articleNodes = html.DocumentNode.SelectNodes("//div[contains(@class, 'cikktext')]");
-        string articleText = Helper.ConcatenateNodeText(articleNodes);
-
-
-        // Concatenate all text
-        string concatenatedText = WebUtility.HtmlDecode(titleText + articleText);
-
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.Kurucinfo,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
-    }
-
-    public Task<ContentParserResult> ParseContentAsync(string html)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
-    }
-}
-
 internal class ArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)

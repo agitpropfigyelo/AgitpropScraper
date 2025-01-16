@@ -6,44 +6,6 @@ using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Hvg;
 
-internal class ArticleContentParser : IContentParser
-{
-    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
-    {
-        var dateNode = html.DocumentNode.SelectSingleNode("//*[@id='perspective']/div/div/main/div[1]/div/div/div[1]/div[2]/div[1]/div/time[1]");
-        DateTime date = DateTime.Parse(dateNode.GetAttributeValue("datetime", ""));
-
-
-        // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("//div[@class='article-title article-title']");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        // Select nodes with class "article-lead"
-        var leadNode = html.DocumentNode.SelectSingleNode("//p[contains(@class, 'article-lead entry-summary')]");
-        string leadText = leadNode.InnerText.Trim() + " ";
-
-        var articleNode = html.DocumentNode.SelectSingleNode("//div[contains(@class, 'article-content entry-content')]");
-        string articleText = articleNode.InnerText.Trim() + " ";
-
-        // Concatenate all text
-        string concatenatedText = titleText + leadText + articleText;
-
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.HVG,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
-    }
-
-    public Task<ContentParserResult> ParseContentAsync(string html)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        return ParseContentAsync(doc);
-    }
-}
-
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
     public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)

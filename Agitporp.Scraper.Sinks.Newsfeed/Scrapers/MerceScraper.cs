@@ -6,38 +6,6 @@ using HtmlAgilityPack;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Merce;
 
-internal class ArticleContentParser : IContentParser
-{
-    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
-    {
-        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[4]/div/div/main/div/div[2]/div/article/div/div[1]/div[1]/div[2]/div[2]/time");
-        DateTime date = DateTime.Parse(dateNode.GetAttributeValue("datetime", ""));
-        // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("//h1[@class='entry-title']");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        var articleNode = html.DocumentNode.SelectSingleNode("//div[contains(@class, 'entry-content')]");
-        string articleText = articleNode.InnerText.Trim() + " ";
-
-        // Concatenate all text
-        string concatenatedText = titleText + articleText;
-
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.Merce,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
-    }
-
-    public Task<ContentParserResult> ParseContentAsync(string html)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        return this.ParseContentAsync(doc);
-    }
-}
-
 internal class ArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)

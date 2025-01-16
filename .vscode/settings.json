@@ -1,8 +1,4 @@
 {
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "editor.defaultFormatter": "ms-dotnettools.csharp",
-    "eslint.format.enable": true,
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit"
-    }
 }

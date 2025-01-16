@@ -7,47 +7,6 @@ using HtmlAgilityPack;
 using PuppeteerSharp;
 
 namespace Agitporp.Scraper.Sinks.Newsfeed.Scrapers.Negynegynegy;
-
-internal class ArticleContentParser : IContentParser
-{
-    public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
-    {
-        //TODO: improve date parsing (today vs this year vs last year...)
-        var dateNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[3]/div[4]/div/div[2]/div[2]");
-        var successfulParse = DateTime.TryParse(dateNode.InnerText, out DateTime date);
-        if (!successfulParse)
-        {
-            DateTime.Parse($"{DateTime.Now.Year}. {dateNode.InnerText}");
-        }
-        // Select nodes with class "article-title"
-        var titleNode = html.DocumentNode.SelectSingleNode("/html/body/div[1]/div[1]/div[3]/div[3]/h1");
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        // Select nodes with class "article-lead"
-        // /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
-        // /html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]
-        var articleNodes = html.DocumentNode.SelectNodes("/html/body/div[1]/div[1]/div[3]/div[5]/div/div[2]//p");
-        var articleText = string.Join(" ", articleNodes.Select(x => x.InnerText.Trim()));
-
-        // Concatenate all text
-        string concatenatedText = titleText + articleText;
-
-        return Task.FromResult(new ContentParserResult()
-        {
-            PublishDate = date,
-            SourceSite = NewsSites.NegyNegyNegy,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
-    }
-
-    public Task<ContentParserResult> ParseContentAsync(string html)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        return ParseContentAsync(doc);
-    }
-}
-
 internal class ArchivePaginator : DateBasedArchive, IPaginator
 {
     public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
