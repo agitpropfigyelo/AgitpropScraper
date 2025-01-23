@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-using Agitporp.Scraper.Sinks.Newsfeed;
+using Agitprop.Scraper.Sinks.Newsfeed;
 
 using Agitprop.Core;
 using Agitprop.Core.Enums;

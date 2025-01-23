@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference
-      Include="..\Agitporp.Scraper.Sinks.Newsfeed\Agitporp.Scraper.Sinks.Newsfeed.csproj" />
+      Include="..\Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Scraper.Sinks.Newsfeed.csproj" />
     <ProjectReference Include="..\Agitprop.Core\Agitprop.Core.csproj" />
     <ProjectReference
       Include="..\Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj" />

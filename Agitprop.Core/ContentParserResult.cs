@@ -2,6 +2,7 @@
 
 namespace Agitprop.Core;
 
+[Serializable]
 public record class ContentParserResult
 {
     public required NewsSites SourceSite;
