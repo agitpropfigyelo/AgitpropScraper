@@ -45,6 +45,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestData\alfahir\1.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Agitprop.Scraper.Sinks.Newsfeed</_Parameter1>
     </AssemblyAttribute>

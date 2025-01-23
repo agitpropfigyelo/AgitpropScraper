@@ -7,8 +7,9 @@ using System.Linq;
 using NUnit.Framework;
 using Agitprop.Core;
 using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
+using Agitprop.Core.Enums;
 
-public class ContentParserTests
+public partial class ContentParserTests
 {
     [SetUp]
     public void Setup()
@@ -26,13 +27,18 @@ public class ContentParserTests
 
     public static IEnumerable<TestCase> GetTestCases()
     {
-        var json = File.ReadAllText("TestData/Alfahir/testCases.json");
-        return JsonSerializer.Deserialize<List<TestCase>>(json);
-    }
-
-    public class TestCase
-    {
-        public string HtmlPath { get; set; }
-        public ContentParserResult ExpectedContent { get; set; }
+        return new List<TestCase>
+        {
+            new TestCase
+            {
+                HtmlPath = "TestData/alfahir/1.html",
+                ExpectedContent = new ContentParserResult
+                {
+                    SourceSite = NewsSites.Alfahir,
+                    PublishDate = DateTime.Parse("2025-01-08T16:01:05Z"),
+                    Text = "Ezúttal egy 85 éves bácsit vertek félholtra az otthonában Egyre gyakoribb, hogy idős emberekre rontanak rá a házukban."
+                }
+            },
+        };
     }
 }
