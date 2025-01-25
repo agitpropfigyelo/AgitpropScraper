@@ -51,10 +51,10 @@
     <None Update="TestData\alfahir\1.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestData\hvg\1.html">
+        <None Update="TestData\hvg\testcases.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestData\index\1.html">
+    <None Update="TestData\hvg\1.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

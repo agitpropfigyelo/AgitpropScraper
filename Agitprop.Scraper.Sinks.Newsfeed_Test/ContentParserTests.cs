@@ -13,6 +13,7 @@ using Agitprop.Scraper.Sinks.Newsfeed.Factories;
 public partial class ContentParserTests
 {
     [TestCase("TestData/alfahir/testCases.json")]
+    [TestCase("TestData/hvg/testCases.json")]
     public void ContentParserTest(string testCasePath)
     {
         var testCases = JsonSerializer.Deserialize<List<TestCase>>(File.ReadAllText(testCasePath));
