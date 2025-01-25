@@ -18,7 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Scraper.Sinks.Newsfeed.csproj" />
+    <ProjectReference
+      Include="..\Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Scraper.Sinks.Newsfeed.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="TestData\alfahir" />
     <Folder Include="TestData\24hu" />
     <Folder Include="TestData\hvg" />
     <Folder Include="TestData\index" />
@@ -45,7 +45,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestData\alfahir\testcases.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\alfahir\1.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\hvg\1.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\index\1.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

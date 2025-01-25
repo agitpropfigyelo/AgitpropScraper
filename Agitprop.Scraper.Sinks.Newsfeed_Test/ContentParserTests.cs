@@ -8,37 +8,26 @@ using NUnit.Framework;
 using Agitprop.Core;
 using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
 using Agitprop.Core.Enums;
+using Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
 public partial class ContentParserTests
 {
-    [SetUp]
-    public void Setup()
+    [TestCase("TestData/alfahir/testCases.json")]
+    public void ContentParserTest(string testCasePath)
     {
-    }
-
-    [TestCaseSource(nameof(GetTestCases))]
-    public void Alfahir(TestCase testCase)
-    {
-        var scraper = new AlfahirArticleContentParser();
-        var htmlContent = File.ReadAllText(testCase.HtmlPath);
-        var result = scraper.ParseContentAsync(htmlContent).Result;
-        Assert.That(result, Is.EqualTo(testCase.ExpectedContent));
-    }
-
-    public static IEnumerable<TestCase> GetTestCases()
-    {
-        return new List<TestCase>
+        var testCases = JsonSerializer.Deserialize<List<TestCase>>(File.ReadAllText(testCasePath));
+        var scraper = ContentParserFactory.GetContentParser(testCases.First().ExpectedContent.SourceSite);
+        foreach (var testCase in testCases)
         {
-            new TestCase
+            var htmlContent = File.ReadAllText(testCase.HtmlPath);
+            var result = scraper.ParseContentAsync(htmlContent).Result;
+            Assert.Multiple(() =>
             {
-                HtmlPath = "TestData/alfahir/1.html",
-                ExpectedContent = new ContentParserResult
-                {
-                    SourceSite = NewsSites.Alfahir,
-                    PublishDate = DateTime.Parse("2025-01-08T16:01:05Z"),
-                    Text = "Ezúttal egy 85 éves bácsit vertek félholtra az otthonában Egyre gyakoribb, hogy idős emberekre rontanak rá a házukban."
-                }
-            },
-        };
+
+                Assert.That(result.SourceSite, Is.EqualTo(testCase.ExpectedContent.SourceSite));
+                Assert.That(result.PublishDate, Is.EqualTo(testCase.ExpectedContent.PublishDate));
+                Assert.That(result.Text, Is.EqualTo(testCase.ExpectedContent.Text));
+            });
+        }
     }
 }

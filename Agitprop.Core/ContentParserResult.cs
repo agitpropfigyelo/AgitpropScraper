@@ -1,11 +1,14 @@
-﻿using Agitprop.Core.Enums;
+﻿using System.Text.Json.Serialization;
+
+using Agitprop.Core.Enums;
 
 namespace Agitprop.Core;
 
-[Serializable]
 public record class ContentParserResult
 {
-    public required NewsSites SourceSite;
-    public required DateTime PublishDate;
-    public required string Text;
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public required NewsSites SourceSite { get; init; }
+
+    public required DateTime PublishDate { get; init; }
+    public required string Text { get; init; }
 }
