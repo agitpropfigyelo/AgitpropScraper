@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="TestData\24hu" />
     <Folder Include="TestData\hvg" />
     <Folder Include="TestData\index" />
     <Folder Include="TestData\kurucinfo" />
@@ -35,7 +34,6 @@
     <Folder Include="TestData\magyarnemzet" />
     <Folder Include="TestData\mandiner" />
     <Folder Include="TestData\merce" />
-    <Folder Include="TestData\444" />
     <Folder Include="TestData\origo" />
     <Folder Include="TestData\pestisracok" />
     <Folder Include="TestData\ripost" />
@@ -96,6 +94,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\metropol\1.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\444\testcases.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\444\1.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
