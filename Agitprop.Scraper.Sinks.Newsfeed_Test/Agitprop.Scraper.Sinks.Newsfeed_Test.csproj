@@ -35,7 +35,6 @@
     <Folder Include="TestData\magyarnemzet" />
     <Folder Include="TestData\mandiner" />
     <Folder Include="TestData\merce" />
-    <Folder Include="TestData\metropol" />
     <Folder Include="TestData\444" />
     <Folder Include="TestData\origo" />
     <Folder Include="TestData\pestisracok" />
@@ -91,6 +90,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\merce\1.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\metropol\testcases.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\metropol\1.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

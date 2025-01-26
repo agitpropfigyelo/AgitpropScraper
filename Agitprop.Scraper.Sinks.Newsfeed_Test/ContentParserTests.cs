@@ -20,6 +20,7 @@ public partial class ContentParserTests
     [TestCase("TestData/magyarnemzet/testCases.json")]
     [TestCase("TestData/mandiner/testCases.json")]
     [TestCase("TestData/merce/testCases.json")]
+    [TestCase("TestData/metropol/testCases.json")]
     public void ContentParserTest(string testCasePath)
     {
         var testCases = JsonSerializer.Deserialize<List<TestCase>>(File.ReadAllText(testCasePath));
