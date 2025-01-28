@@ -1,0 +1,10 @@
+[
+    {
+        "HtmlPath": "TestData/24hu/1.html",
+        "ExpectedContent": {
+            "SourceSite": "Huszonnegy",
+            "PublishDate": "2025-01-28T19:20:41Z",
+            "Text": ""
+        }
+    }
+]
