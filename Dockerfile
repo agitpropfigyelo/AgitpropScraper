@@ -4,10 +4,9 @@ WORKDIR /App
 # Copy the project files
 COPY ["./Agitprop.Consumer/Agitprop.Consumer.csproj", "Agitprop.Consumer/"]
 COPY ["./Agitprop.Core/Agitprop.Core.csproj", "Agitprop.Core/"]
-COPY ["./Agitprop.Infrastructure.InMemory/Agitprop.Infrastructure.InMemory.csproj", "Agitprop.Infrastructure.InMemory/"]
+COPY ["./Agitprop.Infrastructure/Agitprop.Infrastructure.csproj", "Agitprop.Core/"]
 COPY ["./Agitprop.Infrastructure.Puppeteer/Agitprop.Infrastructure.Puppeteer.csproj", "Agitprop.Infrastructure.Puppeteer/"]
-COPY ["./Agitprop.Infrastructure.SurrealDB/Agitprop.Infrastructure.SurrealDB.csproj", "Agitprop.Infrastructure.SurrealDB/"]
-COPY ["./Agitprop.Scrapers/Agitprop.Scrapers.csproj", "Agitprop.Scrapers/"]
+COPY ["./Agitprop.Scraper.Sinks.Newsfeed/Agitprop.Scraper.Sinks.Newsfeed.csproj", "Agitprop.Scraper.Sinks.Newsfeed/"]
 
 # Restore as distinct layers
 RUN dotnet restore "Agitprop.Consumer/Agitprop.Consumer.csproj"

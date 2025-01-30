@@ -1,12 +1,12 @@
-﻿using Agitprop.Core;
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Merce;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
-internal class ArchiveLinkParser : ILinkParser
+internal class MerceArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
@@ -25,25 +25,6 @@ internal class ArchiveLinkParser : ILinkParser
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        return this.GetLinksAsync(baseUrl, doc);
-    }
-}
-
-internal class ArchivePaginator : DateBasedArchive, IPaginator
-{
-    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
-    {
-        return new NewsfeedJobDescrpition
-        {
-            Url = new Uri(GetDateBasedUrl("https://merce.hu", currentUrl)).ToString(),
-            Type = PageContentType.Archive,
-        };
-    }
-
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+        return GetLinksAsync(baseUrl, doc);
     }
 }
