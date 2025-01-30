@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Pup
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Consumer", "Agitprop.Consumer\Agitprop.Consumer.csproj", "{1CBAD7FA-FB04-4121-9575-39E2DBE41605}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleJobAdder", "Agitprop.ConsoleJobAdder\Agitprop.ConsoleJobAdder.csproj", "{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleToolKit", "Agitprop.ConsoleToolKit\Agitprop.ConsoleToolKit.csproj", "{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Sinks.Newsfeed", "Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Scraper.Sinks.Newsfeed.csproj", "{B7D370AD-9D3C-4D61-B854-3776DC4540BD}"
 EndProject
