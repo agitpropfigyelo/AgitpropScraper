@@ -6,5 +6,5 @@ internal class Mentions : RelationRecord
 {
 
     public string Url { get; set; }
-    public DateTime Date { get; set; }
+    public DateTimeOffset Date { get; set; }
 }

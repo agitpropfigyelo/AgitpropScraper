@@ -44,7 +44,7 @@ internal abstract class BaseArticleContentParser : IContentParser
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
         var dateNode = SelectSingleNode(html, DateXPaths);
-        DateTime date = DateTime.Parse(dateNode.Attributes["content"].Value);
+        DateTimeOffset date = DateTime.Parse(dateNode.Attributes["content"].Value);
 
         var titleNode = SelectSingleNode(html, TitleXPaths);
         string titleText = titleNode.InnerText.Trim() + " ";
