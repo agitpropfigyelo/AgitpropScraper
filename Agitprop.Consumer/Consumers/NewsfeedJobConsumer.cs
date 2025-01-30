@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using Agitporp.Scraper.Sinks.Newsfeed;
+using Agitprop.Scraper.Sinks.Newsfeed;
 
 using Agitprop.Core;
 using Agitprop.Core.Exceptions;

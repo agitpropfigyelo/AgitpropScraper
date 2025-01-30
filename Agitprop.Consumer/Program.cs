@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Agitporp.Scraper.Sinks.Newsfeed;
+using Agitprop.Scraper.Sinks.Newsfeed;
 
 using Agitprop.Infrastructure.Puppeteer;
 
