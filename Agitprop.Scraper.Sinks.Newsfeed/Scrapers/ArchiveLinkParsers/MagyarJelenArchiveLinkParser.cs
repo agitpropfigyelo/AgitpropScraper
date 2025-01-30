@@ -4,29 +4,9 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Magyarjelen;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
-internal class ArchivePaginator : DateBasedArchive, IPaginator
-{
-    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
-    {
-        var nextUrl = document.DocumentNode.SelectSingleNode("//a[contains(@class,'next page-numbers')]")?.GetAttributeValue<string>("href", "");
-        return new NewsfeedJobDescrpition
-        {
-            Url = new Uri(nextUrl ?? GetDateBasedUrl("https://magyarjelen.hu", currentUrl)).ToString(),
-            Type = PageContentType.Archive,
-        };
-    }
-
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
-    {
-        HtmlDocument doc = new();
-        doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
-    }
-}
-
-internal class ArchiveLinkParser : ILinkParser
+internal class MagyarJelenArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
@@ -44,6 +24,6 @@ internal class ArchiveLinkParser : ILinkParser
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
     }
 }
