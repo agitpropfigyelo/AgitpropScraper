@@ -25,7 +25,7 @@ internal static class ScrapingJobFactory
             Url = url,
             PageCategory = PageCategory.PageWithPagination,
             PageType = source == NewsSites.NegyNegyNegy ? PageType.Dynamic : PageType.Static,
-            Actions = source == NewsSites.NegyNegyNegy ? [new(PageActionType.Execute, new Scrapers.Negynegynegy.ArchiveScrollAction())] : default,
+            Actions = source == NewsSites.NegyNegyNegy ? [new(PageActionType.Execute, new Scrapers.Negynegynegy.NegynegynegyArchiveScrollAction())] : default,
             LinkParsers = [LinkParserFactory.GetLinkParser(source)],
             ContentParsers = [ContentParserFactory.GetContentParser(source)],
             Pagination = PaginatorFactory.GetPaginator(source)

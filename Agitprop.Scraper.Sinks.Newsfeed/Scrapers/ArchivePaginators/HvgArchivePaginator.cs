@@ -1,4 +1,4 @@
-﻿using Agitprop.Core;
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 
@@ -6,7 +6,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Hvg;
 
-internal class ArchivePaginator : DateBasedArchive, IPaginator
+internal class HvgArchivePaginator : DateBasedArchive, IPaginator
 {
     public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
     {
@@ -33,28 +33,5 @@ internal class ArchivePaginator : DateBasedArchive, IPaginator
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
         return Task.FromResult(GetNextPage(currentUrl, doc));
-    }
-}
-
-internal class ArchiveLinkParser : ILinkParser
-{
-    private readonly Uri baseUri = new Uri("https://www.hvg.hu");
-
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
-    {
-        HtmlDocument doc = new();
-        doc.LoadHtml(docString);
-        return GetLinksAsync(baseUrl, doc);
-    }
-
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
-    {
-        var articleUrls = doc.DocumentNode.SelectNodes("//article/div/h1/a").Select(x => x.GetAttributeValue("href", "")).ToList();
-        var result = articleUrls.Select(link => new NewsfeedJobDescrpition
-        {
-            Url = new Uri(baseUri, link).ToString(),
-            Type = PageContentType.Article,
-        }).Cast<ScrapingJobDescription>().ToList();
-        return Task.FromResult(result);
     }
 }

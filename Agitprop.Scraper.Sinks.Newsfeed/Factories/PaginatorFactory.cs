@@ -18,7 +18,7 @@ internal static class PaginatorFactory
             NewsSites.MagyarJelen => new Scrapers.Magyarjelen.ArchivePaginator(),
             NewsSites.Kurucinfo => new Scrapers.Kurucinfo.ArchivePaginator(),
             NewsSites.Alfahir => new Scrapers.Alfahir.ArchivePaginator(),
-            NewsSites.Huszonnegy => new Scrapers.Huszonnegy.ArchivePaginator(),
+            NewsSites.Huszonnegy => new Scrapers.Huszonnegy.HuszonnegyArchivePaginator(),
             NewsSites.NegyNegyNegy => new Scrapers.Negynegynegy.ArchivePaginator(),
             NewsSites.HVG => new Scrapers.Hvg.ArchivePaginator(),
             NewsSites.Telex => new Scrapers.Telex.ArchivePaginator(),

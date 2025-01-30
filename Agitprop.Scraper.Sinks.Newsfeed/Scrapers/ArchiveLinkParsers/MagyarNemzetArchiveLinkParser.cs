@@ -6,30 +6,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Magyarnemzet;
 
-internal class ArchivePaginator : IPaginator
-{
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
-    {
-        var uri = new Uri(currentUrl);
-        var currentDate = DateOnly.ParseExact(uri.Segments[^1].Replace("_sitemap.xml", ""), "yyyyMM");
-        var nextJobDate = currentDate.AddMonths(-1);
-        return Task.FromResult(new NewsfeedJobDescrpition
-        {
-            Url = new Uri($"{uri.GetLeftPart(UriPartial.Authority)}/{nextJobDate:yyyyMM}_sitemap.xml").ToString(),
-            Type = PageContentType.Archive,
-
-        } as ScrapingJobDescription);
-    }
-
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
-    {
-        HtmlDocument doc = new();
-        doc.LoadHtml(docString);
-        return this.GetNextPageAsync(currentUrl, doc);
-    }
-}
-
-internal class ArchiveLinkParser : SitemapLinkParser, ILinkParser
+internal class MagyarNemzetArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {

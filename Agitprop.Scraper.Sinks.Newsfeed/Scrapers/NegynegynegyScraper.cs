@@ -1,32 +1,10 @@
-﻿using Agitprop.Core;
-using Agitprop.Core.Enums;
-using Agitprop.Core.Interfaces;
-
-using HtmlAgilityPack;
+﻿using Agitprop.Core.Interfaces;
 
 using PuppeteerSharp;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Negynegynegy;
-internal class ArchivePaginator : DateBasedArchive, IPaginator
-{
-    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
-    {
-        return new NewsfeedJobDescrpition
-        {
-            Url = new Uri(GetDateBasedUrl("https://444.hu", currentUrl)).ToString(),
-            Type = PageContentType.Archive,
-        };
-    }
 
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
-    }
-}
-
-internal class ArchiveScrollAction : IBrowserAction
+internal class NegynegynegyArchiveScrollAction : IBrowserAction
 {
     public async Task ExecuteAsync(IPage page)
     {
@@ -48,27 +26,5 @@ internal class ArchiveScrollAction : IBrowserAction
                 hasNext = false;
             }
         } while (hasNext);
-    }
-}
-
-internal class ArchiveLinkParser : ILinkParser
-{
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
-    {
-        HtmlDocument doc = new();
-        doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
-    }
-
-    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
-    {
-        HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//article/div/h1/a");
-        var result = articles.Select(x => x.GetAttributeValue("href", ""))
-                             .Select(link => new NewsfeedJobDescrpition
-                             {
-                                 Url = new Uri($"https://444.hu{link}").ToString(),
-                                 Type = PageContentType.Article,
-                             }).Cast<ScrapingJobDescription>().ToList();
-        return Task.FromResult(result);
     }
 }

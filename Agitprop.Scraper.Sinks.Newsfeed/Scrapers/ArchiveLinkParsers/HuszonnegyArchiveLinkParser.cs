@@ -1,4 +1,4 @@
-﻿using Agitprop.Core;
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
 
@@ -6,7 +6,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Huszonnegy;
 
-internal class ArchiveLinkParser : ILinkParser
+internal class HuszonnegyArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
@@ -24,26 +24,5 @@ internal class ArchiveLinkParser : ILinkParser
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
         return this.GetLinksAsync(baseUrl, doc);
-    }
-}
-
-internal class ArchivePaginator : DateBasedArchive, IPaginator
-{
-    public async Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
-    {
-        var url = GetDateBasedUrl("https://24.hu", currentUrl);
-        var job = new NewsfeedJobDescrpition
-        {
-            Url = new Uri(url).ToString(),
-            Type = PageContentType.Archive,
-        };
-        return await Task.FromResult(job);
-    }
-
-    public async Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(docString);
-        return await GetNextPageAsync(currentUrl, doc);
     }
 }

@@ -6,28 +6,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Rtl;
 
-public class ArchivePaginator : IPaginator
-{
-    public ScrapingJobDescription GetNextPage(string currentUrl, HtmlDocument document)
-    {
-        var url = new Uri(currentUrl);
-        var newUlr = $"https://rtl.hu/legfrissebb?oldal=1";
-        if (int.TryParse(url.Query.Split('=')[1], out var page))
-        {
-            newUlr = $"https://rtl.hu/legfrissebb?oldal={++page}";
-        }
-        return new NewsfeedJobDescrpition { Url = new Uri(newUlr).ToString(), Type = PageContentType.Archive };
-    }
-
-    public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
-    }
-}
-
-public class ArchiveLinkParser : ILinkParser
+public class RtlArchiveLinkParser : ILinkParser
 {
     private readonly Uri baseUri = new Uri("https://rtl.hu");
 

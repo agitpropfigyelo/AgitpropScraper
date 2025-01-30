@@ -18,7 +18,7 @@ internal static class LinkParserFactory
             NewsSites.MagyarJelen => new Scrapers.Magyarjelen.ArchiveLinkParser(),
             NewsSites.Kurucinfo => new Scrapers.Kurucinfo.ArchiveLinkParser(),
             NewsSites.Alfahir => new Scrapers.Alfahir.ArchiveLinkParser(),
-            NewsSites.Huszonnegy => new Scrapers.Huszonnegy.ArchiveLinkParser(),
+            NewsSites.Huszonnegy => new Scrapers.Huszonnegy.HuszonnegyArchiveLinkParser(),
             NewsSites.NegyNegyNegy => new Scrapers.Negynegynegy.ArchiveLinkParser(),
             NewsSites.HVG => new Scrapers.Hvg.ArchiveLinkParser(),
             NewsSites.Telex => new Scrapers.Telex.ArchiveLinkParser(),
