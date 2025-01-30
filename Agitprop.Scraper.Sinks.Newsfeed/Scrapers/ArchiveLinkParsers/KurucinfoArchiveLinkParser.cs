@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Kurucinfo;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class KurucinfoArchiveLinkParser : ILinkParser
 {
@@ -25,6 +25,6 @@ internal class KurucinfoArchiveLinkParser : ILinkParser
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
     }
 }

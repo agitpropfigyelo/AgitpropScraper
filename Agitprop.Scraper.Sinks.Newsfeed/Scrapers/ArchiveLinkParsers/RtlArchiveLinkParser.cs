@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Rtl;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 public class RtlArchiveLinkParser : ILinkParser
 {
@@ -14,7 +14,7 @@ public class RtlArchiveLinkParser : ILinkParser
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
     }
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)

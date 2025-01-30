@@ -2,7 +2,7 @@
 
 using PuppeteerSharp;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Negynegynegy;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
 
 internal class NegynegynegyArchiveScrollAction : IBrowserAction
 {

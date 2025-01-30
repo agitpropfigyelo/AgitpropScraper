@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Pestisracok;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 internal class PestiSracokArchiveLinkParser : ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
@@ -23,6 +23,6 @@ internal class PestiSracokArchiveLinkParser : ILinkParser
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
     }
 }

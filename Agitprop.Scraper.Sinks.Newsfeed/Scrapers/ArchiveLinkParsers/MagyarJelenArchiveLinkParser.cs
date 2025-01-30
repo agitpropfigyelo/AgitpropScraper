@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Magyarjelen;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class MagyarJelenArchiveLinkParser : ILinkParser
 {
@@ -24,6 +24,6 @@ internal class MagyarJelenArchiveLinkParser : ILinkParser
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
     }
 }

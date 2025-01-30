@@ -4,13 +4,13 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Magyarnemzet;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class MagyarNemzetArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        var result = base.GetLinks(doc.ToString())
+        var result = GetLinks(doc.ToString())
                          .Select(link => new NewsfeedJobDescrpition
                          {
                              Url = new Uri(link).ToString(),
@@ -22,7 +22,7 @@ internal class MagyarNemzetArchiveLinkParser : SitemapLinkParser, ILinkParser
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
-        var result = base.GetLinks(docString)
+        var result = GetLinks(docString)
                         .Select(link => new NewsfeedJobDescrpition
                         {
                             Url = new Uri(link).ToString(),

@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Index;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class IndexArchiveLinkParser : SitemapLinkParser, ILinkParser
 {
@@ -20,6 +20,6 @@ internal class IndexArchiveLinkParser : SitemapLinkParser, ILinkParser
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        return this.GetLinksAsync(baseUrl, doc.ToString());
+        return GetLinksAsync(baseUrl, doc.ToString());
     }
 }

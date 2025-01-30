@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Origo;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class OrigoArchiveLinkParser : ILinkParser
 {
@@ -14,7 +14,7 @@ internal class OrigoArchiveLinkParser : ILinkParser
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
 
     }
 

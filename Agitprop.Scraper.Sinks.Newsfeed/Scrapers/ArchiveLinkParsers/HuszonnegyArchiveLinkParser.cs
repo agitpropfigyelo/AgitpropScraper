@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Huszonnegy;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class HuszonnegyArchiveLinkParser : ILinkParser
 {
@@ -23,6 +23,6 @@ internal class HuszonnegyArchiveLinkParser : ILinkParser
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        return this.GetLinksAsync(baseUrl, doc);
+        return GetLinksAsync(baseUrl, doc);
     }
 }
