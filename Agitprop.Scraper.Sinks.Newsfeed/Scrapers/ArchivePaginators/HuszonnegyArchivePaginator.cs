@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Huszonnegy;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class HuszonnegyArchivePaginator : DateBasedArchive, IPaginator
 {

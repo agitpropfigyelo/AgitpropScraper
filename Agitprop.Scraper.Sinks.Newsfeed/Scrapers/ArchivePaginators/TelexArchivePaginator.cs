@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Telex;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 internal class TelexArchivePaginator : IPaginator
 {
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
@@ -39,6 +39,6 @@ internal class TelexArchivePaginator : IPaginator
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        return this.GetNextPageAsync(currentUrl, doc);
+        return GetNextPageAsync(currentUrl, doc);
     }
 }

@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Negynegynegy;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class NegynegynegyArchivePaginator : DateBasedArchive, IPaginator
 {
@@ -21,6 +21,6 @@ internal class NegynegynegyArchivePaginator : DateBasedArchive, IPaginator
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+        return Task.FromResult(GetNextPage(currentUrl, doc));
     }
 }

@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Mandiner;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class MandinerArchivePaginator : IPaginator
 {
@@ -24,6 +24,6 @@ internal class MandinerArchivePaginator : IPaginator
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+        return Task.FromResult(GetNextPage(currentUrl, doc));
     }
 }

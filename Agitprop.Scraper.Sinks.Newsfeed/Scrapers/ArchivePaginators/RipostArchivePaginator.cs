@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Ripost;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class RipostArchivePaginator : SitemapArchivePaginator, IPaginator
 {
@@ -12,7 +12,7 @@ internal class RipostArchivePaginator : SitemapArchivePaginator, IPaginator
     {
         return new NewsfeedJobDescrpition
         {
-            Url = new Uri(base.GetUrl(currentUrl, document)).ToString(),
+            Url = new Uri(GetUrl(currentUrl, document)).ToString(),
             Type = PageContentType.Archive,
         };
     }

@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Rtl;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 public class RtlArchivePaginator : IPaginator
 {
@@ -23,6 +23,6 @@ public class RtlArchivePaginator : IPaginator
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+        return Task.FromResult(GetNextPage(currentUrl, doc));
     }
 }

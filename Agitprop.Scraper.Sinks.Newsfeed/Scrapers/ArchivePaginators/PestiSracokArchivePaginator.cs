@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Pestisracok;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class PestiSracokArchivePaginator : DateBasedArchive, IPaginator
 {
@@ -21,6 +21,6 @@ internal class PestiSracokArchivePaginator : DateBasedArchive, IPaginator
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetNextPageAsync(currentUrl, doc);
+        return GetNextPageAsync(currentUrl, doc);
     }
 }

@@ -6,7 +6,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Kurucinfo;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 public class KurucinfoArchivePaginator : IPaginator
 {
@@ -25,6 +25,6 @@ public class KurucinfoArchivePaginator : IPaginator
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetNextPageAsync(currentUrl, doc);
+        return GetNextPageAsync(currentUrl, doc);
     }
 }

@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Origo;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class OrigoArchivePaginator : DateBasedArchive, IPaginator
 {
@@ -21,7 +21,7 @@ internal class OrigoArchivePaginator : DateBasedArchive, IPaginator
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+        return Task.FromResult(GetNextPage(currentUrl, doc));
     }
     protected static new string GetDateBasedUrl(string urlBase, string current)
     {

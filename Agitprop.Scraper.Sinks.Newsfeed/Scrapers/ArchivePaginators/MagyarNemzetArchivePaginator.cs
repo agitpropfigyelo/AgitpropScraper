@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Magyarnemzet;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class MagyarNemzetArchivePaginator : IPaginator
 {
@@ -25,6 +25,6 @@ internal class MagyarNemzetArchivePaginator : IPaginator
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return this.GetNextPageAsync(currentUrl, doc);
+        return GetNextPageAsync(currentUrl, doc);
     }
 }

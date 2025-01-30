@@ -4,7 +4,7 @@ using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.Magyarjelen;
+namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class MagyarJelenArchivePaginator : DateBasedArchive, IPaginator
 {
@@ -22,6 +22,6 @@ internal class MagyarJelenArchivePaginator : DateBasedArchive, IPaginator
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
-        return Task.FromResult(this.GetNextPage(currentUrl, doc));
+        return Task.FromResult(GetNextPage(currentUrl, doc));
     }
 }
