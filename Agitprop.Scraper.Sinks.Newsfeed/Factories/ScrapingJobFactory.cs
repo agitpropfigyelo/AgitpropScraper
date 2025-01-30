@@ -1,6 +1,6 @@
 ﻿using Agitprop.Core;
 using Agitprop.Core.Enums;
-using Agitprop.Core.Factories;
+using Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
@@ -25,7 +25,7 @@ internal static class ScrapingJobFactory
             Url = url,
             PageCategory = PageCategory.PageWithPagination,
             PageType = source == NewsSites.NegyNegyNegy ? PageType.Dynamic : PageType.Static,
-            Actions = source == NewsSites.NegyNegyNegy ? [new(PageActionType.Execute, new Scrapers.Negynegynegy.NegynegynegyArchiveScrollAction())] : default,
+            Actions = source == NewsSites.NegyNegyNegy ? [new(PageActionType.Execute, new NegynegynegyArchiveScrollAction())] : default,
             LinkParsers = [LinkParserFactory.GetLinkParser(source)],
             ContentParsers = [ContentParserFactory.GetContentParser(source)],
             Pagination = PaginatorFactory.GetPaginator(source)

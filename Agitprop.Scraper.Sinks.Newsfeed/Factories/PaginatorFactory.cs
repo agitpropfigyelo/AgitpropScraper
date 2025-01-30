@@ -1,5 +1,6 @@
 ﻿using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
+using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
@@ -9,22 +10,22 @@ internal static class PaginatorFactory
     {
         return source switch
         {
-            NewsSites.Origo => new Scrapers.Origo.ArchivePaginator(),
-            NewsSites.Ripost => new Scrapers.Ripost.ArchivePaginator(),
-            NewsSites.Mandiner => new Scrapers.Mandiner.ArchivePaginator(),
-            NewsSites.Metropol => new Scrapers.Metropol.ArchivePaginator(),
-            NewsSites.MagyarNemzet => new Scrapers.Magyarnemzet.ArchivePaginator(),
-            NewsSites.PestiSracok => new Scrapers.Pestisracok.ArchivePaginator(),
-            NewsSites.MagyarJelen => new Scrapers.Magyarjelen.ArchivePaginator(),
-            NewsSites.Kurucinfo => new Scrapers.Kurucinfo.ArchivePaginator(),
-            NewsSites.Alfahir => new Scrapers.Alfahir.ArchivePaginator(),
-            NewsSites.Huszonnegy => new Scrapers.Huszonnegy.HuszonnegyArchivePaginator(),
-            NewsSites.NegyNegyNegy => new Scrapers.Negynegynegy.ArchivePaginator(),
-            NewsSites.HVG => new Scrapers.Hvg.ArchivePaginator(),
-            NewsSites.Telex => new Scrapers.Telex.ArchivePaginator(),
-            NewsSites.RTL => new Scrapers.Rtl.ArchivePaginator(),
-            NewsSites.Index => new Scrapers.Index.ArchivePaginator(),
-            NewsSites.Merce => new Scrapers.Merce.ArchivePaginator(),
+            NewsSites.Origo => new  OrigoArchivePaginator(),
+            NewsSites.Ripost => new  RipostArchivePaginator(),
+            NewsSites.Mandiner => new  MandinerArchivePaginator(),
+            NewsSites.Metropol => new  MetropolArchivePaginator(),
+            NewsSites.MagyarNemzet => new  MagyarNemzetArchivePaginator(),
+            NewsSites.PestiSracok => new  PestiSracokArchivePaginator(),
+            NewsSites.MagyarJelen => new  MagyarJelenArchivePaginator(),
+            NewsSites.Kurucinfo => new  KurucinfoArchivePaginator(),
+            NewsSites.Alfahir => new  AlfahirArchivePaginator(),
+            NewsSites.Huszonnegy => new  HuszonnegyArchivePaginator(),
+            NewsSites.NegyNegyNegy => new  NegynegynegyArchivePaginator(),
+            NewsSites.HVG => new  HvgArchivePaginator(),
+            NewsSites.Telex => new  TelexArchivePaginator(),
+            NewsSites.RTL => new  RtlArchivePaginator(),
+            NewsSites.Index => new  IndexArchivePaginator(),
+            NewsSites.Merce => new  MerceArchivePaginator(),
             _ => throw new ArgumentException($"Not supported news source: {source}"),
         };
     }
