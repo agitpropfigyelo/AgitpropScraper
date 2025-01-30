@@ -1,5 +1,6 @@
 using Agitprop.Core;
 using Agitprop.Core.Enums;
+using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
@@ -45,6 +46,7 @@ internal abstract class BaseArticleContentParser : IContentParser
     {
         var dateNode = SelectSingleNode(html, DateXPaths);
         DateTimeOffset date = DateTime.Parse(dateNode.Attributes["content"].Value);
+        if (date == DateTime.MinValue) throw new ContentParserException("Date not found");
 
         var titleNode = SelectSingleNode(html, TitleXPaths);
         string titleText = titleNode.InnerText.Trim() + " ";
@@ -56,6 +58,10 @@ internal abstract class BaseArticleContentParser : IContentParser
         string articleText = string.Join(" ", articleNodes.Select(node => node.InnerText.Trim()));
 
         string concatenatedText = titleText + leadText + articleText;
+        if (string.IsNullOrWhiteSpace(concatenatedText))
+        {
+            throw new ContentParserException("Article's content not found");
+        }
 
         return Task.FromResult(new ContentParserResult()
         {
