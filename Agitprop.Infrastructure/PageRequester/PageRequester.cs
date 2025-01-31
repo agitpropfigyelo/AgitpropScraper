@@ -9,8 +9,9 @@ public class PageRequester : IPageRequester
 {
     private static HttpClient? client;
 
-    public PageRequester()
+    public PageRequester(CookieContainer cookieContainer)
     {
+        CookieContainer = cookieContainer;
         client = CreateClient();
     }
 

@@ -25,11 +25,11 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
     public IProxyProvider ProxyProvider { get; }
     public ICookiesStorage CookieStorage { get; }
     private readonly SemaphoreSlim Semaphore = new(1, 1);
-    private string executablePath = null;
+    private string? executablePath = null;
 
-    public Task<string> Load(string url, object pageActions, bool headless)
+    public Task<string> Load(string url, object? pageActions, bool headless)
     {
-        return Load(url, (List<PageAction>)pageActions, headless);
+        return Load(url, (List<PageAction>?)pageActions, headless);
     }
 
     public async Task<string> Load(string url, List<PageAction>? pageActions = null, bool headless = true)
@@ -45,10 +45,10 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
             await Semaphore.WaitAsync();
             try
             {
-                Logger.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
+                Logger?.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
                 await browserFetcher.DownloadAsync();
                 executablePath = browserFetcher.GetInstalledBrowsers().First().GetExecutablePath();
-                Logger.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
+                Logger?.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
             }
             finally
             {
@@ -107,18 +107,18 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         catch (Exception ex)
         {
             ex.Data.Add("Proxy:", proxy.Address);
-            Logger.LogError(ex, $"Failed to open page: {url}");
+            Logger?.LogError(ex, $"Failed to open page: {url}");
             throw;
         }
 
         if (pageActions != null)
         {
-            Logger.LogInformation("{class}.{method}: performing page actions", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
+            Logger?.LogInformation("{class}.{method}: performing page actions", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
 
             for (int i = 0; i < pageActions.Count; i++)
             {
                 var pageAction = pageActions[i];
-                Logger.LogInformation("{class}.{method}: performing page action {current} of {count} with type {actionType}",
+                Logger?.LogInformation("{class}.{method}: performing page action {current} of {count} with type {actionType}",
                     nameof(PuppeteerPageLoaderWithProxies),
                     nameof(Load),
                     i,

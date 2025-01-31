@@ -46,7 +46,7 @@ internal abstract class BaseArticleContentParser : IContentParser
     {
         var dateNode = SelectSingleNode(html, DateXPaths);
         DateTimeOffset date = DateTime.Parse(dateNode.Attributes["content"].Value);
-        if (date == DateTime.MinValue) throw new ContentParserException("Date not found");
+        if (date == DateTimeOffset.MinValue) throw new ContentParserException("Date not found");
 
         var titleNode = SelectSingleNode(html, TitleXPaths);
         string titleText = titleNode.InnerText.Trim() + " ";

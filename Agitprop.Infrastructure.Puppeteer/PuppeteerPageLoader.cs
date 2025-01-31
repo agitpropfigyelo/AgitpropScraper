@@ -15,14 +15,14 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
     private readonly ICookiesStorage _cookiesStorage;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public PuppeteerPageLoader(ILogger<PuppeteerPageLoader> logger, ICookiesStorage cookiesStorage) : base(logger)
+    public PuppeteerPageLoader(ICookiesStorage cookiesStorage, ILogger<PuppeteerPageLoader>? logger = default) : base(logger)
     {
         _cookiesStorage = cookiesStorage;
     }
 
     public async Task<string> Load(string url, List<PageAction>? pageActions = null, bool headless = true)
     {
-        Logger.LogInformation("{class}.{method}", nameof(PuppeteerPageLoader), nameof(Load));
+        Logger?.LogInformation("{class}.{method}", nameof(PuppeteerPageLoader), nameof(Load));
 
         var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
         {
@@ -32,23 +32,23 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         await _semaphore.WaitAsync();
         try
         {
-            Logger.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoader), nameof(Load));
+            Logger?.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoader), nameof(Load));
             await browserFetcher.DownloadAsync(BrowserTag.Stable);
-            Logger.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoader), nameof(Load));
+            Logger?.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoader), nameof(Load));
         }
         finally
         {
             _semaphore.Release();
         }
         PuppeteerSharp.BrowserData.InstalledBrowser idk = browserFetcher.GetInstalledBrowsers().First();
-        Logger.LogInformation("{class}.{method}: Launching a browser", nameof(PuppeteerPageLoader), nameof(Load));
+        Logger?.LogInformation("{class}.{method}: Launching a browser", nameof(PuppeteerPageLoader), nameof(Load));
         await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
             Headless = headless,
             ExecutablePath = browserFetcher.GetInstalledBrowsers().First().GetExecutablePath(),
         });
 
-        Logger.LogInformation("{class}.{method}: creating a new page", nameof(PuppeteerPageLoader), nameof(Load));
+        Logger?.LogInformation("{class}.{method}: creating a new page", nameof(PuppeteerPageLoader), nameof(Load));
         await using var page = (await browser.PagesAsync())[0];
 
         var cookies = await _cookiesStorage.GetAsync();
@@ -68,12 +68,12 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
 
         if (pageActions != null)
         {
-            Logger.LogInformation("{class}.{method}: performing page actions", nameof(PuppeteerPageLoader), nameof(Load));
+            Logger?.LogInformation("{class}.{method}: performing page actions", nameof(PuppeteerPageLoader), nameof(Load));
 
             for (int i = 0; i < pageActions.Count; i++)
             {
                 var pageAction = pageActions[i];
-                Logger.LogInformation("{class}.{method}: performing page action {current} of {count} with type {actionType}",
+                Logger?.LogInformation("{class}.{method}: performing page action {current} of {count} with type {actionType}",
                     nameof(PuppeteerPageLoader),
                     nameof(Load),
                     i,
@@ -89,8 +89,8 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         return html;
     }
 
-    public Task<string> Load(string url, object pageActions, bool headless)
+    public Task<string> Load(string url, object? pageActions, bool headless)
     {
-        return Load(url, (List<PageAction>)pageActions, headless);
+        return Load(url, (List<PageAction>?)pageActions, headless);
     }
 }

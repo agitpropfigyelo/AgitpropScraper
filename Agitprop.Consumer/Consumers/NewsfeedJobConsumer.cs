@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 using Agitprop.Scraper.Sinks.Newsfeed;
-
-using Agitprop.Core;
-using Agitprop.Core.Exceptions;
 using Agitprop.Infrastructure.Interfaces;
 
 using MassTransit;
@@ -16,8 +11,6 @@ using Microsoft.Extensions.Logging;
 
 using Polly;
 using Polly.Registry;
-
-using PuppeteerSharp;
 
 namespace Agitprop.Consumer.Consumers
 {

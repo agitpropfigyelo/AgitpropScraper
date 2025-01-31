@@ -25,9 +25,9 @@ public abstract class BrowserPageLoader
     ///     Constructor that takes ILogger argument
     /// </summary>
     /// <param name="logger"></param>
-    protected BrowserPageLoader(ILogger<BrowserPageLoader> logger)
+    protected BrowserPageLoader(ILogger<BrowserPageLoader>? logger =default)
     {
         Logger = logger;
     }
-    protected ILogger<BrowserPageLoader> Logger { get; }
+    protected ILogger<BrowserPageLoader>? Logger { get; }
 }

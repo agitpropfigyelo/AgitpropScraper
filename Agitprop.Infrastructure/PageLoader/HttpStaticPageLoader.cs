@@ -10,7 +10,7 @@ namespace Agitprop.Infrastructure.PageLoader;
 
 public class HttpStaticPageLoader : IStaticPageLoader
 {
-    public HttpStaticPageLoader(IPageRequester pageRequester, ICookiesStorage cookiesStorage, ILogger<HttpStaticPageLoader> logger)
+    public HttpStaticPageLoader(IPageRequester pageRequester, ICookiesStorage cookiesStorage, ILogger<HttpStaticPageLoader>? logger =default)
     {
         ServicePointManager.DefaultConnectionLimit = int.MaxValue;
         ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
@@ -26,7 +26,7 @@ public class HttpStaticPageLoader : IStaticPageLoader
 
     public IPageRequester PageRequester { get; }
     public ICookiesStorage CookiesStorage { get; }
-    public ILogger<HttpStaticPageLoader> Logger { get; }
+    public ILogger<HttpStaticPageLoader>? Logger { get; }
 
     public async Task<string> Load(string url)
     {
@@ -36,7 +36,7 @@ public class HttpStaticPageLoader : IStaticPageLoader
 
         if (response.IsSuccessStatusCode) return await response.Content.ReadAsStringAsync();
 
-        Logger.LogError("Failed to load page {url}. Error code: {statusCode}", url, response.StatusCode);
+        Logger?.LogError("Failed to load page {url}. Error code: {statusCode}", url, response.StatusCode);
 
         throw new InvalidOperationException($"Failed to load page {url}. Error code: {response.StatusCode}. Headers: {response.Headers.ToString()}")
         {
