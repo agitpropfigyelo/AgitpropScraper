@@ -9,7 +9,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Core\Agitprop.Core.csproj" />
-    <ProjectReference Include="..\Agitprop.Scrapers\Agitprop.Scrapers.csproj" />
+    <ProjectReference Include="..\Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj" />
+    <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
+    <ProjectReference Include="..\Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Scraper.Sinks.Newsfeed.csproj" />
   </ItemGroup>
 
   <ItemGroup>

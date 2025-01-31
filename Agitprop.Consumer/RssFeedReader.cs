@@ -34,7 +34,7 @@ public class RssFeedReader : IHostedService, IDisposable
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         _logger = logger;
-        _feeds = configuration.GetSection("RssFeedReader:Feeds").Get<string[]>();
+        _feeds = configuration.GetSection("RssFeedReader:Feeds").Get<string[]>()??throw new ArgumentException("Feeds are not defined");
         _scopeFactory = scopeFactory;
         _interval = TimeSpan.FromMinutes(configuration.GetValue<double>("RssFeedReader:IntervalMinutes", 60));
     }
@@ -45,13 +45,13 @@ public class RssFeedReader : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
-    private async void ExecuteTask(object state)
+    private void ExecuteTask(object? state)
     {
         _logger.LogInformation("Running RSS reader:");
         using var scope = _scopeFactory.CreateScope();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
         var jobs = FetchScrapingJobs();
-        await publishEndpoint.PublishBatch(jobs);
+        publishEndpoint.PublishBatch(jobs).Wait();
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -81,7 +81,7 @@ public class RssFeedReader : IHostedService, IDisposable
                 {
                     var news = feed.Items.Select(item => new NewsfeedJobDescrpition
                     {
-                        Url = item.Links.FirstOrDefault()?.Uri.GetLeftPart(UriPartial.Path),
+                        Url = item.Links.FirstOrDefault()?.Uri.GetLeftPart(UriPartial.Path)?? throw new ArgumentException("No link found"),
                         Type = PageContentType.Article // Assuming all RSS feed items are articles
                     });
                     _logger.LogDebug($"New articles: {news.ToList()}");
