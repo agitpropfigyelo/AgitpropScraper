@@ -1,4 +1,6 @@
-﻿using Agitprop.Core.Interfaces;
+﻿using System.Net;
+
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
@@ -14,6 +16,7 @@ public static class Extensions
         services.AddTransient<ISpider, Spider>();
         services.AddTransient<ICookiesStorage, CookieStorage>();
         services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
+        services.AddTransient<CookieContainer>();
         //TODO: Puppeteer not working w/ proxies
         services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
         if (useProxies)
