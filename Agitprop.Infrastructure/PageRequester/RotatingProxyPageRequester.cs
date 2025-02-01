@@ -5,16 +5,11 @@ using Agitprop.Core.Interfaces;
 
 namespace Agitprop.Infrastructure.PageRequester;
 
-public class RotatingProxyPageRequester : IPageRequester
+public class RotatingProxyPageRequester(IProxyProvider proxyProvider) : IPageRequester
 {
-    public RotatingProxyPageRequester(IProxyProvider proxyProvider)
-    {
-        ProxyProvider = proxyProvider;
-    }
+    public IProxyProvider ProxyProvider { get; } = proxyProvider;
 
-    public IProxyProvider ProxyProvider { get; }
-
-    public CookieContainer CookieContainer { get; set; }
+    public required CookieContainer CookieContainer { get; set; }
 
     public async Task<HttpResponseMessage> GetAsync(string url)
     {

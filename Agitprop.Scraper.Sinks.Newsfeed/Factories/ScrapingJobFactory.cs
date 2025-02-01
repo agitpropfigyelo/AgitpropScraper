@@ -4,7 +4,7 @@ using Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
-internal static class ScrapingJobFactory
+public static class ScrapingJobFactory
 {
 
     public static ScrapingJob GetArticleScrapingJob(NewsSites source, string url)

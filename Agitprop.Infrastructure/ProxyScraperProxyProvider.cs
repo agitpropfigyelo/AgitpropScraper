@@ -1,10 +1,6 @@
 ﻿using System.Net;
-using System.Text;
 
 using Agitprop.Core.Interfaces;
-
-using TinyCsvParser;
-using TinyCsvParser.Mapping;
 
 namespace Agitprop.Infrastructure;
 
@@ -14,8 +10,8 @@ public class ProxyScrapeProxyProvider : IProxyProvider
     private string proxyScraperUrl = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt";
     //TODO: request the list after every 5 min improve thread safety
     private DateTime lastAccessTime;
-    private List<WebProxy> webProxies = new List<WebProxy>();
-    private Random rnd = new Random();
+    private List<WebProxy> webProxies = [];
+    private readonly Random rnd = new();
 
     public Task Initialization { get; private set; }
 

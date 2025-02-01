@@ -2,5 +2,5 @@
 
 public interface IBrowserPageLoader
 {
-    Task<string> Load(string url, object pageActions, bool headless);
+    Task<string> Load(string url, object? pageActions, bool headless);
 }

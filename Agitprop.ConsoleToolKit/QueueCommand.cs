@@ -1,51 +1,42 @@
-﻿using System.CommandLine;
+using System;
+using System.CommandLine;
 using System.Text;
 using System.Text.Json;
 
 using Agitprop.Core.Enums;
-using Agitprop.Core.Factories;
 
 using RabbitMQ.Client;
 
-class Program
+namespace Agitprop.ConsoleToolKit;
+
+public static class QueueCommand
 {
     private static readonly string QueueName = "scraping-job";
+    private static readonly string CommandName = "queue";
 
-    public static async Task Main(string[] args)
+    internal static Command AddQueueCommand(this RootCommand rootCommand)
     {
-        // Define command-line options
-        var rootCommand = new RootCommand();
-
         var dateOption = new Option<DateOnly>(
-            new[] { "--date", "-d" },
+            ["--date", "-d"],
             () => DateOnly.FromDateTime(DateTime.Today - TimeSpan.FromDays(1)),
             "Specifies the date for the scraping job descriptions");
         var siteOption = new Option<NewsSites[]>(
-            new[] { "--site", "-s" },
-            () => Enum.GetValues<NewsSites>(),
+            ["--site", "-s"],
+            Enum.GetValues<NewsSites>,
             "Specifies the news sites to include (comma-separated or multiple flags)");
 
-
-        rootCommand.Description = "Scraping Job Publisher - Publishes scraping jobs to RabbitMQ";
-
-        var addCommand = new Command("add", "Publishes scraping jobs to queue")
+        var addCommand = new Command(CommandName, "Publishes scraping jobs to queue")
         {
             dateOption,
             siteOption,
         };
-        rootCommand.AddCommand(addCommand);
+        addCommand.SetHandler(PublishJob, dateOption, siteOption);
 
-
-
-        addCommand.SetHandler(async (date, sites) => await PublishJob(date, sites), dateOption, siteOption);
-
-
-        await rootCommand.InvokeAsync(args);
+        rootCommand.Add(addCommand);
+        return addCommand;
     }
 
-
-
-    internal static async Task PublishJob(DateOnly date, NewsSites[] sites)
+    private static async Task PublishJob(DateOnly date, NewsSites[] sites)
     {
         var factory = new ConnectionFactory
         {
@@ -77,6 +68,6 @@ class Program
             Console.WriteLine($"Published job: {message}");
         }
 
-        await Task.CompletedTask; // Simulates async behavior for consistency
+        await Task.CompletedTask;
     }
 }
