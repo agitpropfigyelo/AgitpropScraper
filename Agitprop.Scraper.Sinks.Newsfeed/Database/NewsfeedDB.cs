@@ -26,7 +26,7 @@ public class NewsfeedDB : INewsfeedDB
     //TODO: rework insertions, might gain performance
     public async Task AddArticle()
     {
-
+        
     }
 
 
