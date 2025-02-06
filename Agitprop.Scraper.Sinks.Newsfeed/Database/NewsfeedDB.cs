@@ -47,7 +47,7 @@ public class NewsfeedDB : INewsfeedDB
     private async Task<Entity> CreateEntityAsync(string entityName)
     {
         Entity result = await Client.Create("entity", new Entity { Name = entityName });
-        Logger.LogInformation($"Added entity {result.Name}");
+        Logger.LogInformation("Added entity {name}", result.Name);
         return result;
     }
 
@@ -59,7 +59,7 @@ public class NewsfeedDB : INewsfeedDB
             };
         SurrealDbResponse result = await Client.RawQuery(selectEntityQuery, parameters);
         Entity ent = result.FirstOk.GetValues<Entity>().FirstOrDefault() ?? await CreateEntityAsync(entityName);
-        Logger.LogInformation($"Get entity {entityName} : {ent.Id.DeserializeId<string>()} - {ent.Name}");
+        Logger.LogInformation("Get entity {entityName} : {id} - {naem}", entityName, ent.Id.DeserializeId<string>(), ent.Name);
         return ent;
     }
 }

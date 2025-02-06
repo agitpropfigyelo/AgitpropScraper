@@ -47,7 +47,7 @@ public class RssFeedReader : IHostedService, IDisposable
 
     private void ExecuteTask(object? state)
     {
-        _logger.LogInformation("Running RSS reader:");
+        _logger.LogInformation("Running RSS readers");
         using var scope = _scopeFactory.CreateScope();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
         var jobs = FetchScrapingJobs();
@@ -71,7 +71,7 @@ public class RssFeedReader : IHostedService, IDisposable
 
         foreach (var feedUrl in _feeds)
         {
-            _logger.LogDebug($"Reading RSS feed: {feedUrl}");
+            _logger.LogDebug("Reading RSS feed: {feedUrl}",feedUrl);
             try
             {
                 using var reader = XmlReader.Create(feedUrl);
@@ -84,13 +84,13 @@ public class RssFeedReader : IHostedService, IDisposable
                         Url = item.Links.FirstOrDefault()?.Uri.GetLeftPart(UriPartial.Path)?? throw new ArgumentException("No link found"),
                         Type = PageContentType.Article // Assuming all RSS feed items are articles
                     });
-                    _logger.LogDebug($"New articles: {news.ToList()}");
+                    _logger.LogDebug("New articles: {newList}",news.ToList());
                     scrapingJobs.AddRange(news);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing feed {feedUrl}: {ex.Message}");
+                _logger.LogError("Error processing feed {feedUrl}: {msg}",feedUrl,ex.Message);
             }
         }
 
