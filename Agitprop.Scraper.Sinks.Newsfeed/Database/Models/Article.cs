@@ -7,5 +7,5 @@ namespace Agitprop.Scraper.Sinks.Newsfeed.Database.Models;
 public class Article: Record
 {
     public string Url{init; get;}
-    public DateTime Title{init; get;}
+    public DateTime PublishedTime{init; get;}
 }
