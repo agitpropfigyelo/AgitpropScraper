@@ -33,14 +33,14 @@ public class NewsfeedDB : INewsfeedDB
 
         //add mentions
         var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
-        var mentions = await Client.Relate<Mentions>("mentions", src, entIds);
+        var mentions = await Client.Relate<Mentions>("mentions", article.Id, entIds);
 
         return mentions.Count();
     }
 
     public async Task<bool> IsUrlAlreadyExists(string url)
     {
-        var result = await Client.RawQuery("(SELECT Url FROM articles).Link.any(|$var| $var.is_string());", new Dictionary<string, object?> { { "var", url } });
+        var result = await Client.RawQuery("(SELECT Url FROM articles).Url.any(|$var| $var.is_string());", new Dictionary<string, object?> { { "var", url } });
         return result.GetValue<bool>(0);
     }
 
