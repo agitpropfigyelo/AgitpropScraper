@@ -38,7 +38,7 @@ public class HttpStaticPageLoader : IStaticPageLoader
 
         Logger?.LogError("Failed to load page {url}. Error code: {statusCode}", url, response.StatusCode);
 
-        throw new InvalidOperationException($"Failed to load page {url}. Error code: {response.StatusCode}. Headers: {response.Headers.ToString()}")
+        throw new InvalidOperationException($"Failed to load page {url}. Error code: {response.StatusCode}. Headers: {response.Headers}")
         {
             Data = { ["url"] = url, ["statusCode"] = response.StatusCode, ["headers"] = response.Headers }
         };

@@ -31,9 +31,9 @@ public class NewsfeedSink : ISink
         foreach (var article in data)
         {
             var entities = NerService.AnalyzeSingleAsync(article.Text).Result;
-            Logger.LogInformation($"Recieved named entitees for {url}");
+            Logger.LogInformation("Recieved named entitees for {url}", url);
             var count = DataBase.CreateMentionsAsync(url, article, entities).Result;
-            Logger.LogInformation($"Inserted {count} mentions for {url}");
+            Logger.LogInformation("Inserted {count} mentions for {url}",count, url);
         }
     }
 
@@ -42,9 +42,9 @@ public class NewsfeedSink : ISink
         foreach (var article in data)
         {
             var entities = await NerService.AnalyzeSingleAsync(article.Text);
-            Logger.LogInformation($"Recieved named entitees for {url}");
+            Logger.LogInformation("Recieved named entitees for {url}", url);
             var count = await DataBase.CreateMentionsAsync(url, article, entities);
-            Logger.LogInformation($"Inserted {count} mentions for {url}");
+            Logger.LogInformation("Inserted {count} mentions for {url}",count, url);
         }
     }
 }

@@ -107,7 +107,7 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         catch (Exception ex)
         {
             ex.Data.Add("Proxy:", proxy.Address);
-            Logger?.LogError(ex, $"Failed to open page: {url}");
+            Logger?.LogError(ex, "Failed to open page: {url}",url);
             throw;
         }
 

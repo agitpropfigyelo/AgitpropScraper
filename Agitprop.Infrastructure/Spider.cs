@@ -28,7 +28,7 @@ public sealed class Spider(
         // Check if the link is already visited
         if (await sink.CheckPageAlreadyVisited(job.Url))
         {
-            Logger?.LogInformation($"Page already visited: {job.Url}");
+            Logger?.LogInformation("Page already visited: {url}", job.Url);
             return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
 
@@ -49,7 +49,7 @@ public sealed class Spider(
             }
             catch (Exception)
             {
-                Logger?.LogWarning($"Failed to get links from site: {job.Url}");
+                Logger?.LogWarning("Failed to get links from site: {url}", job.Url);
             }
         }
         if (job.PageCategory == PageCategory.PageWithPagination && Configuration.GetValue<bool>("Continous"))
@@ -74,17 +74,17 @@ public sealed class Spider(
             }
             catch (Exception ex)
             {
-                Logger?.LogWarning($"{job.Url} Failed to run content parser: {ex.Message}");
+                Logger?.LogWarning("Failed to run content parser on {url}: {msg}",job.Url,ex.Message);
                 throw;
             }
         }
 
         if (results.Count == 0) throw new ContentParserException($"No content was scraped from: {job.Url}");
 
-        Logger?.LogInformation($"Sending scraped data to sink {job.Url}...");
+        Logger?.LogInformation("Sending scraped data to sink: {url} ", job.Url);
         await sink.EmitAsync(job.Url, results, cancellationToken);
 
-        Logger?.LogInformation($"Finished waiting for sink {job.Url}");
+        Logger?.LogInformation("Finished waiting for sink: {url} ", job.Url);
     }
 
     private async Task<HtmlDocument> LoadPageAsync(ScrapingJob job)
@@ -103,7 +103,7 @@ public sealed class Spider(
 
     private async Task<string> LoadDynamicPage(ScrapingJob job, bool headless)
     {
-        Logger?.LogInformation("{Url} Loading dynamic page", job.Url);
+        Logger?.LogInformation("Loading dynamic page {url}", job.Url);
         var doc = await BrowserPageLoader.Load(job.Url, job?.Actions, headless);
 
         return doc;
@@ -111,7 +111,7 @@ public sealed class Spider(
 
     private async Task<string> LoadStaticPage(ScrapingJob job)
     {
-        Logger?.LogInformation("Loading static page {Url}", job.Url);
+        Logger?.LogInformation("Loading static page {url}", job.Url);
         var doc = await StaticPageLoader.Load(job.Url);
 
         return doc;
