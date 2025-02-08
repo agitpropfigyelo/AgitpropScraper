@@ -28,12 +28,14 @@ public class NewsfeedDB : INewsfeedDB
         var src = RecordId.From("source", $"{parserResult.SourceSite}");
 
         var article = await Client.Create("articles", new Article { Url = url, PublishedTime = parserResult.PublishDate.DateTime });
+        Logger?.LogInformation("Added article {art}", article);
         //add publish
         var published = await Client.Relate<Published>("published", src, article.Id);
-
+        Logger?.LogInformation("Added published relation for {url} with id {id}", url,published.Id);
         //add mentions
         var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
         var mentions = await Client.Relate<Mentions>("mentions", article.Id, entIds);
+        Logger?.LogInformation("Added {count} mentions for {url}", mentions.Count(), url);
 
         return mentions.Count();
     }
@@ -59,7 +61,7 @@ public class NewsfeedDB : INewsfeedDB
             };
         SurrealDbResponse result = await Client.RawQuery(selectEntityQuery, parameters);
         Entity ent = result.FirstOk.GetValues<Entity>().FirstOrDefault() ?? await CreateEntityAsync(entityName);
-        Logger.LogInformation("Get entity {entityName} : {id} - {naem}", entityName, ent.Id.DeserializeId<string>(), ent.Name);
+        Logger.LogInformation("Get entity {entityName} : {id} - {name}", entityName, ent.Id.DeserializeId<string>(), ent.Name);
         return ent;
     }
 }
