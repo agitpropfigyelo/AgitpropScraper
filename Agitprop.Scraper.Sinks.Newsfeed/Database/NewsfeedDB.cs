@@ -42,7 +42,7 @@ public class NewsfeedDB : INewsfeedDB
 
     public async Task<bool> IsUrlAlreadyExists(string url)
     {
-        var result = await Client.RawQuery("(SELECT Url FROM articles).Url.any(|$var| $var.is_string());", new Dictionary<string, object?> { { "var", url } });
+        var result = await Client.RawQuery("RETURN count(SELECT Url FROM articles WHERE Url=$var)>0;", new Dictionary<string, object?> { { "var", url } });
         return result.GetValue<bool>(0);
     }
 
