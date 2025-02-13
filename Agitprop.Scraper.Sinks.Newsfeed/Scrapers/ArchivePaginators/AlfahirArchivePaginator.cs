@@ -6,7 +6,7 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
-internal class AlfahirrchivePaginator : IPaginator
+internal class AlfahirArchivePaginator : IPaginator
 {
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, HtmlDocument document)
     {
