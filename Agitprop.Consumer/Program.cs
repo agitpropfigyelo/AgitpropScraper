@@ -88,7 +88,12 @@ namespace Agitprop.Consumer
             });
 
             services.AddLogging(ConfigureLogging);
-            services.AddHostedService<RssFeedReader>();
+            
+            if (hostContext.Configuration.GetValue<bool>("RssFeedReader:IsEnabled"))
+            {
+                services.AddHostedService<RssFeedReader>();
+            }
+
             //services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
             services.AddNewsfeedSink(hostContext.Configuration);
             services.ConfigureInfrastructureWithBrowser();

@@ -84,7 +84,7 @@ public class RssFeedReader : IHostedService, IDisposable
                         Url = item.Links.FirstOrDefault()?.Uri.GetLeftPart(UriPartial.Path)?? throw new ArgumentException("No link found"),
                         Type = PageContentType.Article // Assuming all RSS feed items are articles
                     });
-                    _logger.LogDebug("New articles: {newList}",news.ToList());
+                    _logger.LogDebug("New articles: {newList}",news); //TODO: improve logging with stringyfied list
                     scrapingJobs.AddRange(news);
                 }
             }

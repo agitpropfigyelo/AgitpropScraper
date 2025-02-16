@@ -36,6 +36,7 @@ public sealed class Spider(
 
         if (job.PageCategory == PageCategory.TargetPage)
         {
+            Logger?.LogInformation("Processing: {url}", job.Url);
             await ProcessTargetPage(job, doc, sink, cancellationToken);
             return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
