@@ -19,8 +19,9 @@ internal class HvgArchiveLinkParser : ILinkParser
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        var articleUrls = doc.DocumentNode.SelectNodes("//article/div/h1/a").Select(x => x.GetAttributeValue("href", "")).ToList();
-        var result = articleUrls.Select(link => new NewsfeedJobDescrpition
+        var articleUrls = doc.DocumentNode.SelectNodes("//*[@id='latestListContent']/article[1]/div/h1/a").ToList();
+        var idk=articleUrls .Select(x => x.GetAttributeValue("href", "")).ToList();
+        var result = idk.Select(link => new NewsfeedJobDescrpition
         {
             Url = new Uri(baseUri, link).ToString(),
             Type = PageContentType.Article,
