@@ -10,8 +10,6 @@ using Agitprop.Infrastructure.PageRequester;
 using Agitprop.Infrastructure.Puppeteer;
 using Agitprop.Scraper.Sinks.Newsfeed;
 
-using Microsoft.Extensions.Configuration;
-
 namespace Agitprop.ConsoleToolKit;
 
 public static class ScrapeCommand
@@ -47,18 +45,10 @@ public static class ScrapeCommand
     {
         var cookiesStorage = new CookieStorage();
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                { "Continous", "false" },
-                { "Headless", "false" }
-            })
-            .Build();
-
         var spider = new Spider(
             new PuppeteerPageLoader(cookiesStorage),
             new HttpStaticPageLoader(new PageRequester(new CookieContainer()), cookiesStorage),
-            configuration);
+            null);
         var job = new NewsfeedJobDescrpition()
         {
             Type = PageContentType.Article,
