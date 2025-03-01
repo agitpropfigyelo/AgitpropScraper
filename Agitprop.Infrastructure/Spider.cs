@@ -76,7 +76,7 @@ public sealed class Spider(
             catch (Exception ex)
             {
                 Logger?.LogWarning("Failed to run content parser on {url}: {msg}",job.Url,ex.Message);
-                throw;
+                throw new Exception($"Failed to run content parsing {job.Url}", ex);
             }
         }
 

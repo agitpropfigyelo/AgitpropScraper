@@ -44,31 +44,39 @@ internal abstract class BaseArticleContentParser : IContentParser
 
     public Task<ContentParserResult> ParseContentAsync(HtmlDocument html)
     {
-        var dateNode = SelectSingleNode(html, DateXPaths);
-        DateTimeOffset date = DateTime.Parse(dateNode.Attributes["content"].Value);
-        if (date == DateTimeOffset.MinValue) throw new ContentParserException("Date not found");
-
-        var titleNode = SelectSingleNode(html, TitleXPaths);
-        string titleText = titleNode.InnerText.Trim() + " ";
-
-        var leadNode = SelectSingleNode(html, LeadXPaths);
-        string leadText = leadNode != null ? leadNode.InnerText.Trim() + " " : "";
-
-        var articleNodes = SelectMultipleNodes(html, ArticleXPaths);
-        string articleText = string.Join(" ", articleNodes.Select(node => node.InnerText.Trim()));
-
-        string concatenatedText = titleText + leadText + articleText;
-        if (string.IsNullOrWhiteSpace(concatenatedText))
+        try
         {
-            throw new ContentParserException("Article's content not found");
+
+            var dateNode = SelectSingleNode(html, DateXPaths);
+            DateTimeOffset date = DateTime.Parse(dateNode.Attributes["content"].Value);
+            if (date == DateTimeOffset.MinValue) throw new ContentParserException("Date not found");
+
+            var titleNode = SelectSingleNode(html, TitleXPaths);
+            string titleText = titleNode.InnerText.Trim() + " ";
+
+            var leadNode = SelectSingleNode(html, LeadXPaths);
+            string leadText = leadNode != null ? leadNode.InnerText.Trim() + " " : "";
+
+            var articleNodes = SelectMultipleNodes(html, ArticleXPaths);
+            string articleText = string.Join(" ", articleNodes.Select(node => node.InnerText.Trim()));
+
+            string concatenatedText = titleText + leadText + articleText;
+            if (string.IsNullOrWhiteSpace(concatenatedText))
+            {
+                throw new ContentParserException("Article's content not found");
+            }
+
+            return Task.FromResult(new ContentParserResult()
+            {
+                PublishDate = date,
+                SourceSite = SourceSite,
+                Text = Helper.CleanUpText(concatenatedText)
+            });
         }
-
-        return Task.FromResult(new ContentParserResult()
+        catch (NullReferenceException ex)
         {
-            PublishDate = date,
-            SourceSite = SourceSite,
-            Text = Helper.CleanUpText(concatenatedText)
-        });
+            throw new ContentParserException("Failed to scrape page", ex);
+        }
     }
 
     public Task<ContentParserResult> ParseContentAsync(string html)

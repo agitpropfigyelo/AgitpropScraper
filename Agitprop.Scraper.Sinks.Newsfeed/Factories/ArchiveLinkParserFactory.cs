@@ -4,7 +4,7 @@ using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
-internal static class LinkParserFactory
+internal static class ArchiveLinkParserFactory
 {
     public static ILinkParser GetLinkParser(NewsSites siteIn)
     {
