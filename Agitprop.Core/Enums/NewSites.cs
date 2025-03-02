@@ -11,7 +11,7 @@ public enum NewsSites
     MagyarJelen,
     Kurucinfo,
     Alfahir,
-    Huszonnegy,
+    HuszonnegyHu,
     NegyNegyNegy,
     HVG,
     Telex,
