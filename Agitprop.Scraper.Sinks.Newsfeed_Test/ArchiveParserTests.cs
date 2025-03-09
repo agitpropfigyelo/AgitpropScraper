@@ -18,7 +18,7 @@ public class ArchiveParserTests
     //kurucinfo
     [TestCase(NewsSites.MagyarJelen, 8)]
     [TestCase(NewsSites.MagyarNemzet, 4062)]
-    [TestCase(NewsSites.Mandiner, 0)]
+    [TestCase(NewsSites.Mandiner, 3103)]
     [TestCase(NewsSites.Merce, 0)]
     [TestCase(NewsSites.Metropol, 0)]
     [TestCase(NewsSites.Origo, 0)]
