@@ -21,7 +21,7 @@ public class ArchiveParserTests
     [TestCase(NewsSites.Mandiner, 3103)]
     [TestCase(NewsSites.Merce, 3)]
     [TestCase(NewsSites.Metropol, 1689)]
-    [TestCase(NewsSites.Origo, 0)]
+    [TestCase(NewsSites.Origo, 100)]
     [TestCase(NewsSites.PestiSracok, 0)]
     [TestCase(NewsSites.Ripost, 0)]
     //[TestCase(NewsSites.RTL, 0)]
