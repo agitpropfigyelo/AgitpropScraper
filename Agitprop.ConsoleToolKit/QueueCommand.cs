@@ -138,7 +138,7 @@ public static class QueueCommand
             NewsSites.MagyarJelen => $"https://www.magyarjelen.hu/{date.Year:D4}/{date.Month:D2}/{date.Day:D2}",
             NewsSites.Kurucinfo => throw new NotImplementedException("Kurucinfo scraping is not yet supported"),
             NewsSites.Alfahir => throw new NotImplementedException("Scraping by date is not supported"),
-            NewsSites.Huszonnegy => $"https://www.24.hu/{date.Year:D4}/{date.Month:D2}/{date.Day:D2}",
+            NewsSites.HuszonnegyHu => $"https://www.24.hu/{date.Year:D4}/{date.Month:D2}/{date.Day:D2}",
             NewsSites.NegyNegyNegy => $"https://www.444.hu/{date.Year:D4}/{date.Month:D2}/{date.Day:D2}",
             NewsSites.HVG => $"https://www.hvg.hu/frisshirek/{date.Year:D4}.{date.Month:D2}.{date.Day:D2}",
             NewsSites.Telex => $"https://telex.hu/sitemap/{date.Year:D4}/{date.Month:D2}/{date.Day:D2}/news.xml",

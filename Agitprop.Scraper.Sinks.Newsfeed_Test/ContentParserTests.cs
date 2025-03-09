@@ -18,7 +18,7 @@ public partial class ContentParserTests
     [TestCase(NewsSites.Ripost)]
     [TestCase(NewsSites.RTL)]
     [TestCase(NewsSites.Telex)]
-    [TestCase(NewsSites.Huszonnegy)]
+    [TestCase(NewsSites.HuszonnegyHu)]
     [TestCase(NewsSites.NegyNegyNegy)]
     public void ContentParserTest(NewsSites site)
     {

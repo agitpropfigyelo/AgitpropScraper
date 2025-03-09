@@ -13,9 +13,9 @@ public class ArchiveParserTests
     }
 
     //[TestCase(NewsSites.Alfahir, 10)]
-    [TestCase(NewsSites.Huszonnegy, 0)]
-    [TestCase(NewsSites.HVG, 0)]
+    [TestCase(NewsSites.HVG, 157)]
     [TestCase(NewsSites.Index, 0)]
+    //kurucinfo
     [TestCase(NewsSites.MagyarJelen, 0)]
     [TestCase(NewsSites.MagyarNemzet, 0)]
     [TestCase(NewsSites.Mandiner, 0)]
@@ -26,12 +26,13 @@ public class ArchiveParserTests
     [TestCase(NewsSites.Ripost, 0)]
     //[TestCase(NewsSites.RTL, 0)]
     [TestCase(NewsSites.Telex, 0)]
+    [TestCase(NewsSites.HuszonnegyHu, 0)]
     [TestCase(NewsSites.NegyNegyNegy, 0)]
     public void ArchiveParserTest(NewsSites siteIn, int expectedCount)
     {
         var parser = ArchiveLinkParserFactory.GetLinkParser(siteIn);
         var htmlContent = File.ReadAllText(TestCaseFactory.GetArchiveParserTestCasePath(siteIn));
         var result = parser.GetLinksAsync("testBaseUrl", htmlContent).Result;
-        Assert.That(result, Has.Count.EqualTo(expectedCount).Within(10));
+        Assert.That(result, Has.Count.EqualTo(expectedCount));
     }
 }

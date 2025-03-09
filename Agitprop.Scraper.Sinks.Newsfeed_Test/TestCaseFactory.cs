@@ -1,9 +1,6 @@
-using System;
 using System.Text.Json;
 
 using Agitprop.Core.Enums;
-
-using static Agitprop.Scraper.Sinks.Newsfeed_Test.ContentParserTests;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed_Test;
 
@@ -11,7 +8,7 @@ public static class TestCaseFactory
 {
     internal static IEnumerable<ContentParserTestCase> GetContentParserTestCases(NewsSites site)
     {
-        var testCasePath = $"TestData/{site.ToString().ToLower()}/testCases.json";
+        var testCasePath = $"TestData/{site.ToString().ToLower()}/testcases.json";
 
         var testCases = JsonSerializer.Deserialize<List<ContentParserTestCase>>(File.ReadAllText(testCasePath));
         foreach (var testCase in testCases)
@@ -22,6 +19,6 @@ public static class TestCaseFactory
 
     internal static string GetArchiveParserTestCasePath(NewsSites site)
     {
-        return $"TestData/{site.ToString().ToLower()}/archive";
+        return $"TestData/{site.ToString().ToLower()}/archive.html";
     }
 }
