@@ -22,9 +22,9 @@ public class ArchiveParserTests
     [TestCase(NewsSites.Merce, 3)]
     [TestCase(NewsSites.Metropol, 1689)]
     [TestCase(NewsSites.Origo, 100)]
-    [TestCase(NewsSites.PestiSracok, 0)]
-    [TestCase(NewsSites.Ripost, 0)]
-    //[TestCase(NewsSites.RTL, 0)]
+    [TestCase(NewsSites.PestiSracok, 45)] //ha több oldal van, akkor kell paginator
+    [TestCase(NewsSites.Ripost, 1887)]
+    [TestCase(NewsSites.RTL, 50)]
     [TestCase(NewsSites.Telex, 0)]
     [TestCase(NewsSites.HuszonnegyHu, 0)]
     [TestCase(NewsSites.NegyNegyNegy, 0)]
