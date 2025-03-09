@@ -20,7 +20,7 @@ public class ArchiveParserTests
     [TestCase(NewsSites.MagyarNemzet, 4062)]
     [TestCase(NewsSites.Mandiner, 3103)]
     [TestCase(NewsSites.Merce, 3)]
-    [TestCase(NewsSites.Metropol, 0)]
+    [TestCase(NewsSites.Metropol, 1689)]
     [TestCase(NewsSites.Origo, 0)]
     [TestCase(NewsSites.PestiSracok, 0)]
     [TestCase(NewsSites.Ripost, 0)]
