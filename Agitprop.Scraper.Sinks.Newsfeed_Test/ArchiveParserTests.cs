@@ -12,10 +12,10 @@ public class ArchiveParserTests
     {
     }
 
+    //kurucinfo
     //[TestCase(NewsSites.Alfahir, 10)]
     [TestCase(NewsSites.HVG, 157)] //TODO: ez is letekerős, mint a 444
     [TestCase(NewsSites.Index, 3437)]
-    //kurucinfo
     [TestCase(NewsSites.MagyarJelen, 8)]
     [TestCase(NewsSites.MagyarNemzet, 4062)]
     [TestCase(NewsSites.Mandiner, 3103)]
