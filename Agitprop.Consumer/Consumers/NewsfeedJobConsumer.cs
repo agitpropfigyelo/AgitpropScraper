@@ -38,8 +38,8 @@ namespace Agitprop.Consumer.Consumers
             logger.LogInformation("Crawling started: {url}", job.Url);
             List<Core.ScrapingJobDescription> newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sink, ct));
             logger.LogInformation("New jobs {count} received from: {url}", newJobs.Count, job.Url);
-            List<string> idk =newJobs.Select(x=>x.Url).ToList();
-            await context.PublishBatch(newJobs.Cast<List<NewsfeedJobDescrpition>>());
+            List<NewsfeedJobDescrpition> idk =newJobs.Select(x=>(NewsfeedJobDescrpition)x).ToList();
+            await context.PublishBatch(idk);
 
             logger.LogInformation("Crawling finished: {url}", job.Url);
         }

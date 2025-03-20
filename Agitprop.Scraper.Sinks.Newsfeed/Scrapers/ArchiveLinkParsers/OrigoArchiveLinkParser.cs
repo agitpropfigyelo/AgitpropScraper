@@ -10,7 +10,7 @@ internal class OrigoArchiveLinkParser : ILinkParser
 {
     private readonly Uri baseUri = new Uri("https://www.origo.hu");
 
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, string docString)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, string docString)
     {
         HtmlDocument doc = new();
         doc.LoadHtml(docString);
@@ -18,7 +18,7 @@ internal class OrigoArchiveLinkParser : ILinkParser
 
     }
 
-    public Task<List<NewsfeedJobDescrpition>> GetLinksAsync(string baseUrl, HtmlDocument doc)
+    public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
         var hrefs = doc.DocumentNode.Descendants("article")
                    .Select(article => article.Descendants("a").FirstOrDefault())
@@ -30,7 +30,7 @@ internal class OrigoArchiveLinkParser : ILinkParser
                           {
                               Url = new Uri(link).ToString(),
                               Type = PageContentType.Article,
-                          }).ToList();
+                          } as ScrapingJobDescription).ToList();
         return Task.FromResult(result);
     }
 }
