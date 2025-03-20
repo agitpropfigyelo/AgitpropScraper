@@ -41,7 +41,7 @@ public static class QueueCommand
             PublishJob(date, article, archive, prod), dateOption, articleOption, archiveOption, prodOption);
 
         rootCommand.Add(addCommand);
-        return addCommand;
+                return addCommand;
     }
 
     private static async Task PublishJob(DateOnly date, string? article, string? archive, bool isProd)

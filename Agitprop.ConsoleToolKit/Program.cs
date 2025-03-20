@@ -10,6 +10,7 @@ class Program
         rootCommand.Description = "Agitprop Console ToolKit";
 
         rootCommand.AddQueueCommand();
+        rootCommand.AddRetryCommand(); // Add the RetryCommand
         rootCommand.AddScrapeCommand();
 
         await rootCommand.InvokeAsync(args);
