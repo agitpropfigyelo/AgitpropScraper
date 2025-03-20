@@ -3,23 +3,14 @@ using System.Text.Json;
 
 using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed;
 
-public class NamedEntityRecognizer : INamedEntityRecognizer
+public class NamedEntityRecognizer(HttpClient client, ILogger<NamedEntityRecognizer> logger) : INamedEntityRecognizer
 {
-    private readonly HttpClient _client;
-    private readonly string _baseUrl;
-    private ILogger<NamedEntityRecognizer> Logger;
-
-
-    public NamedEntityRecognizer(HttpClient client, IConfiguration configuration, ILogger<NamedEntityRecognizer> logger)
-    {
-        _client = client;
-        Logger = logger;
-    }
+    private readonly HttpClient _client = client;
+    private ILogger<NamedEntityRecognizer> Logger = logger;
 
     public async Task<string> PingAsync()
     {
@@ -30,6 +21,7 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
 
     public async Task<NamedEntityCollection> AnalyzeSingleAsync(object corpus)
     {
+        Logger.LogInformation("Analyzing single corpus");
         var json = JsonSerializer.Serialize(corpus);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("analyzeSingle", content);

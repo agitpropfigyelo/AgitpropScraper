@@ -46,7 +46,7 @@ public sealed class Spider(
         {
             try
             {
-                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc.ToString() ?? throw new ArgumentException("Failed to get convert html doc to string")));
+                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc ?? throw new ArgumentException("Failed to get convert html doc to string")));
             }
             catch (Exception)
             {
@@ -76,7 +76,7 @@ public sealed class Spider(
             catch (Exception ex)
             {
                 Logger?.LogWarning("Failed to run content parser on {url}: {msg}",job.Url,ex.Message);
-                throw;
+                throw new Exception($"Failed to run content parsing {job.Url}", ex);
             }
         }
 

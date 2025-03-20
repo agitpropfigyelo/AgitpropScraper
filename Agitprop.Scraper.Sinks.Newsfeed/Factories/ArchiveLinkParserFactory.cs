@@ -4,7 +4,7 @@ using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
-internal static class LinkParserFactory
+internal static class ArchiveLinkParserFactory
 {
     public static ILinkParser GetLinkParser(NewsSites siteIn)
     {
@@ -19,7 +19,7 @@ internal static class LinkParserFactory
             NewsSites.MagyarJelen => new  MagyarJelenArchiveLinkParser(),
             NewsSites.Kurucinfo => new  KurucinfoArchiveLinkParser(),
             NewsSites.Alfahir => new  AlfahirArchiveLinkParser(),
-            NewsSites.Huszonnegy => new  HuszonnegyArchiveLinkParser(),
+            NewsSites.HuszonnegyHu => new  HuszonnegyArchiveLinkParser(),
             NewsSites.NegyNegyNegy => new  NegynegynegyArchiveLinkParser(),
             NewsSites.HVG => new  HvgArchiveLinkParser(),
             NewsSites.Telex => new  TelexArchiveLinkParser(),

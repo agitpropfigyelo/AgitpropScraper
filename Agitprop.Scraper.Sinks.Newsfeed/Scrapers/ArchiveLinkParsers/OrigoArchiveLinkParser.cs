@@ -30,7 +30,7 @@ internal class OrigoArchiveLinkParser : ILinkParser
                           {
                               Url = new Uri(link).ToString(),
                               Type = PageContentType.Article,
-                          }).Cast<ScrapingJobDescription>().ToList();
+                          } as ScrapingJobDescription).ToList();
         return Task.FromResult(result);
     }
 }

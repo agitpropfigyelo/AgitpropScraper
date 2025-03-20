@@ -1,38 +1,29 @@
-namespace Agitprop.Scraper.Sinks.Newsfeed_Test;
-
-using System.Text.Json;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using NUnit.Framework;
-using Agitprop.Core;
-using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
 using Agitprop.Core.Enums;
 using Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
+namespace Agitprop.Scraper.Sinks.Newsfeed_Test;
 public partial class ContentParserTests
 {
-    [TestCase("TestData/alfahir/testCases.json")]
-    [TestCase("TestData/hvg/testCases.json")]
-    [TestCase("TestData/index/testCases.json")]
+    [TestCase(NewsSites.Alfahir)]
+    [TestCase(NewsSites.HVG)]
+    [TestCase(NewsSites.Index)]
     //[TestCase("TestData/kurucinfo/testCases.json")]
-    [TestCase("TestData/magyarjelen/testCases.json")]
-    [TestCase("TestData/magyarnemzet/testCases.json")]
-    [TestCase("TestData/mandiner/testCases.json")]
-    [TestCase("TestData/merce/testCases.json")]
-    [TestCase("TestData/metropol/testCases.json")]
-    [TestCase("TestData/origo/testCases.json")]
-    [TestCase("TestData/pestisracok/testCases.json")]
-    [TestCase("TestData/ripost/testCases.json")]
-    [TestCase("TestData/rtl/testCases.json")]
-    [TestCase("TestData/telex/testCases.json")]
-    [TestCase("TestData/24hu/testCases.json")]
-    [TestCase("TestData/444/testCases.json")]
-    public void ContentParserTest(string testCasePath)
+    [TestCase(NewsSites.MagyarJelen)]
+    [TestCase(NewsSites.MagyarNemzet)]
+    [TestCase(NewsSites.Mandiner)]
+    [TestCase(NewsSites.Merce)]
+    [TestCase(NewsSites.Metropol)]
+    [TestCase(NewsSites.Origo)]
+    [TestCase(NewsSites.PestiSracok)]
+    [TestCase(NewsSites.Ripost)]
+    [TestCase(NewsSites.RTL)]
+    [TestCase(NewsSites.Telex)]
+    [TestCase(NewsSites.HuszonnegyHu)]
+    [TestCase(NewsSites.NegyNegyNegy)]
+    public void ContentParserTest(NewsSites site)
     {
-        var testCases = JsonSerializer.Deserialize<List<TestCase>>(File.ReadAllText(testCasePath));
-        var scraper = ContentParserFactory.GetContentParser(testCases.First().ExpectedContent.SourceSite);
-        foreach (var testCase in testCases)
+        var scraper = ContentParserFactory.GetContentParser(site);
+        foreach (var testCase in TestCaseFactory.GetContentParserTestCases(site))
         {
             var htmlContent = File.ReadAllText(testCase.HtmlPath);
             var result = scraper.ParseContentAsync(htmlContent).Result;

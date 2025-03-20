@@ -36,9 +36,10 @@ namespace Agitprop.Consumer.Consumers
             NewsfeedJobDescrpition descriptor = context.Message;
             var job = descriptor.ConvertToScrapingJob();
             logger.LogInformation("Crawling started: {url}", job.Url);
-            var newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sink, ct));
+            List<Core.ScrapingJobDescription> newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sink, ct));
             logger.LogInformation("New jobs {count} received from: {url}", newJobs.Count, job.Url);
-            await context.PublishBatch(newJobs.Cast<List<NewsfeedJobDescrpition>>());
+            List<NewsfeedJobDescrpition> idk =newJobs.Select(x=>(NewsfeedJobDescrpition)x).ToList();
+            await context.PublishBatch(idk);
 
             logger.LogInformation("Crawling finished: {url}", job.Url);
         }

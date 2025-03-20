@@ -14,7 +14,7 @@ public static class ScrapingJobFactory
             Url = url,
             PageCategory = PageCategory.TargetPage,
             PageType = PageType.Static,
-            LinkParsers = [LinkParserFactory.GetLinkParser(source)],
+            LinkParsers = [ArchiveLinkParserFactory.GetLinkParser(source)],
             ContentParsers = [ContentParserFactory.GetContentParser(source)]
         };
     }
@@ -26,7 +26,7 @@ public static class ScrapingJobFactory
             PageCategory = PageCategory.PageWithPagination,
             PageType = source == NewsSites.NegyNegyNegy ? PageType.Dynamic : PageType.Static,
             Actions = source == NewsSites.NegyNegyNegy ? [new(PageActionType.Execute, new NegynegynegyArchiveScrollAction())] : default,
-            LinkParsers = [LinkParserFactory.GetLinkParser(source)],
+            LinkParsers = [ArchiveLinkParserFactory.GetLinkParser(source)],
             ContentParsers = [ContentParserFactory.GetContentParser(source)],
             Pagination = PaginatorFactory.GetPaginator(source)
         };

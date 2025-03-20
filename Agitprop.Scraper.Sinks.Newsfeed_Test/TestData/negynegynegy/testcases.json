@@ -1,6 +1,6 @@
 [
     {
-        "HtmlPath": "TestData/444/1.html",
+        "HtmlPath": "TestData/negynegynegy/1.html",
         "ExpectedContent": {
             "SourceSite": "Negynegynegy",
             "PublishDate": "2025-01-11T07:17:21+01:00",

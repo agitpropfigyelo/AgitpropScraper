@@ -19,7 +19,7 @@ internal static class PaginatorFactory
             NewsSites.MagyarJelen => new  MagyarJelenArchivePaginator(),
             NewsSites.Kurucinfo => new  KurucinfoArchivePaginator(),
             NewsSites.Alfahir => new  AlfahirArchivePaginator(),
-            NewsSites.Huszonnegy => new  HuszonnegyArchivePaginator(),
+            NewsSites.HuszonnegyHu => new  HuszonnegyArchivePaginator(),
             NewsSites.NegyNegyNegy => new  NegynegynegyArchivePaginator(),
             NewsSites.HVG => new  HvgArchivePaginator(),
             NewsSites.Telex => new  TelexArchivePaginator(),
