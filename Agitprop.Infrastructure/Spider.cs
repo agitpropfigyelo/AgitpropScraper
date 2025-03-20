@@ -46,7 +46,7 @@ public sealed class Spider(
         {
             try
             {
-                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc.ToString() ?? throw new ArgumentException("Failed to get convert html doc to string")));
+                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc ?? throw new ArgumentException("Failed to get convert html doc to string")));
             }
             catch (Exception)
             {
