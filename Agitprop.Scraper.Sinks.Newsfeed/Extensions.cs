@@ -73,6 +73,7 @@ public static class Extensions
             "pestisracok.hu" => NewsSites.PestiSracok,
             "www.magyarjelen.hu" => NewsSites.MagyarJelen,
             "magyarjelen.hu" => NewsSites.MagyarJelen,
+            "magyarjelen.com" => NewsSites.MagyarJelen,
             "www.kuruc.info" => NewsSites.Kurucinfo,
             "kuruc.info" => NewsSites.Kurucinfo,
             "www.alfahir.hu" => NewsSites.Alfahir,
