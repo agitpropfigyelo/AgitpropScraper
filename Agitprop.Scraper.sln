@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.AppHost", "Agitpro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ServiceDefaults", "Agitprop.ServiceDefaults\Agitprop.ServiceDefaults.csproj", "{0E2C2B9A-229E-48A8-880D-C49176ABFC98}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.RssFeedReader", "Agitprop.RssFeedReader\Agitprop.RssFeedReader.csproj", "{84CD95A8-5F99-4C21-A369-915A33DBD905}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{0E2C2B9A-229E-48A8-880D-C49176ABFC98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E2C2B9A-229E-48A8-880D-C49176ABFC98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E2C2B9A-229E-48A8-880D-C49176ABFC98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84CD95A8-5F99-4C21-A369-915A33DBD905}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84CD95A8-5F99-4C21-A369-915A33DBD905}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84CD95A8-5F99-4C21-A369-915A33DBD905}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84CD95A8-5F99-4C21-A369-915A33DBD905}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -72,16 +72,6 @@ public class Program
                     });
                 });
 
-        if (builder.Configuration.GetValue<bool>("RssFeedReader:IsEnabled"))
-        {
-            Console.WriteLine("RSS Feed Reader is enabled. Adding hosted service.");
-            builder.Services.AddHostedService<RssFeedReader>();
-        }
-        else
-        {
-            Console.WriteLine("RSS Feed Reader is disabled. Skipping hosted service registration.");
-        }
-
         var app = builder.Build();
         app.Run();
         //await CreateHostBuilder(args).Build().RunAsync();
@@ -149,7 +139,7 @@ public class Program
         if (hostContext.Configuration.GetValue<bool>("RssFeedReader:IsEnabled"))
         {
             Console.WriteLine("RSS Feed Reader is enabled. Adding hosted service.");
-            services.AddHostedService<RssFeedReader>();
+            // Removed RssFeedReader registration as it is now in a separate project.
         }
         else
         {
