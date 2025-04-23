@@ -1,6 +1,13 @@
 {
     "configurations": [
+        {
+            "name": "C#: Agitprop.AppHost Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Agitprop.AppHost/Agitprop.AppHost.csproj"
+        },
         
+
         {
             "name": "C#: Agitprop Consumer Debug",
             "type": "dotnet",
