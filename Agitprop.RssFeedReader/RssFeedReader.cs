@@ -22,9 +22,9 @@ public class RssFeedReader : IHostedService, IDisposable
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         _logger = logger;
-        _feeds = configuration.GetSection("RssFeedReader:Feeds").Get<string[]>()??throw new ArgumentException("Feeds are not defined");
+        _feeds = configuration.GetSection("Feeds").Get<string[]>()??throw new ArgumentException("Feeds are not defined");
         _scopeFactory = scopeFactory;
-        _interval = TimeSpan.FromMinutes(configuration.GetValue<double>("RssFeedReader:IntervalMinutes", 60));
+        _interval = TimeSpan.FromMinutes(configuration.GetValue<double>("IntervalMinutes", 60));
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
