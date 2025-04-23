@@ -2,12 +2,15 @@ using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var messaging = builder.AddRabbitMQ("messaging");
+var messaging = builder.AddRabbitMQ("messaging")
+                       .WithManagementPlugin();
 
-builder.AddProject<Agitprop_Consumer>("consumer")
-       .WithReference(messaging);
+var consumer = builder.AddProject<Agitprop_Consumer>("consumer")
+                      .WithReference(messaging)
+                      .WaitFor(messaging);
 
-builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
-       .WithReference(messaging);
+var rssReader = builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
+                       .WithReference(messaging)
+                       .WaitFor(messaging);
 
 builder.Build().Run();

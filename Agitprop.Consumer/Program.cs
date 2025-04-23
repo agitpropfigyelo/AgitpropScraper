@@ -40,11 +40,7 @@ public class Program
                     x.AddConsumers(entryAssembly);
                     x.UsingRabbitMq((context, cfg) =>
                     {
-                        cfg.Host(builder.Configuration.GetValue<string>("Infrastructure:RabbitMQ"), "/", h =>
-                        {
-                            h.Username("guest");
-                            h.Password("guest");
-                        });
+                        cfg.Host(builder.Configuration.GetConnectionString("messaging"));
 
                         cfg.ClearSerialization();
                         cfg.AddRawJsonSerializer();
