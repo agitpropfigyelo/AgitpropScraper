@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using System.Xml;
 
 using Agitprop.Scraper.Sinks.Newsfeed;
-
-using Agitprop.Core;
 using Agitprop.Core.Enums;
 
 using MassTransit;

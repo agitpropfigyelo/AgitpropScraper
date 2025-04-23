@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Sinks.News
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Sinks.Newsfeed_Test", "Agitprop.Scraper.Sinks.Newsfeed_Test\Agitprop.Scraper.Sinks.Newsfeed_Test.csproj", "{729CAE5A-4384-4D78-AC4D-78E190552A0A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.AppHost", "Agitprop.AppHost\Agitprop.AppHost.csproj", "{3725CA9C-E1AD-4EF7-AECF-96DB63A08002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ServiceDefaults", "Agitprop.ServiceDefaults\Agitprop.ServiceDefaults.csproj", "{0E2C2B9A-229E-48A8-880D-C49176ABFC98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{729CAE5A-4384-4D78-AC4D-78E190552A0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{729CAE5A-4384-4D78-AC4D-78E190552A0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{729CAE5A-4384-4D78-AC4D-78E190552A0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3725CA9C-E1AD-4EF7-AECF-96DB63A08002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3725CA9C-E1AD-4EF7-AECF-96DB63A08002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3725CA9C-E1AD-4EF7-AECF-96DB63A08002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3725CA9C-E1AD-4EF7-AECF-96DB63A08002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E2C2B9A-229E-48A8-880D-C49176ABFC98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E2C2B9A-229E-48A8-880D-C49176ABFC98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E2C2B9A-229E-48A8-880D-C49176ABFC98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E2C2B9A-229E-48A8-880D-C49176ABFC98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
