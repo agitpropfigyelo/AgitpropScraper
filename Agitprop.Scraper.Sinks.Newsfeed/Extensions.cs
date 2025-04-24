@@ -8,38 +8,27 @@ using Agitprop.Core.Exceptions;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed;
 
 public static class Extensions
 {
-    public static IServiceCollection AddNewsfeedSink(this IServiceCollection services, IConfiguration configuration)
+    public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        var newsfeedConfig = configuration.GetSection("NewsfeedSink") ?? throw new MissingConfigurationValueException("Missing config section for NewsfeedSink");
-        var surrealDbConnectionString = newsfeedConfig.GetValue<string>("SurrealDB");
-        if (string.IsNullOrEmpty(surrealDbConnectionString))
-        {
-            throw new MissingConfigurationValueException("Missing config for SurrealDB");
-        }
+        builder.Services.AddSurreal(builder.Configuration.GetConnectionString("surrealdb") ?? throw new MissingConfigurationValueException("Missing config for nlp-service"));
 
-        var nerBaseUrl = newsfeedConfig["NERbaseUrl"];
-        if (string.IsNullOrEmpty(nerBaseUrl))
-        {
-            throw new MissingConfigurationValueException("Missing config for NERbaseUrl");
-        }
+        builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
 
-        services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
-
-        services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
+        builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
         {
-            client.BaseAddress = new Uri(nerBaseUrl);
+            client.BaseAddress = new Uri(builder.Configuration.GetConnectionString("nlp-service") ?? throw new MissingConfigurationValueException("Missing config for nlp-service"));
         });
 
-        services.AddTransient<INewsfeedDB, NewsfeedDB>();
-        services.AddTransient<NewsfeedSink>();
-        services.AddSurreal(surrealDbConnectionString);
+        builder.Services.AddTransient<INewsfeedDB, NewsfeedDB>();
+        builder.Services.AddTransient<NewsfeedSink>();
 
-        return services;
+        return builder;
     }
 
 

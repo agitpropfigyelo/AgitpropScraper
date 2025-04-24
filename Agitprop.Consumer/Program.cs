@@ -26,10 +26,10 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
+
         builder.AddServiceDefaults();
 
-
-        builder.Services.AddNewsfeedSink(builder.Configuration);
+        builder.AddNewsfeedSink();
         builder.Services.ConfigureInfrastructureWithBrowser();
 
         builder.Services.AddMassTransit(x =>
@@ -72,11 +72,6 @@ public class Program
         app.Run();
         //await CreateHostBuilder(args).Build().RunAsync();
     }
-
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-        .ConfigureAppConfiguration(ConfigureApp)
-        .ConfigureServices(ConfigureServices);
 
     private static void ConfigureApp(HostBuilderContext hostBuilder, IConfigurationBuilder config)
     {
@@ -143,7 +138,7 @@ public class Program
         }
 
         //services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
-        services.AddNewsfeedSink(hostContext.Configuration);
+        // services.AddNewsfeedSink(hostContext.Configuration);
         services.ConfigureInfrastructureWithBrowser();
     }
     private static void ConfigureLogging(ILoggingBuilder builder)
