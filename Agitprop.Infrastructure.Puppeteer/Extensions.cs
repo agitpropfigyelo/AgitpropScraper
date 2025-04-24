@@ -6,28 +6,29 @@ using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Agitprop.Infrastructure.Puppeteer;
 
 public static class Extensions
 {
-    public static IServiceCollection ConfigureInfrastructureWithBrowser(this IServiceCollection services, bool useProxies = false)
+    public static IHostApplicationBuilder ConfigureInfrastructureWithBrowser(this IHostApplicationBuilder builder, bool useProxies = false)
     {
-        services.AddTransient<ISpider, Spider>();
-        services.AddTransient<ICookiesStorage, CookieStorage>();
-        services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
-        services.AddTransient<CookieContainer>();
+        builder.Services.AddTransient<ISpider, Spider>();
+        builder.Services.AddTransient<ICookiesStorage, CookieStorage>();
+        builder.Services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
+        builder.Services.AddTransient<CookieContainer>();
         //TODO: Puppeteer not working w/ proxies
-        services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
+        builder.Services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
         if (useProxies)
         {
-            services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
-            services.AddTransient<IProxyProvider, ProxyScrapeProxyProvider>();
+            builder.Services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
+            builder.Services.AddTransient<IProxyProvider, ProxyScrapeProxyProvider>();
         }
         else
         {
-            services.AddTransient<IPageRequester, PageRequester.PageRequester>();
+            builder.Services.AddTransient<IPageRequester, PageRequester.PageRequester>();
         }
-        return services;
+        return builder;
     }
 }

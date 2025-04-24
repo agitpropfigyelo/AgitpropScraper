@@ -16,7 +16,7 @@ public static class Extensions
 {
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddSurreal(builder.Configuration.GetConnectionString("surrealdb") ?? throw new MissingConfigurationValueException("Missing config for nlp-service"));
+        builder.Services.AddSurreal(builder.Configuration.GetConnectionString("surrealdb") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
 
         builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
 

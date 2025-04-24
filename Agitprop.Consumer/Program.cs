@@ -1,23 +1,7 @@
-﻿using System;
-using System.Net.Http;
-using System.Reflection;
-using System.Threading.Tasks;
-
-using Agitprop.Scraper.Sinks.Newsfeed;
+﻿using Agitprop.Scraper.Sinks.Newsfeed;
 
 using Agitprop.Infrastructure.Puppeteer;
-
-using MassTransit;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
-using Polly;
-using Polly.Retry;
-
-using PuppeteerSharp;
 
 namespace Agitprop.Consumer;
 
@@ -29,122 +13,14 @@ public class Program
 
         builder.AddServiceDefaults();
 
+        builder.ConfigureInfrastructureWithBrowser();
+
+        builder.ConfigureMassTransit();
+        builder.ConfigureResiliency();
+
         builder.AddNewsfeedSink();
-        builder.Services.ConfigureInfrastructureWithBrowser();
-
-        builder.Services.AddMassTransit(x =>
-                {
-                    x.SetKebabCaseEndpointNameFormatter();
-                    x.SetInMemorySagaRepositoryProvider();
-                    var entryAssembly = Assembly.GetEntryAssembly();
-                    x.AddConsumers(entryAssembly);
-                    x.UsingRabbitMq((context, cfg) =>
-                    {
-                        cfg.Host(builder.Configuration.GetConnectionString("messaging"));
-
-                        cfg.ClearSerialization();
-                        cfg.AddRawJsonSerializer();
-                        cfg.ConfigureEndpoints(context);
-                    });
-                });
-
-        builder.Services.AddResiliencePipeline("Spider", static builder =>
-                {
-                    builder.AddRetry(new RetryStrategyOptions
-                    {
-                        ShouldHandle = args => args.Outcome switch
-                        {
-                            { Exception: HttpRequestException } => PredicateResult.True(),
-                            { Exception: TaskCanceledException } => PredicateResult.True(),
-                            { Exception: TimeoutException } => PredicateResult.True(),
-                            { Exception: NavigationException } => PredicateResult.True(),
-                            { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
-                            _ => PredicateResult.False()
-                        },
-                        BackoffType = DelayBackoffType.Constant,
-                        Delay = TimeSpan.FromSeconds(0.2),
-                        MaxRetryAttempts = 9,
-                        UseJitter = false,
-                    });
-                });
 
         var app = builder.Build();
         app.Run();
-        //await CreateHostBuilder(args).Build().RunAsync();
-    }
-
-    private static void ConfigureApp(HostBuilderContext hostBuilder, IConfigurationBuilder config)
-    {
-        config.AddJsonFile("appsettings.json", false, true);
-        if (hostBuilder.HostingEnvironment.IsDevelopment())
-        {
-            Console.WriteLine("Development environment detected. Loading appsettings.Development.json");
-            config.AddJsonFile("appsettings.development.json", optional: false, reloadOnChange: true);
-        }
-    }
-
-    private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
-    {
-        services.AddMassTransit(x =>
-        {
-            x.SetKebabCaseEndpointNameFormatter();
-            x.SetInMemorySagaRepositoryProvider();
-            var entryAssembly = Assembly.GetEntryAssembly();
-            x.AddConsumers(entryAssembly);
-            x.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host(hostContext.Configuration.GetValue<string>("Infrastructure:RabbitMQ"), "/", h =>
-                {
-                    h.Username("guest");
-                    h.Password("guest");
-                });
-
-                cfg.ClearSerialization();
-                cfg.AddRawJsonSerializer();
-                cfg.ConfigureEndpoints(context);
-            });
-        });
-
-        services.AddResiliencePipeline("Spider", static builder =>
-        {
-            builder.AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = args => args.Outcome switch
-                {
-                    { Exception: HttpRequestException } => PredicateResult.True(),
-                    { Exception: TaskCanceledException } => PredicateResult.True(),
-                    { Exception: TimeoutException } => PredicateResult.True(),
-                    { Exception: NavigationException } => PredicateResult.True(),
-                    { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
-                    _ => PredicateResult.False()
-                },
-                BackoffType = DelayBackoffType.Constant,
-                Delay = TimeSpan.FromSeconds(0.2),
-                MaxRetryAttempts = 9,
-                UseJitter = false,
-            });
-        });
-
-        services.AddLogging(ConfigureLogging);
-
-        if (hostContext.Configuration.GetValue<bool>("RssFeedReader:IsEnabled"))
-        {
-            Console.WriteLine("RSS Feed Reader is enabled. Adding hosted service.");
-            // Removed RssFeedReader registration as it is now in a separate project.
-        }
-        else
-        {
-            Console.WriteLine("RSS Feed Reader is disabled. Skipping hosted service registration.");
-        }
-
-        //services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
-        // services.AddNewsfeedSink(hostContext.Configuration);
-        services.ConfigureInfrastructureWithBrowser();
-    }
-    private static void ConfigureLogging(ILoggingBuilder builder)
-    {
-        builder.ClearProviders(); // Clear default providers
-                                  //builder.AddFile($"..\\logs\\{DateTime.Now:yyyy-mm-dd_HH-dd-ss}_agitprop.log");
-                                  //builder.AddConsole();
     }
 }
