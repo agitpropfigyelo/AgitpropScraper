@@ -14,9 +14,8 @@ var surrealDb = builder.AddContainer("surrealdb", "surrealdb/surrealdb:latest")
                        .WithOtlpExporter();
 
 #pragma warning disable ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-var nlpService = builder.AddPythonApp("nlp-service", "../Agitprop.NLPService", "app.py")
-                        .WithHttpEndpoint(env: "PORT")
-                        .WithExternalHttpEndpoints()
+var nlpService = builder.AddPythonApp("nlpService", "../Agitprop.NLPService", "app.py")
+                        .WithHttpEndpoint(targetPort:8111)
                         .WithHttpHealthCheck("/health", 200)
                         .WithOtlpExporter()
                         .PublishAsDockerFile();

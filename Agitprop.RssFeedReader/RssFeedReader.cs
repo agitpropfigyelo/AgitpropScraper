@@ -22,7 +22,6 @@ public class RssFeedReader : IHostedService, IDisposable
 
     public RssFeedReader(IConfiguration configuration, ILogger<RssFeedReader> logger, IServiceScopeFactory scopeFactory)
     {
-        using var trace = this.ActivitySource.StartActivity("ctor");
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         _logger = logger;

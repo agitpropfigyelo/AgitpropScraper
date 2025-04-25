@@ -73,5 +73,5 @@ if __name__ == "__main__":
     # Instrument Flask app
     FlaskInstrumentor().instrument_app(app)
 
-    port = int(os.environ.get('PORT', 8111))
-    app.run(host='0.0.0.0', port=port)
+    #port = int(os.environ.get('PORT', 8111))
+    app.run(host='0.0.0.0', port=8111, debug=True)

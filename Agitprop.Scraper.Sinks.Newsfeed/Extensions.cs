@@ -22,7 +22,7 @@ public static class Extensions
 
         builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
         {
-            client.BaseAddress = new Uri(builder.Configuration.GetConnectionString("nlp-service") ?? throw new MissingConfigurationValueException("Missing config for nlp-service"));
+            client.BaseAddress = new Uri(@"http:\\nlpService");
         });
 
         builder.Services.AddTransient<INewsfeedDB, NewsfeedDB>();
