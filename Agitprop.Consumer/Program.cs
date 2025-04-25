@@ -11,7 +11,6 @@ public class Program
     {
         var builder = Host.CreateApplicationBuilder(args);
 
-        builder.AddServiceDefaults();
 
         builder.ConfigureInfrastructureWithBrowser();
 
@@ -20,6 +19,7 @@ public class Program
 
         builder.AddNewsfeedSink();
 
+        builder.AddServiceDefaults();
         var app = builder.Build();
         app.Run();
     }
