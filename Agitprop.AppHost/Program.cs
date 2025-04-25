@@ -6,7 +6,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var messaging = builder.AddRabbitMQ("messaging")
                        .WithManagementPlugin()
-                       .WithOtlpExporter();
+                       .WithOtlpExporter()
+                       .PublishAsConnectionString();
 
 var surrealDb = builder.AddContainer("surrealdb", "surrealdb/surrealdb:latest")
                        .WithArgs("start")
@@ -16,7 +17,9 @@ var surrealDb = builder.AddContainer("surrealdb", "surrealdb/surrealdb:latest")
 var nlpService = builder.AddPythonApp("nlp-service", "../Agitprop.NLPService", "app.py")
                         .WithHttpEndpoint(env: "PORT")
                         .WithExternalHttpEndpoints()
-                        .WithOtlpExporter();
+                        .WithHttpHealthCheck("/health", 200)
+                        .WithOtlpExporter()
+                        .PublishAsDockerFile();
 #pragma warning restore ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 var consumer = builder.AddProject<Agitprop_Consumer>("consumer")
@@ -25,13 +28,15 @@ var consumer = builder.AddProject<Agitprop_Consumer>("consumer")
                       .WaitFor(messaging)
                       .WithReference(nlpService)
                       .WaitFor(nlpService)
-                      .WithOtlpExporter();
-                      //    .WithReference(surrealDb)
+                      .WithOtlpExporter()
+                      .PublishAsDockerFile();
+//    .WithReference(surrealDb)
 
 
 var rssReader = builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
                        .WithReference(messaging)
                        .WaitFor(messaging)
-                       .WithOtlpExporter();
+                       .WithOtlpExporter()
+                       .PublishAsDockerFile();
 
 builder.Build().Run();

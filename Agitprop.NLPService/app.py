@@ -1,13 +1,18 @@
 from flask import Flask, request, jsonify
 import spacy
+import os
+from opentelemetry import trace
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 nlp = spacy.load("hu_core_news_lg")
 app = Flask(__name__)
 
-
-@app.route("/ping")
-def ping():
-    return "OK", 200
+@app.route("/health")
+def healthcheck():
+    return {"status": "alive"}, 200
 
 
 @app.route("/analyzeSingle", methods=['POST'])
@@ -52,5 +57,20 @@ def getNamedEntities(doc):
     return {key: list(value) for key, value in named_entities.items()}
 
 
+@app.route("/discovery")
+def discovery():
+    return {"endpoints": ["/healthcheck", "/analyzeSingle", "/analyzeBatch"]}, 200
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    # Set up OpenTelemetry tracing
+    trace.set_tracer_provider(TracerProvider())
+    otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    trace.get_tracer_provider().add_span_processor(span_processor)
+
+    # Instrument Flask app
+    FlaskInstrumentor().instrument_app(app)
+
+    port = int(os.environ.get('PORT', 8111))
+    app.run(host='0.0.0.0', port=port)
