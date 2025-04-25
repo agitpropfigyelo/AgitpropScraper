@@ -63,9 +63,10 @@ def discovery():
 
 
 if __name__ == "__main__":
+    OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
     # Set up OpenTelemetry tracing
     trace.set_tracer_provider(TracerProvider())
-    otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+    otlp_exporter = OTLPSpanExporter(endpoint=OTEL_EXPORTER_OTLP_ENDPOINT, insecure=True)
     span_processor = BatchSpanProcessor(otlp_exporter)
     trace.get_tracer_provider().add_span_processor(span_processor)
 
