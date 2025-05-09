@@ -10,6 +10,9 @@ using System.Diagnostics;
 
 namespace Agitprop.RssFeedReader;
 
+/// <summary>
+/// A hosted service that reads RSS feeds and publishes scraping jobs.
+/// </summary>
 public class RssFeedReader : IHostedService, IDisposable
 {
     private Timer? _timer;
@@ -19,7 +22,12 @@ public class RssFeedReader : IHostedService, IDisposable
     private TimeSpan _interval;
     private ActivitySource ActivitySource = new("Agitprop.RssFeedReader");
 
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RssFeedReader"/> class.
+    /// </summary>
+    /// <param name="configuration">The application configuration.</param>
+    /// <param name="logger">The logger for logging information and errors.</param>
+    /// <param name="scopeFactory">The service scope factory for creating service scopes.</param>
     public RssFeedReader(IConfiguration configuration, ILogger<RssFeedReader> logger, IServiceScopeFactory scopeFactory)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -30,6 +38,11 @@ public class RssFeedReader : IHostedService, IDisposable
         _interval = TimeSpan.FromMinutes(configuration.GetValue<double>("IntervalMinutes", 60));
     }
 
+    /// <summary>
+    /// Starts the hosted service.
+    /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A completed task.</returns>
     public Task StartAsync(CancellationToken cancellationToken)
     {
         using var trace = this.ActivitySource.StartActivity("StartAsync");
@@ -37,6 +50,10 @@ public class RssFeedReader : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Executes the task to fetch and publish scraping jobs.
+    /// </summary>
+    /// <param name="state">The state object passed to the timer.</param>
     private void ExecuteTask(object? state)
     {
         using var trace = this.ActivitySource.StartActivity("ExecuteTask");
@@ -47,6 +64,11 @@ public class RssFeedReader : IHostedService, IDisposable
         publishEndpoint.PublishBatch(jobs).Wait();
     }
 
+    /// <summary>
+    /// Stops the hosted service.
+    /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A completed task.</returns>
     public Task StopAsync(CancellationToken cancellationToken)
     {
         using var trace = this.ActivitySource.StartActivity("StopAsync");
@@ -54,11 +76,18 @@ public class RssFeedReader : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Disposes the resources used by the service.
+    /// </summary>
     public void Dispose()
     {
         _timer?.Dispose();
     }
 
+    /// <summary>
+    /// Fetches scraping jobs from the configured RSS feeds.
+    /// </summary>
+    /// <returns>A list of <see cref="NewsfeedJobDescrpition"/> objects representing the scraping jobs.</returns>
     private List<NewsfeedJobDescrpition> FetchScrapingJobs()
     {
         using var trace = this.ActivitySource.StartActivity("FetchScrapingJobs", ActivityKind.Producer);
