@@ -64,14 +64,6 @@ The repository is organized into the following main components:
    python app.py
    ```
 
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
 ## Contact
 
 For questions or support, please contact [your-email@example.com].
