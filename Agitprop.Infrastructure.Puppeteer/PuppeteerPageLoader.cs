@@ -10,16 +10,31 @@ using PuppeteerSharp;
 
 namespace Agitprop.Infrastructure.Puppeteer;
 
+/// <summary>
+/// A Puppeteer-based page loader for loading web pages and performing actions on them.
+/// </summary>
 public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
 {
     private readonly ICookiesStorage _cookiesStorage;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PuppeteerPageLoader"/> class.
+    /// </summary>
+    /// <param name="cookiesStorage">The storage for managing cookies.</param>
+    /// <param name="logger">The logger for logging information and errors.</param>
     public PuppeteerPageLoader(ICookiesStorage cookiesStorage, ILogger<PuppeteerPageLoader>? logger = default) : base(logger)
     {
         _cookiesStorage = cookiesStorage;
     }
 
+    /// <summary>
+    /// Loads a web page using Puppeteer, with optional page actions and headless mode.
+    /// </summary>
+    /// <param name="url">The URL of the page to load.</param>
+    /// <param name="pageActions">Optional actions to perform on the page.</param>
+    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public async Task<string> Load(string url, List<PageAction>? pageActions = null, bool headless = true)
     {
         Logger?.LogInformation("{class}.{method}", nameof(PuppeteerPageLoader), nameof(Load));
@@ -40,7 +55,7 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         {
             _semaphore.Release();
         }
-        PuppeteerSharp.BrowserData.InstalledBrowser idk = browserFetcher.GetInstalledBrowsers().First();
+
         Logger?.LogInformation("{class}.{method}: Launching a browser", nameof(PuppeteerPageLoader), nameof(Load));
         await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
@@ -89,6 +104,13 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         return html;
     }
 
+    /// <summary>
+    /// Loads a web page using Puppeteer, with optional page actions and headless mode.
+    /// </summary>
+    /// <param name="url">The URL of the page to load.</param>
+    /// <param name="pageActions">Optional actions to perform on the page, as an object.</param>
+    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public Task<string> Load(string url, object? pageActions, bool headless)
     {
         return Load(url, (List<PageAction>?)pageActions, headless);

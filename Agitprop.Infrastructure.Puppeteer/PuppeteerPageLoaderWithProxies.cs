@@ -13,25 +13,54 @@ using PuppeteerSharp;
 
 namespace Agitprop.Infrastructure.Puppeteer;
 
+/// <summary>
+/// A Puppeteer-based page loader that supports proxy usage for loading web pages.
+/// </summary>
 internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageLoader
 {
-    //TODO: itt valami nem OK, debug & fix
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PuppeteerPageLoaderWithProxies"/> class.
+    /// </summary>
+    /// <param name="logger">The logger for logging information and errors.</param>
+    /// <param name="proxyProvider">The provider for managing proxies.</param>
+    /// <param name="cookieStorage">The storage for managing cookies.</param>
     public PuppeteerPageLoaderWithProxies(ILogger<PuppeteerPageLoaderWithProxies> logger, IProxyProvider proxyProvider, ICookiesStorage cookieStorage) : base(logger)
     {
         ProxyProvider = proxyProvider;
         CookieStorage = cookieStorage;
     }
 
+    /// <summary>
+    /// Gets the proxy provider used for managing proxies.
+    /// </summary>
     public IProxyProvider ProxyProvider { get; }
+
+    /// <summary>
+    /// Gets the storage for managing cookies.
+    /// </summary>
     public ICookiesStorage CookieStorage { get; }
     private readonly SemaphoreSlim Semaphore = new(1, 1);
     private string? executablePath = null;
 
+    /// <summary>
+    /// Loads a web page using Puppeteer with proxy support, with optional page actions and headless mode.
+    /// </summary>
+    /// <param name="url">The URL of the page to load.</param>
+    /// <param name="pageActions">Optional actions to perform on the page, as an object.</param>
+    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public Task<string> Load(string url, object? pageActions, bool headless)
     {
         return Load(url, (List<PageAction>?)pageActions, headless);
     }
 
+    /// <summary>
+    /// Loads a web page using Puppeteer with proxy support, with optional page actions and headless mode.
+    /// </summary>
+    /// <param name="url">The URL of the page to load.</param>
+    /// <param name="pageActions">Optional actions to perform on the page, as a list of <see cref="PageAction"/>.</param>
+    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public async Task<string> Load(string url, List<PageAction>? pageActions = null, bool headless = true)
     {
         if (executablePath == null)
