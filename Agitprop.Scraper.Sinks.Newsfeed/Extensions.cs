@@ -12,8 +12,16 @@ using Polly;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed;
 
+/// <summary>
+/// Provides extension methods for configuring and converting newsfeed-related services and jobs.
+/// </summary>
 public static class Extensions
 {
+    /// <summary>
+    /// Adds the Newsfeed Sink services to the application builder.
+    /// </summary>
+    /// <param name="builder">The host application builder.</param>
+    /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
         var surreal = builder.Configuration.GetValue<string>("surrealdbUrl");
@@ -39,7 +47,11 @@ public static class Extensions
         return builder;
     }
 
-
+    /// <summary>
+    /// Converts a <see cref="NewsfeedJobDescrpition"/> to a <see cref="ScrapingJob"/>.
+    /// </summary>
+    /// <param name="description">The newsfeed job description to convert.</param>
+    /// <returns>A <see cref="ScrapingJob"/> instance.</returns>
     public static ScrapingJob ConvertToScrapingJob(this NewsfeedJobDescrpition description)
     {
         var site = GetNewssiteFromUrl(description.Url);
@@ -51,6 +63,12 @@ public static class Extensions
         };
     }
 
+    /// <summary>
+    /// Determines the news site from a given URL.
+    /// </summary>
+    /// <param name="url">The URL to analyze.</param>
+    /// <returns>The corresponding <see cref="NewsSites"/> enum value.</returns>
+    /// <exception cref="ArgumentException">Thrown if the news source is not supported.</exception>
     private static NewsSites GetNewssiteFromUrl(string url)
     {
         var uri = new Uri(url);

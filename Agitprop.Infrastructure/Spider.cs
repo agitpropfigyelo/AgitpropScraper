@@ -13,23 +13,42 @@ using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Infrastructure;
 
+/// <summary>
+/// Represents a web scraping spider that can crawl web pages and process their content.
+/// </summary>
 public sealed class Spider(
     IBrowserPageLoader browserPageLoader,
     IStaticPageLoader staticPageLoader,
     IConfiguration configuration,
     ILogger<Spider>? logger = default) : ISpider
 {
+    // Logger instance for logging information and warnings.
     private ILogger<Spider>? Logger = logger;
+
+    // Loader for dynamic web pages.
     private IBrowserPageLoader BrowserPageLoader = browserPageLoader;
+
+    // Loader for static web pages.
     private IStaticPageLoader StaticPageLoader = staticPageLoader;
+
+    // Configuration settings for the spider.
     private IConfiguration Configuration = configuration;
 
+    // Activity source for tracing operations.
     private ActivitySource ActivitySource = new("Agitprop.Spider");
 
+    /// <summary>
+    /// Crawls a web page based on the provided scraping job and sends the results to the specified sink.
+    /// </summary>
+    /// <param name="job">The scraping job containing details about the page to scrape.</param>
+    /// <param name="sink">The sink to which the scraped data will be sent.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A list of descriptions for new scraping jobs discovered during the crawl.</returns>
     public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, ISink sink, CancellationToken cancellationToken = default)
     {
         this.ActivitySource.StartActivity("CrawlAsync", ActivityKind.Internal, job.Url);
         cancellationToken.ThrowIfCancellationRequested();
+
         // Check if the link is already visited
         if (await sink.CheckPageAlreadyVisited(job.Url))
         {
@@ -51,7 +70,7 @@ public sealed class Spider(
         {
             try
             {
-                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc ?? throw new ArgumentException("Failed to get convert html doc to string")));
+                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc ?? throw new ArgumentException("Failed to convert HTML document to string")));
             }
             catch (Exception)
             {
@@ -60,7 +79,7 @@ public sealed class Spider(
         }
         if (job.PageCategory == PageCategory.PageWithPagination && Configuration.GetValue<bool>("Continous"))
         {
-            newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, doc.ToString() ?? throw new ArgumentException("Failed to get convert html doc to string")));
+            newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, doc.ToString() ?? throw new ArgumentException("Failed to convert HTML document to string")));
         }
 
         return newJobs;
