@@ -4,11 +4,11 @@ using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
 
 using Agitprop.Core;
 using Agitprop.Core.Enums;
-using Agitprop.Core.Exceptions;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Polly;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed;
 
@@ -16,18 +16,26 @@ public static class Extensions
 {
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddSurreal(builder.Configuration.GetConnectionString("surrealdb") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
+        var surreal = builder.Configuration.GetValue<string>("surrealdbUrl");
+        builder.Services.AddSurreal(options =>
+        {
+            //TODO: actually load these from config
+            options.WithEndpoint(surreal)
+                   .WithNamespace("agitprop")
+                   .WithDatabase("newsfeed")
+                   .WithUsername("root")
+                   .WithPassword("root");
+        });
 
         builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
 
-        builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
+        var nlp = builder.Configuration.GetValue<string>("nlpService");
+        var idk = builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
         {
-            client.BaseAddress = new Uri(@"http:\\nlpService");
+            client.BaseAddress = new Uri(nlp);
         });
-
         builder.Services.AddTransient<INewsfeedDB, NewsfeedDB>();
         builder.Services.AddTransient<NewsfeedSink>();
-
         return builder;
     }
 

@@ -7,7 +7,6 @@ using Microsoft.Extensions.ServiceDiscovery;
 
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Hosting;
@@ -28,17 +27,24 @@ public static class Extensions
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             // Turn on resilience by default
-            http.AddStandardResilienceHandler();
+            http.AddStandardResilienceHandler(options=>
+            {
+                // Set the default timeout to 5 seconds
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
+                // Set the default retry count to 3
+                options.Retry.MaxRetryAttempts = 3;
+                // Set the default circuit breaker threshold to 50%
+            });
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();
         });
 
         // Uncomment the following to restrict the allowed schemes for service discovery.
-        // builder.Services.Configure<ServiceDiscoveryOptions>(options =>
-        // {
-        //     options.AllowedSchemes = ["https"];
-        // });
+        builder.Services.Configure<ServiceDiscoveryOptions>(options =>
+        {
+            options.AllowedSchemes = ["https","http"];
+        });
 
         return builder;
     }
@@ -64,6 +70,9 @@ public static class Extensions
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddSource("Agitprop.RssFeedReader")
+                    // .AddSource("MassTransit")
+                    .AddSource("Agitprop.Sink.Newsfeed")
+                    .AddSource("Agitprop.Spider")
                     .AddSource("Agitprop.NewsfeedJobConsumer")
                     .AddHttpClientInstrumentation();
             });

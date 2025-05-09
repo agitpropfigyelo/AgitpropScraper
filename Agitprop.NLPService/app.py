@@ -1,11 +1,5 @@
 from flask import Flask, request, jsonify
 import spacy
-import os
-from opentelemetry import trace
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 nlp = spacy.load("hu_core_news_lg")
 app = Flask(__name__)
@@ -63,15 +57,5 @@ def discovery():
 
 
 if __name__ == "__main__":
-    OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
-    # Set up OpenTelemetry tracing
-    trace.set_tracer_provider(TracerProvider())
-    otlp_exporter = OTLPSpanExporter(endpoint=OTEL_EXPORTER_OTLP_ENDPOINT, insecure=True)
-    span_processor = BatchSpanProcessor(otlp_exporter)
-    trace.get_tracer_provider().add_span_processor(span_processor)
-
-    # Instrument Flask app
-    FlaskInstrumentor().instrument_app(app)
-
     #port = int(os.environ.get('PORT', 8111))
     app.run(host='0.0.0.0', port=8111, debug=True)
