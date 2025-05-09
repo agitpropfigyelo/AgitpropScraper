@@ -1,4 +1,6 @@
-﻿using Agitprop.Core;
+﻿using System.Diagnostics;
+
+using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
@@ -22,8 +24,11 @@ public sealed class Spider(
     private IStaticPageLoader StaticPageLoader = staticPageLoader;
     private IConfiguration Configuration = configuration;
 
+    private ActivitySource ActivitySource = new("Agitprop.Spider");
+
     public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, ISink sink, CancellationToken cancellationToken = default)
     {
+        this.ActivitySource.StartActivity("CrawlAsync", ActivityKind.Internal, job.Url);
         cancellationToken.ThrowIfCancellationRequested();
         // Check if the link is already visited
         if (await sink.CheckPageAlreadyVisited(job.Url))

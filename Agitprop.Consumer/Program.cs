@@ -1,108 +1,25 @@
-﻿using System;
-using System.Net.Http;
-using System.Reflection;
-using System.Threading.Tasks;
-
-using Agitprop.Scraper.Sinks.Newsfeed;
+﻿using Agitprop.Scraper.Sinks.Newsfeed;
 
 using Agitprop.Infrastructure.Puppeteer;
-
-using MassTransit;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
-using NReco.Logging.File;
+namespace Agitprop.Consumer;
 
-using Polly;
-using Polly.Retry;
-
-using PuppeteerSharp;
-
-namespace Agitprop.Consumer
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static async Task Main(string[] args)
-        {
-            await CreateHostBuilder(args).Build().RunAsync();
-        }
+        var builder = Host.CreateApplicationBuilder(args);
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration(ConfigureApp)
-            .ConfigureServices(ConfigureServices);
+        builder.ConfigureInfrastructureWithBrowser();
 
-        private static void ConfigureApp(HostBuilderContext hostBuilder, IConfigurationBuilder config)
-        {
-            config.AddJsonFile("appsettings.json", false, true);
-            if (hostBuilder.HostingEnvironment.IsDevelopment())
-            {
-                Console.WriteLine("Development environment detected. Loading appsettings.Development.json");
-                config.AddJsonFile("appsettings.development.json", optional: false, reloadOnChange: true);
-            }
-        }
+        builder.ConfigureMassTransit();
+        builder.ConfigureResiliency();
 
-        private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
-        {
-            services.AddMassTransit(x =>
-            {
-                x.SetKebabCaseEndpointNameFormatter();
-                x.SetInMemorySagaRepositoryProvider();
-                var entryAssembly = Assembly.GetEntryAssembly();
-                x.AddConsumers(entryAssembly);
-                x.UsingRabbitMq((context, cfg) =>
-                {
-                    cfg.Host(hostContext.Configuration.GetValue<string>("Infrastructure:RabbitMQ"), "/", h =>
-                    {
-                        h.Username("guest");
-                        h.Password("guest");
-                    });
+        builder.AddNewsfeedSink();
 
-                    cfg.ClearSerialization();
-                    cfg.AddRawJsonSerializer();
-                    cfg.ConfigureEndpoints(context);
-                });
-            });
-
-            services.AddResiliencePipeline("Spider", static builder =>
-            {
-                builder.AddRetry(new RetryStrategyOptions
-                {
-                    ShouldHandle = args => args.Outcome switch
-                    {
-                        { Exception: HttpRequestException } => PredicateResult.True(),
-                        { Exception: TaskCanceledException } => PredicateResult.True(),
-                        { Exception: TimeoutException } => PredicateResult.True(),
-                        { Exception: NavigationException } => PredicateResult.True(),
-                        { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
-                        _ => PredicateResult.False()
-                    },
-                    BackoffType = DelayBackoffType.Constant,
-                    Delay = TimeSpan.FromSeconds(0.2),
-                    MaxRetryAttempts = 9,
-                    UseJitter = false,
-                });
-            });
-
-            services.AddLogging(ConfigureLogging);
-            
-            if (hostContext.Configuration.GetValue<bool>("RssFeedReader:IsEnabled"))
-            {
-                services.AddHostedService<RssFeedReader>();
-            }
-
-            //services.AddSurreal(hostContext.Configuration.GetConnectionString("SurrealDB") ?? throw new MissingConfigurationValueException("Missing config for SurrealDB"));
-            services.AddNewsfeedSink(hostContext.Configuration);
-            services.ConfigureInfrastructureWithBrowser();
-        }
-
-        private static void ConfigureLogging(ILoggingBuilder builder)
-        {
-            builder.AddFile($"..\\logs\\{DateTime.Now:yyyy-mm-dd_HH-dd-ss}_agitprop.log");
-            builder.AddConsole();
-        }
+        builder.AddServiceDefaults();
+        var app = builder.Build();
+        app.Run();
     }
 }

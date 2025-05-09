@@ -36,6 +36,16 @@ services:
     networks:
       - agitprop-net
 
+  rss-feed-reader:
+    build:
+      context: ./Agitprop.RssFeedReader
+      dockerfile: Dockerfile
+    depends_on:
+      - surrealdb
+      - rabbitmq
+    networks:
+      - agitprop-net
+
 networks:
   agitprop-net:
     driver: bridge

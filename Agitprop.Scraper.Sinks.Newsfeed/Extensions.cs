@@ -4,42 +4,39 @@ using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
 
 using Agitprop.Core;
 using Agitprop.Core.Enums;
-using Agitprop.Core.Exceptions;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Polly;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed;
 
 public static class Extensions
 {
-    public static IServiceCollection AddNewsfeedSink(this IServiceCollection services, IConfiguration configuration)
+    public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        var newsfeedConfig = configuration.GetSection("NewsfeedSink") ?? throw new MissingConfigurationValueException("Missing config section for NewsfeedSink");
-        var surrealDbConnectionString = newsfeedConfig.GetValue<string>("SurrealDB");
-        if (string.IsNullOrEmpty(surrealDbConnectionString))
+        var surreal = builder.Configuration.GetValue<string>("surrealdbUrl");
+        builder.Services.AddSurreal(options =>
         {
-            throw new MissingConfigurationValueException("Missing config for SurrealDB");
-        }
-
-        var nerBaseUrl = newsfeedConfig["NERbaseUrl"];
-        if (string.IsNullOrEmpty(nerBaseUrl))
-        {
-            throw new MissingConfigurationValueException("Missing config for NERbaseUrl");
-        }
-
-        services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
-
-        services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
-        {
-            client.BaseAddress = new Uri(nerBaseUrl);
+            //TODO: actually load these from config
+            options.WithEndpoint(surreal)
+                   .WithNamespace("agitprop")
+                   .WithDatabase("newsfeed")
+                   .WithUsername("root")
+                   .WithPassword("root");
         });
 
-        services.AddTransient<INewsfeedDB, NewsfeedDB>();
-        services.AddTransient<NewsfeedSink>();
-        services.AddSurreal(surrealDbConnectionString);
+        builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
 
-        return services;
+        var nlp = builder.Configuration.GetValue<string>("nlpService");
+        var idk = builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
+        {
+            client.BaseAddress = new Uri(nlp);
+        });
+        builder.Services.AddTransient<INewsfeedDB, NewsfeedDB>();
+        builder.Services.AddTransient<NewsfeedSink>();
+        return builder;
     }
 
 
