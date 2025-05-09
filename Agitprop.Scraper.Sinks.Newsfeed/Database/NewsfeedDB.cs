@@ -11,18 +11,33 @@ using SurrealDb.Net.Models.Response;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Database;
 
+/// <summary>
+/// Represents the database operations for the Newsfeed system.
+/// </summary>
 public class NewsfeedDB : INewsfeedDB
 {
     private readonly static string selectEntityQuery = "select id from entity where Name=$en";
     private ILogger<NewsfeedDB> Logger;
     private ISurrealDbClient Client;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NewsfeedDB"/> class.
+    /// </summary>
+    /// <param name="logger">The logger for logging information and errors.</param>
+    /// <param name="client">The SurrealDB client for database operations.</param>
     public NewsfeedDB(ILogger<NewsfeedDB> logger, ISurrealDbClient client)
     {
         this.Logger = logger;
         this.Client = client;
     }
 
+    /// <summary>
+    /// Creates mentions for a given article URL, parser result, and named entities.
+    /// </summary>
+    /// <param name="url">The URL of the article.</param>
+    /// <param name="parserResult">The result of parsing the article content.</param>
+    /// <param name="entities">The named entities extracted from the article.</param>
+    /// <returns>The number of mentions created.</returns>
     public async Task<int> CreateMentionsAsync(string url, ContentParserResult parserResult, NamedEntityCollection entities)
     {
         var src = RecordId.From("source", $"{parserResult.SourceSite}");
@@ -31,7 +46,7 @@ public class NewsfeedDB : INewsfeedDB
         Logger?.LogInformation("Added article {art}", article);
         //add publish
         var published = await Client.Relate<Published>("published", src, article.Id);
-        Logger?.LogInformation("Added published relation for {url} with id {id}", url,published.Id);
+        Logger?.LogInformation("Added published relation for {url} with id {id}", url, published.Id);
         //add mentions
         var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
         var mentions = await Client.Relate<Mentions>("mentions", article.Id, entIds);
@@ -40,12 +55,22 @@ public class NewsfeedDB : INewsfeedDB
         return mentions.Count();
     }
 
+    /// <summary>
+    /// Checks if a URL already exists in the database.
+    /// </summary>
+    /// <param name="url">The URL to check.</param>
+    /// <returns>True if the URL exists; otherwise, false.</returns>
     public async Task<bool> IsUrlAlreadyExists(string url)
     {
         var result = await Client.RawQuery("RETURN count(SELECT Url FROM articles WHERE Url=$var)>0;", new Dictionary<string, object?> { { "var", url } });
         return result.GetValue<bool>(0);
     }
 
+    /// <summary>
+    /// Creates a new entity in the database.
+    /// </summary>
+    /// <param name="entityName">The name of the entity to create.</param>
+    /// <returns>The created entity.</returns>
     private async Task<Entity> CreateEntityAsync(string entityName)
     {
         Entity result = await Client.Create("entity", new Entity { Name = entityName });
@@ -53,6 +78,11 @@ public class NewsfeedDB : INewsfeedDB
         return result;
     }
 
+    /// <summary>
+    /// Retrieves an entity by name or creates it if it does not exist.
+    /// </summary>
+    /// <param name="entityName">The name of the entity to retrieve or create.</param>
+    /// <returns>The retrieved or created entity.</returns>
     private async Task<Entity> GetOrAddEntityAsync(string entityName)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>

@@ -5,8 +5,16 @@ using HtmlAgilityPack;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
 
+/// <summary>
+/// Provides helper methods for processing and cleaning text.
+/// </summary>
 internal static class Helper
 {
+    /// <summary>
+    /// Cleans up the input text by decoding HTML, removing extra spaces, and normalizing whitespace.
+    /// </summary>
+    /// <param name="textIn">The input text to clean up.</param>
+    /// <returns>The cleaned-up text.</returns>
     internal static string CleanUpText(string textIn)
     {
         // Decode HTML text

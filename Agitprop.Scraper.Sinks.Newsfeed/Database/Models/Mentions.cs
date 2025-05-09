@@ -2,9 +2,18 @@
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Database.Models;
 
+/// <summary>
+/// Represents a relationship indicating that an article mentions an entity.
+/// </summary>
 internal class Mentions : RelationRecord
 {
-
+    /// <summary>
+    /// Gets or sets the URL of the article that mentions the entity.
+    /// </summary>
     public string Url { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date when the mention occurred.
+    /// </summary>
     public DateTimeOffset Date { get; set; }
 }
