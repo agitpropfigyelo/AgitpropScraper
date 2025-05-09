@@ -8,15 +8,22 @@ using System.Diagnostics;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed;
 
+/// <summary>
+/// Represents a sink for processing and storing newsfeed data.
+/// </summary>
 public class NewsfeedSink : ISink
 {
-
-    INamedEntityRecognizer NerService;
-    INewsfeedDB DataBase;
-    ILogger<NewsfeedSink> Logger;
+    private INamedEntityRecognizer NerService;
+    private INewsfeedDB DataBase;
+    private ILogger<NewsfeedSink> Logger;
     private ActivitySource ActivitySource = new("Agitprop.Sink.Newsfeed");
 
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NewsfeedSink"/> class.
+    /// </summary>
+    /// <param name="nerService">The named entity recognizer service.</param>
+    /// <param name="dataBase">The database for storing newsfeed data.</param>
+    /// <param name="logger">The logger for logging information and errors.</param>
     public NewsfeedSink(INamedEntityRecognizer nerService, INewsfeedDB dataBase, ILogger<NewsfeedSink> logger)
     {
         NerService = nerService;
@@ -24,12 +31,24 @@ public class NewsfeedSink : ISink
         Logger = logger;
     }
 
+    /// <summary>
+    /// Checks if a page with the specified URL has already been visited.
+    /// </summary>
+    /// <param name="url">The URL of the page to check.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the page has been visited.</returns>
     public async Task<bool> CheckPageAlreadyVisited(string url)
     {
         using var trace = this.ActivitySource.StartActivity("CheckPageAlreadyVisited");
         return await DataBase.IsUrlAlreadyExists(url);
     }
 
+    /// <summary>
+    /// Processes and stores the parsed content data for a specific URL.
+    /// </summary>
+    /// <param name="url">The URL of the page being processed.</param>
+    /// <param name="data">The list of parsed content results.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
     {
         using var trace = this.ActivitySource.StartActivity("EmitAsync");

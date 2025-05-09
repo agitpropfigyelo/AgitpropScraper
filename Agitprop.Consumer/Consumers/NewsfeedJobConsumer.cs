@@ -15,6 +15,9 @@ using System.Diagnostics;
 
 namespace Agitprop.Consumer.Consumers
 {
+    /// <summary>
+    /// Consumes newsfeed job descriptions and processes them using a web scraping spider.
+    /// </summary>
     public class NewsfeedJobConsumer :
         IConsumer<NewsfeedJobDescrpition>
     {
@@ -24,7 +27,13 @@ namespace Agitprop.Consumer.Consumers
         private NewsfeedSink sink;
         private ActivitySource ActivitySource = new("Agitprop.NewsfeedJobConsumer");
 
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NewsfeedJobConsumer"/> class.
+        /// </summary>
+        /// <param name="spider">The web scraping spider to use for crawling.</param>
+        /// <param name="logger">The logger for logging information and errors.</param>
+        /// <param name="resiliencePipelineProvider">The resilience pipeline provider for handling transient errors.</param>
+        /// <param name="sink">The sink for processing scraped data.</param>
         public NewsfeedJobConsumer(ISpider spider, ILogger<NewsfeedJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, NewsfeedSink sink)
         {
             this.spider = spider;
@@ -33,6 +42,10 @@ namespace Agitprop.Consumer.Consumers
             this.sink = sink;
         }
 
+        /// <summary>
+        /// Consumes a newsfeed job description and processes it.
+        /// </summary>
+        /// <param name="context">The consume context containing the job description.</param>
         public async Task Consume(ConsumeContext<NewsfeedJobDescrpition> context)
         {
             using var trace = this.ActivitySource.StartActivity("Consume");

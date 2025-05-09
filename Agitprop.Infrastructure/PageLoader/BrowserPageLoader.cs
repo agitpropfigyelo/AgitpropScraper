@@ -7,8 +7,14 @@ using PuppeteerSharp;
 
 namespace Agitprop.Infrastructure.PageLoader;
 
+/// <summary>
+/// An abstract base class for loading web pages using a browser.
+/// </summary>
 public abstract class BrowserPageLoader
 {
+    /// <summary>
+    /// A dictionary mapping page action types to their corresponding execution logic.
+    /// </summary>
     protected readonly Dictionary<PageActionType, Func<IPage, object[], Task>> PageActions = new()
     {
         {
@@ -22,12 +28,16 @@ public abstract class BrowserPageLoader
     };
 
     /// <summary>
-    ///     Constructor that takes ILogger argument
+    /// Initializes a new instance of the <see cref="BrowserPageLoader"/> class.
     /// </summary>
-    /// <param name="logger"></param>
-    protected BrowserPageLoader(ILogger<BrowserPageLoader>? logger =default)
+    /// <param name="logger">The logger for logging information and errors.</param>
+    protected BrowserPageLoader(ILogger<BrowserPageLoader>? logger = default)
     {
         Logger = logger;
     }
+
+    /// <summary>
+    /// Gets the logger for logging information and errors.
+    /// </summary>
     protected ILogger<BrowserPageLoader>? Logger { get; }
 }

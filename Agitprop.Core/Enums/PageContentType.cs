@@ -4,5 +4,4 @@ public enum PageContentType
 {
     Archive,
     Article,
-    Post,
 }

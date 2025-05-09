@@ -4,6 +4,9 @@ using Agitprop.Core.Enums;
 
 namespace Agitprop.Core;
 
+/// <summary>
+/// Represents the result of parsing content from a web page.
+/// </summary>
 public record class ContentParserResult
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]

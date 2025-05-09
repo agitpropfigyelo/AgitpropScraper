@@ -15,9 +15,16 @@ using PuppeteerSharp;
 
 namespace Agitprop.Consumer;
 
+/// <summary>
+/// Provides extension methods for configuring application services.
+/// </summary>
 public static class Extensions
 {
-
+    /// <summary>
+    /// Configures MassTransit for message-based communication in the application.
+    /// </summary>
+    /// <param name="builder">The host application builder.</param>
+    /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder ConfigureMassTransit(this IHostApplicationBuilder builder)
     {
         builder.Services.AddMassTransit(x =>
@@ -39,27 +46,32 @@ public static class Extensions
         return builder;
     }
 
+    /// <summary>
+    /// Configures resiliency pipelines for handling transient errors in the application.
+    /// </summary>
+    /// <param name="builder">The host application builder.</param>
+    /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder ConfigureResiliency(this IHostApplicationBuilder builder)
     {
         builder.Services.AddResiliencePipeline("Spider", static builder =>
+        {
+            builder.AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = args => args.Outcome switch
                 {
-                    builder.AddRetry(new RetryStrategyOptions
-                    {
-                        ShouldHandle = args => args.Outcome switch
-                        {
-                            { Exception: HttpRequestException } => PredicateResult.True(),
-                            { Exception: TaskCanceledException } => PredicateResult.True(),
-                            { Exception: TimeoutException } => PredicateResult.True(),
-                            { Exception: NavigationException } => PredicateResult.True(),
-                            { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
-                            _ => PredicateResult.False()
-                        },
-                        BackoffType = DelayBackoffType.Constant,
-                        Delay = TimeSpan.FromSeconds(0.2),
-                        MaxRetryAttempts = 9,
-                        UseJitter = false,
-                    });
-                });
+                    { Exception: HttpRequestException } => PredicateResult.True(),
+                    { Exception: TaskCanceledException } => PredicateResult.True(),
+                    { Exception: TimeoutException } => PredicateResult.True(),
+                    { Exception: NavigationException } => PredicateResult.True(),
+                    { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
+                    _ => PredicateResult.False()
+                },
+                BackoffType = DelayBackoffType.Constant,
+                Delay = TimeSpan.FromSeconds(0.2),
+                MaxRetryAttempts = 9,
+                UseJitter = false,
+            });
+        });
 
         return builder;
     }
