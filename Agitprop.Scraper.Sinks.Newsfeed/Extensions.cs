@@ -24,16 +24,8 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        var surreal = builder.Configuration.GetValue<string>("surrealdbUrl");
-        builder.Services.AddSurreal(options =>
-        {
-            //TODO: actually load these from config
-            options.WithEndpoint(surreal)
-                   .WithNamespace("agitprop")
-                   .WithDatabase("newsfeed")
-                   .WithUsername("root")
-                   .WithPassword("root");
-        });
+        var surrealConnectionString = builder.Configuration.GetConnectionString("surrealdb");
+        builder.Services.AddSurreal(surrealConnectionString);
 
         builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
 
