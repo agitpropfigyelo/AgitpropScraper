@@ -17,7 +17,6 @@ var messaging = builder.AddRabbitMQ("messaging")
 //                        .WithEnvironment("SURREAL_PATH", "rocksdb:mydata/mydatabase.db")
 //                        .WithBindMount("../databaseMount", "/mydata")
 //                        .WithHttpEndpoint(targetPort: 8000)
-//                        .WithOtlpExporter();
 
 var surrealDb = builder.AddSurrealDB("surrealdb")
                        .WithOtlpExporter();

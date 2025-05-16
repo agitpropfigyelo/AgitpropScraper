@@ -19,17 +19,17 @@ public static class Exstensions
         // don't use special characters in the password, since it goes into a URI
         var passwordParameter = password?.Resource ?? ParameterResourceBuilderExtensions.CreateDefaultPasswordParameter(builder, $"{name}-password", special: false);
 
-        var surrealDb = new SurrealDBResource(name, userName?.Resource, passwordParameter);
+        var surrealDbResource = new SurrealDBResource(name, userName?.Resource, passwordParameter);
 
         string? connectionString = null;
 
-        builder.Eventing.Subscribe<ConnectionStringAvailableEvent>(surrealDb, async (@event, ct) =>
+        builder.Eventing.Subscribe<ConnectionStringAvailableEvent>(surrealDbResource, async (@event, ct) =>
         {
-            connectionString = await surrealDb.ConnectionStringExpression.GetValueAsync(ct).ConfigureAwait(false);
+            connectionString = await surrealDbResource.ConnectionStringExpression.GetValueAsync(ct).ConfigureAwait(false);
 
             if (connectionString == null)
             {
-                throw new DistributedApplicationException($"ConnectionStringAvailableEvent was published for the '{surrealDb.Name}' resource but the connection string was null.");
+                throw new DistributedApplicationException($"ConnectionStringAvailableEvent was published for the '{surrealDbResource.Name}' resource but the connection string was null.");
             }
         });
         //TODO: helathchecks
@@ -52,17 +52,17 @@ public static class Exstensions
         //     }
         // }, healthCheckKey);
 
-        var rabbitmq = builder.AddResource(surrealDb)
+        var surrealDb = builder.AddResource(surrealDbResource)
                               .WithImage(SurrealDBContainerImageTags.Image, SurrealDBContainerImageTags.LatestTag)
                               .WithArgs("start")
                               .WithHttpEndpoint(port: port, targetPort: 8000, name: SurrealDBResource.PrimaryEndpointName)
                               .WithEnvironment(context =>
                               {
-                                  context.EnvironmentVariables["SURREAL_USER"] = surrealDb.UserNameReference;
-                                  context.EnvironmentVariables["SURREAL_PASS"] = surrealDb.PasswordParameter;
+                                  context.EnvironmentVariables["SURREAL_USER"] = surrealDbResource.UserNameReference;
+                                  context.EnvironmentVariables["SURREAL_PASS"] = surrealDbResource.PasswordParameter;
                               });
         //   .WithHealthCheck(healthCheckKey);
 
-        return rabbitmq;
+        return surrealDb;
     }
 }

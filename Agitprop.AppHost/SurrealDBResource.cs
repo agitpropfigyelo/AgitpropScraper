@@ -47,5 +47,5 @@ public class SurrealDBResource : ContainerResource, IResourceWithConnectionStrin
     /// </summary>
     public ReferenceExpression ConnectionStringExpression =>
         ReferenceExpression.Create(
-            $"Server=http://{PrimaryEndpoint.Property(EndpointProperty.HostAndPort)};Username={UserNameReference};Password={PasswordParameter};Namespace=test;Database=test");
+            $"Server=http://{PrimaryEndpoint.Property(EndpointProperty.HostAndPort)};Username={UserNameReference};Password={PasswordParameter};");
 }
