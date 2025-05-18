@@ -10,7 +10,7 @@ var messaging = builder.AddRabbitMQ("messaging")
                        .PublishAsConnectionString();
 
 var surrealDb = builder.AddSurrealDB("surrealdb")
-                       .WithHttpEndpoint(port:1289,targetPort: 8000,name:"SurrealistConnection")
+                       .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
                        .WithBindMount("../databaseMount", "/mydata")
                        .WithOtlpExporter();
 
@@ -37,6 +37,11 @@ var rssReader = builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
                        .WaitFor(messaging)
                        .WithReference(consumer)
                        .WithOtlpExporter()
+                       .PublishAsDockerFile();
+
+var backend = builder.AddProject<Agitprop_Web_API>("backend")
+                       .WithReference(surrealDb)
+                       .WaitFor(surrealDb)
                        .PublishAsDockerFile();
 
 builder.Build().Run();

@@ -1,0 +1,6 @@
+@Agitprop.Web.API_HostAddress = http://localhost:5116
+
+GET {{Agitprop.Web.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

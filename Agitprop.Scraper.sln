@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.RssFeedReader", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.NLPService", "Agitprop.NLPService\Agitprop.NLPService.csproj", "{241407BB-3B6F-4450-9B1D-8D96FBE9B7FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Web.API", "Agitprop.Web.API\Agitprop.Web.API.csproj", "{C106E768-2DEA-4239-AB10-0E8A041AB470}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{241407BB-3B6F-4450-9B1D-8D96FBE9B7FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{241407BB-3B6F-4450-9B1D-8D96FBE9B7FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{241407BB-3B6F-4450-9B1D-8D96FBE9B7FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C106E768-2DEA-4239-AB10-0E8A041AB470}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C106E768-2DEA-4239-AB10-0E8A041AB470}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C106E768-2DEA-4239-AB10-0E8A041AB470}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C106E768-2DEA-4239-AB10-0E8A041AB470}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Consumer\Agitprop.Consumer.csproj" />
     <ProjectReference Include="..\Agitprop.RssFeedReader\Agitprop.RssFeedReader.csproj" />
+    <ProjectReference Include="..\Agitprop.Web.API\Agitprop.Web.API.csproj" />
   </ItemGroup>
 
 </Project>
