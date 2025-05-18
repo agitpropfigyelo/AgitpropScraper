@@ -27,6 +27,7 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder ConfigureMassTransit(this IHostApplicationBuilder builder)
     {
+        var connectionString = builder.Configuration.GetConnectionString("messaging");
         builder.Services.AddMassTransit(x =>
         {
             x.SetKebabCaseEndpointNameFormatter();
@@ -35,7 +36,7 @@ public static class Extensions
             x.AddConsumers(entryAssembly);
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host(builder.Configuration.GetConnectionString("messaging"));
+                cfg.Host(connectionString);
 
                 cfg.ClearSerialization();
                 cfg.AddRawJsonSerializer();

@@ -8,7 +8,6 @@ using Agitprop.Core.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Polly;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed;
 
@@ -24,15 +23,12 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        var surreal = builder.Configuration.GetValue<string>("surrealdbUrl");
-        builder.Services.AddSurreal(options =>
+        var surrealConnectionString = builder.Configuration.GetConnectionString("surrealdb");
+        builder.Services.AddSurreal(options=>
         {
-            //TODO: actually load these from config
-            options.WithEndpoint(surreal)
-                   .WithNamespace("agitprop")
-                   .WithDatabase("newsfeed")
-                   .WithUsername("root")
-                   .WithPassword("root");
+            options.FromConnectionString(surrealConnectionString);
+            options.WithNamespace("agitprop");
+            options.WithDatabase("newsfeed");
         });
 
         builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();

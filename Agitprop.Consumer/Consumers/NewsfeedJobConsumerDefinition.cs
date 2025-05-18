@@ -15,7 +15,7 @@
         /// <param name="configuration">The application configuration.</param>
         public NewsfeedJobConsumerDefinition(IConfiguration configuration)
         {
-            var concurLimit = configuration.GetValue<int?>("Infrastructure:ConcurrencyLimit");
+            var concurLimit = configuration.GetValue<int?>("ConcurrencyLimit");
             if (concurLimit.HasValue) ConcurrentMessageLimit = concurLimit;
         }
 
