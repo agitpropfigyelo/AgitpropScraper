@@ -25,15 +25,12 @@ IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.A
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Consumer>("consumer")
                       .WaitFor(surrealDb)
                       .WithReference(surrealDb)
-                      //   .WithEnvironment("surrealdbUrl", surrealDb.GetEndpoint("http"))
                       .WithReference(messaging)
                       .WaitFor(messaging)
                       .WaitFor(nlpService)
                       .WithEnvironment("nlpService", nlpService.GetEndpoint("http"))
                       .WithOtlpExporter()
                       .PublishAsDockerFile();
-//    .WithReference(surrealDb)
-
 
 var rssReader = builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
                        .WithReference(messaging)
