@@ -60,6 +60,7 @@ public static class Exstensions
                               {
                                   context.EnvironmentVariables["SURREAL_USER"] = surrealDbResource.UserNameReference;
                                   context.EnvironmentVariables["SURREAL_PASS"] = surrealDbResource.PasswordParameter;
+                                  context.EnvironmentVariables["SURREAL_PATH"] = "rocksdb:mydata/mydatabase.db";
                               });
         //   .WithHealthCheck(healthCheckKey);
 

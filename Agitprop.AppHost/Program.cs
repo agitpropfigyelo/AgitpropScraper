@@ -15,10 +15,11 @@ var messaging = builder.AddRabbitMQ("messaging")
 //                        .WithEnvironment("SURREAL_PASS", "root")
 //                        .WithEnvironment("SURREAL_USER", "root")
 //                        .WithEnvironment("SURREAL_PATH", "rocksdb:mydata/mydatabase.db")
-//                        .WithBindMount("../databaseMount", "/mydata")
 //                        .WithHttpEndpoint(targetPort: 8000)
 
 var surrealDb = builder.AddSurrealDB("surrealdb")
+                       .WithHttpEndpoint(port:1289,targetPort: 8000,name:"SurrealistConnection")
+                       .WithBindMount("../databaseMount", "/mydata")
                        .WithOtlpExporter();
 
 #pragma warning disable ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
