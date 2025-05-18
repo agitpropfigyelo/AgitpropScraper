@@ -9,14 +9,6 @@ var messaging = builder.AddRabbitMQ("messaging")
                        .WithOtlpExporter()
                        .PublishAsConnectionString();
 
-// //TODO: clean this up
-// IResourceBuilder<ContainerResource> surrealDb = builder.AddContainer("surrealdb", "surrealdb/surrealdb:latest")
-//                        .WithArgs("start")
-//                        .WithEnvironment("SURREAL_PASS", "root")
-//                        .WithEnvironment("SURREAL_USER", "root")
-//                        .WithEnvironment("SURREAL_PATH", "rocksdb:mydata/mydatabase.db")
-//                        .WithHttpEndpoint(targetPort: 8000)
-
 var surrealDb = builder.AddSurrealDB("surrealdb")
                        .WithHttpEndpoint(port:1289,targetPort: 8000,name:"SurrealistConnection")
                        .WithBindMount("../databaseMount", "/mydata")
