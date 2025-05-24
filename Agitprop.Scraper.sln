@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.RssFeedReader", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.NLPService", "Agitprop.NLPService\Agitprop.NLPService.csproj", "{241407BB-3B6F-4450-9B1D-8D96FBE9B7FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Web.API", "Agitprop.Web.API\Agitprop.Web.API.csproj", "{C106E768-2DEA-4239-AB10-0E8A041AB470}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Web.Api", "Agitprop.Web.Api\Agitprop.Web.Api.csproj", "{C106E768-2DEA-4239-AB10-0E8A041AB470}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Web.Client", "Agitprop.Web.Client\Agitprop.Web.Client.csproj", "{2A9F8EE1-4B44-41E8-ACA1-90FDF5C86578}"
 EndProject

@@ -39,7 +39,7 @@ var rssReader = builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
                        .WithOtlpExporter()
                        .PublishAsDockerFile();
 
-var backend = builder.AddProject<Agitprop_Web_API>("backend")
+var backend = builder.AddProject<Agitprop_Web_Api>("backend")
                        .WithReference(surrealDb)
                        .WaitFor(surrealDb)
                        .PublishAsDockerFile();
