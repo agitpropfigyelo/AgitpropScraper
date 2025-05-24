@@ -22,6 +22,8 @@ IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.A
                         .PublishAsDockerFile();
 #pragma warning restore ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
+
+
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Consumer>("consumer")
                       .WaitFor(surrealDb)
                       .WithReference(surrealDb)
@@ -43,5 +45,12 @@ var backend = builder.AddProject<Agitprop_Web_Api>("backend")
                        .WithReference(surrealDb)
                        .WaitFor(surrealDb)
                        .PublishAsDockerFile();
+
+builder.AddNpmApp("angular", "../Agitprop.Web.Client")
+    .WithReference(backend)
+    .WaitFor(backend)
+    .WithHttpEndpoint(env: "PORT")
+    .WithExternalHttpEndpoints()
+    .PublishAsDockerFile();
 
 builder.Build().Run();
