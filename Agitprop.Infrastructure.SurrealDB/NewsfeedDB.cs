@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using SurrealDb.Net;
 using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Response;
+using Agitprop.Infrastructure.SurrealDB.Models;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Database;
 

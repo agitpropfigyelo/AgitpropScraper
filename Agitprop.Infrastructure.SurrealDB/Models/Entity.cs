@@ -1,6 +1,6 @@
 ﻿using SurrealDb.Net.Models;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Database.Models;
+namespace Agitprop.Infrastructure.SurrealDB.Models;
 
 /// <summary>
 /// Represents an entity that can be mentioned in articles.

@@ -1,8 +1,6 @@
-using System;
-
 using SurrealDb.Net.Models;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Database.Models;
+namespace Agitprop.Infrastructure.SurrealDB.Models;
 
 /// <summary>
 /// Represents an article stored in the database.
