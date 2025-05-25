@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MassTransit;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using Polly;
@@ -73,7 +74,7 @@ public static class Extensions
                 UseJitter = false,
             });
         });
-
+        builder.Services.AddResilienceEnricher();
         return builder;
     }
 }
