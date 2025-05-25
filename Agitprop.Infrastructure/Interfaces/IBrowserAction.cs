@@ -1,6 +1,6 @@
 ﻿using PuppeteerSharp;
 
-namespace Agitprop.Core.Interfaces
+namespace Agitprop.Infrastructure.Interfaces
 {
     public interface IBrowserAction
     {

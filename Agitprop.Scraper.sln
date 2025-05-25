@@ -9,21 +9,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Puppeteer", "Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj", "{77DABB6D-5834-475E-AFD5-A184A355BF5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Consumer", "Agitprop.Consumer\Agitprop.Consumer.csproj", "{1CBAD7FA-FB04-4121-9575-39E2DBE41605}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Consumer", "Agitprop.Consumer\Agitprop.Scraper.Consumer.csproj", "{1CBAD7FA-FB04-4121-9575-39E2DBE41605}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ConsoleToolKit", "Agitprop.ConsoleToolKit\Agitprop.ConsoleToolKit.csproj", "{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.ConsoleToolKit", "Agitprop.ConsoleToolKit\Agitprop.Scraper.ConsoleToolKit.csproj", "{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Sinks.Newsfeed", "Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Scraper.Sinks.Newsfeed.csproj", "{B7D370AD-9D3C-4D61-B854-3776DC4540BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Sinks.Newsfeed", "Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Sinks.Newsfeed.csproj", "{B7D370AD-9D3C-4D61-B854-3776DC4540BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Sinks.Newsfeed_Test", "Agitprop.Scraper.Sinks.Newsfeed_Test\Agitprop.Scraper.Sinks.Newsfeed_Test.csproj", "{729CAE5A-4384-4D78-AC4D-78E190552A0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Sinks.Newsfeed_Test", "Agitprop.Scraper.Sinks.Newsfeed_Test\Agitprop.Sinks.Newsfeed_Test.csproj", "{729CAE5A-4384-4D78-AC4D-78E190552A0A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.AppHost", "Agitprop.AppHost\Agitprop.AppHost.csproj", "{3725CA9C-E1AD-4EF7-AECF-96DB63A08002}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.ServiceDefaults", "Agitprop.ServiceDefaults\Agitprop.ServiceDefaults.csproj", "{0E2C2B9A-229E-48A8-880D-C49176ABFC98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.RssFeedReader", "Agitprop.RssFeedReader\Agitprop.RssFeedReader.csproj", "{84CD95A8-5F99-4C21-A369-915A33DBD905}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.RssFeedReader", "Agitprop.RssFeedReader\Agitprop.Scraper.RssFeedReader.csproj", "{84CD95A8-5F99-4C21-A369-915A33DBD905}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.NLPService", "Agitprop.NLPService\Agitprop.NLPService.csproj", "{241407BB-3B6F-4450-9B1D-8D96FBE9B7FE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.NLPService", "Agitprop.NLPService\Agitprop.Scraper.NLPService.csproj", "{241407BB-3B6F-4450-9B1D-8D96FBE9B7FE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Web.Api", "Agitprop.Web.Api\Agitprop.Web.Api.csproj", "{C106E768-2DEA-4239-AB10-0E8A041AB470}"
 EndProject

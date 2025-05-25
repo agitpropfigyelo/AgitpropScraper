@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Security;
 
-using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.Interfaces;
 
 namespace Agitprop.Infrastructure.PageRequester;
 

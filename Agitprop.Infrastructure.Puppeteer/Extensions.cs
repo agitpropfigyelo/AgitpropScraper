@@ -1,6 +1,5 @@
 ﻿using System.Net;
 
-using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;

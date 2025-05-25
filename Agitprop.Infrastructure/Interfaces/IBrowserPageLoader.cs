@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Core.Interfaces;
+﻿namespace Agitprop.Infrastructure.Interfaces;
 
 /// <summary>
 /// Defines the contract for loading web pages using a browser.

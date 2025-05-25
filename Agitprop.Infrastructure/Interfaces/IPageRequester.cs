@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Agitprop.Core.Interfaces;
+namespace Agitprop.Infrastructure.Interfaces;
 
 /// <summary>
 /// Defines the contract for sending HTTP requests to web pages.
