@@ -1,7 +1,4 @@
-﻿using Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
-using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
-
-namespace Agitprop.Sinks.Newsfeed.Factories;
+﻿namespace Agitprop.Sinks.Newsfeed.Factories;
 
 /// <summary>
 /// Provides a factory for creating content parsers for different news sites.

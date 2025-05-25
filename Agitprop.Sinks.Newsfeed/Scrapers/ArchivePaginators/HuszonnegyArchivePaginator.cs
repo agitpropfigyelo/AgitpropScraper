@@ -1,10 +1,4 @@
-﻿using Agitprop.Core;
-using Agitprop.Core.Enums;
-using Agitprop.Core.Interfaces;
-using Agitprop.Scraper.Sinks.Newsfeed;
-using HtmlAgilityPack;
-
-namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchivePaginators;
+﻿namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class HuszonnegyArchivePaginator : DateBasedArchive, IPaginator
 {

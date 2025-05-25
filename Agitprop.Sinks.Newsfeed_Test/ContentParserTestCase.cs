@@ -1,6 +1,4 @@
-using Agitprop.Core;
-
-namespace Agitprop.Scraper.Sinks.Newsfeed_Test;
+namespace Agitprop.Sinks.Newsfeed_Test;
 internal class ContentParserTestCase
 {
     public string HtmlPath { get; set; }

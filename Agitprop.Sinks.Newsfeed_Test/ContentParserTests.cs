@@ -1,7 +1,7 @@
 using Agitprop.Core.Enums;
 using Agitprop.Scraper.Sinks.Newsfeed.Factories;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed_Test;
+namespace Agitprop.Sinks.Newsfeed_Test;
 public partial class ContentParserTests
 {
     [TestCase(NewsSites.Alfahir)]

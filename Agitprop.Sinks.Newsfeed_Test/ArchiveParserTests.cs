@@ -1,9 +1,4 @@
-using Agitprop.Core.Enums;
-using Agitprop.Scraper.Sinks.Newsfeed.Factories;
-
-using NUnit.Framework;
-
-namespace Agitprop.Scraper.Sinks.Newsfeed_Test;
+namespace Agitprop.Sinks.Newsfeed_Test;
 
 public class ArchiveParserTests
 {

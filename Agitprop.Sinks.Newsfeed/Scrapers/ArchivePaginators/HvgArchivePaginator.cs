@@ -1,9 +1,3 @@
-using Agitprop.Core;
-using Agitprop.Core.Enums;
-using Agitprop.Core.Interfaces;
-using Agitprop.Scraper.Sinks.Newsfeed;
-using HtmlAgilityPack;
-
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class HvgArchivePaginator : DateBasedArchive, IPaginator

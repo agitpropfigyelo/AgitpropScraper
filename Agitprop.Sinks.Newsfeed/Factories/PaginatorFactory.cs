@@ -1,6 +1,4 @@
-﻿using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
-
-namespace Agitprop.Sinks.Newsfeed.Factories;
+﻿namespace Agitprop.Sinks.Newsfeed.Factories;
 
 /// <summary>
 /// Provides a factory for creating paginator instances for different news sites.

@@ -1,6 +1,3 @@
-using System;
-using Agitprop.Core.Enums;
-
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 internal class MerceArticleContentParser : BaseArticleContentParser

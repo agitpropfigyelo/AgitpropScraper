@@ -1,5 +1,3 @@
-using Agitprop.Core.Enums;
-
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 internal class IndexArticleContentParser : BaseArticleContentParser

@@ -2,7 +2,7 @@ using System.Text.Json;
 
 using Agitprop.Core.Enums;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed_Test;
+namespace Agitprop.Sinks.Newsfeed_Test;
 
 public static class TestCaseFactory
 {
