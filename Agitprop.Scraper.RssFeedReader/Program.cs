@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace Agitprop.RssFeedReader;
+namespace Agitprop.Scraper.RssFeedReader;
 
 /// <summary>
 /// The entry point for the RssFeedReader application.

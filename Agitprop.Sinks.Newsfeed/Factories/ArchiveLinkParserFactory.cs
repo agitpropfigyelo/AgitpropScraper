@@ -1,8 +1,4 @@
-﻿using Agitprop.Core.Enums;
-using Agitprop.Core.Interfaces;
-using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
-
-namespace Agitprop.Scraper.Sinks.Newsfeed.Factories;
+﻿namespace Agitprop.Sinks.Newsfeed.Factories;
 
 /// <summary>
 /// Provides a factory for creating archive link parsers for different news sites.

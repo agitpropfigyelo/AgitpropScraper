@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
-using Agitprop.ConsoleToolKit;
+
+using Agitprop.Scraper.ConsoleToolKit;
 
 class Program
 {

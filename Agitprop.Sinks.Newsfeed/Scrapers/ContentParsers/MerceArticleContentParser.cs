@@ -1,7 +1,7 @@
 using System;
 using Agitprop.Core.Enums;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
+namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 internal class MerceArticleContentParser : BaseArticleContentParser
 {

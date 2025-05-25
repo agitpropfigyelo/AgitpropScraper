@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
+﻿namespace Agitprop.Sinks.Newsfeed.Scrapers;
 
 /// <summary>
 /// Represents information about an article in an archive.

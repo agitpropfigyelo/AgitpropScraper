@@ -1,7 +1,6 @@
-﻿using Agitprop.Scraper.Sinks.Newsfeed;
-
-using Agitprop.Infrastructure.Puppeteer;
+﻿using Agitprop.Infrastructure.Puppeteer;
 using Microsoft.Extensions.Hosting;
+using Agitprop.Scraper.Consumer;
 
 namespace Agitprop.Consumer;
 

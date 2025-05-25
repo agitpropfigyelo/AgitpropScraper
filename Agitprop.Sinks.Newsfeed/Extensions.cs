@@ -1,15 +1,6 @@
-﻿using Agitprop.Scraper.Sinks.Newsfeed.Database;
-using Agitprop.Scraper.Sinks.Newsfeed.Factories;
-using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+﻿using Agitprop.Sinks.Newsfeed.Factories;
 
-using Agitprop.Core;
-using Agitprop.Core.Enums;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
-namespace Agitprop.Scraper.Sinks.Newsfeed;
+namespace Agitprop.Sinks.Newsfeed;
 
 /// <summary>
 /// Provides extension methods for configuring and converting newsfeed-related services and jobs.

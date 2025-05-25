@@ -6,7 +6,7 @@ using Agitprop.Infrastructure.Interfaces;
 
 using Microsoft.Extensions.Logging;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed;
+namespace Agitprop.Scraper.NLPService;
 
 /// <summary>
 /// Provides functionality for recognizing named entities in text using an external service.

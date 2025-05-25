@@ -1,6 +1,4 @@
-using System;
-
-namespace Agitprop.ConsoleToolKit;
+namespace Agitprop.Scraper.ConsoleToolKit;
 
 public class RetryCommand
 {

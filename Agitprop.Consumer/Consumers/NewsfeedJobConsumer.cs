@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
-using Agitprop.Scraper.Sinks.Newsfeed;
 using Agitprop.Infrastructure.Interfaces;
 
 using MassTransit;

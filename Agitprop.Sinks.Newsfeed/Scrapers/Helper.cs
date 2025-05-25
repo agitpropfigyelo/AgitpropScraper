@@ -1,9 +1,4 @@
-﻿using System.Net;
-using System.Text.RegularExpressions;
-
-using HtmlAgilityPack;
-
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
+﻿namespace Agitprop.Sinks.Newsfeed.Scrapers;
 
 /// <summary>
 /// Provides helper methods for processing and cleaning text.

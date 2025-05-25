@@ -1,5 +1,4 @@
-﻿using Agitprop.Scraper.Sinks.Newsfeed.Database.Models;
-using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+﻿using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
 
 using Agitprop.Core;
 
@@ -9,9 +8,8 @@ using SurrealDb.Net;
 using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Response;
 using Agitprop.Infrastructure.SurrealDB.Models;
-using Agitprop.Infrastructure;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Database;
+namespace Agitprop.Infrastructure.SurrealDB;
 
 /// <summary>
 /// Represents the database operations for the Newsfeed system.
@@ -29,8 +27,8 @@ public class NewsfeedDB : INewsfeedDB
     /// <param name="client">The SurrealDB client for database operations.</param>
     public NewsfeedDB(ILogger<NewsfeedDB> logger, ISurrealDbClient client)
     {
-        this.Logger = logger;
-        this.Client = client;
+        Logger = logger;
+        Client = client;
     }
 
     /// <summary>

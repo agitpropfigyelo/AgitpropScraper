@@ -1,6 +1,6 @@
 using Agitprop.Core.Enums;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
+namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 /// <summary>
 /// Parses article content from the Alfahir news site.

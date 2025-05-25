@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agitprop.Core\Agitprop.Core.csproj" />
+    <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
+    <ProjectReference Include="..\Agitprop.Scraper.NLPService\Agitprop.Scraper.NLPService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,9 +23,5 @@
       <_Parameter1>Agitprop.Scraper.Sinks.Newsfeed_Test</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Interfaces\" />
-    </ItemGroup>
 
 </Project>

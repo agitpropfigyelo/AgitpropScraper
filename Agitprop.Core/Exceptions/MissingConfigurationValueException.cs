@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Agitprop.Core.Exceptions;
+﻿namespace Agitprop.Core.Exceptions;
 
 /// <summary>
 /// Exception thrown when a required configuration value is missing.

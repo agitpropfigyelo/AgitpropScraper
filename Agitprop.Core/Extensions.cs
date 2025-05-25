@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Agitprop.Core.Extensions;
+﻿namespace Agitprop.Core.Extensions;
 
 /// <summary>
 /// Provides extension methods for common operations.

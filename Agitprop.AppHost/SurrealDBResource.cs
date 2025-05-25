@@ -1,5 +1,3 @@
-using System;
-
 namespace Agitprop.AppHost;
 
 public class SurrealDBResource : ContainerResource, IResourceWithConnectionString, IResourceWithEnvironment

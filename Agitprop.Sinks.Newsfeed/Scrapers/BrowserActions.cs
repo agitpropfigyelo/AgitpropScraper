@@ -1,8 +1,4 @@
-﻿using Agitprop.Core.Interfaces;
-
-using PuppeteerSharp;
-
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
+﻿namespace Agitprop.Sinks.Newsfeed.Scrapers;
 
 /// <summary>
 /// Represents a browser action for scrolling through the Negynegynegy archive pages.

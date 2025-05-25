@@ -1,14 +1,12 @@
 using System.ServiceModel.Syndication;
 using System.Text;
 using System.Xml;
-
-using Agitprop.Scraper.Sinks.Newsfeed;
 using Agitprop.Core.Enums;
 
 using MassTransit;
 using System.Diagnostics;
 
-namespace Agitprop.RssFeedReader;
+namespace Agitprop.Scraper.RssFeedReader;
 
 /// <summary>
 /// A hosted service that reads RSS feeds and publishes scraping jobs.
@@ -45,7 +43,7 @@ public class RssFeedReader : IHostedService, IDisposable
     /// <returns>A completed task.</returns>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        using var trace = this.ActivitySource.StartActivity("StartAsync");
+        using var trace = ActivitySource.StartActivity("StartAsync");
         _timer = new Timer(ExecuteTask, null, TimeSpan.Zero, _interval);
         return Task.CompletedTask;
     }
@@ -56,7 +54,7 @@ public class RssFeedReader : IHostedService, IDisposable
     /// <param name="state">The state object passed to the timer.</param>
     private void ExecuteTask(object? state)
     {
-        using var trace = this.ActivitySource.StartActivity("ExecuteTask");
+        using var trace = ActivitySource.StartActivity("ExecuteTask");
         _logger.LogInformation("Running RSS readers");
         using var scope = _scopeFactory.CreateScope();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
@@ -71,7 +69,7 @@ public class RssFeedReader : IHostedService, IDisposable
     /// <returns>A completed task.</returns>
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        using var trace = this.ActivitySource.StartActivity("StopAsync");
+        using var trace = ActivitySource.StartActivity("StopAsync");
         _timer?.Change(Timeout.Infinite, 0);
         return Task.CompletedTask;
     }
@@ -90,7 +88,7 @@ public class RssFeedReader : IHostedService, IDisposable
     /// <returns>A list of <see cref="NewsfeedJobDescrpition"/> objects representing the scraping jobs.</returns>
     private List<NewsfeedJobDescrpition> FetchScrapingJobs()
     {
-        using var trace = this.ActivitySource.StartActivity("FetchScrapingJobs", ActivityKind.Producer);
+        using var trace = ActivitySource.StartActivity("FetchScrapingJobs", ActivityKind.Producer);
 
         var scrapingJobs = new List<NewsfeedJobDescrpition>();
 

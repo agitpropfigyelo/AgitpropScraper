@@ -1,8 +1,6 @@
-﻿using Agitprop.Core.Enums;
-using Agitprop.Core.Interfaces;
-using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
+﻿using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Factories;
+namespace Agitprop.Sinks.Newsfeed.Factories;
 
 /// <summary>
 /// Provides a factory for creating paginator instances for different news sites.

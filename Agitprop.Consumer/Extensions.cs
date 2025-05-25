@@ -14,7 +14,7 @@ using Polly.Retry;
 
 using PuppeteerSharp;
 
-namespace Agitprop.Consumer;
+namespace Agitprop.Scraper.Consumer;
 
 /// <summary>
 /// Provides extension methods for configuring application services.

@@ -2,11 +2,10 @@ using System.CommandLine;
 using System.Text.Json;
 using System.Text;
 using Agitprop.Core.Enums;
-using Agitprop.Scraper.Sinks.Newsfeed;
 using RabbitMQ.Client;
 using Microsoft.Extensions.Configuration;
 
-namespace Agitprop.ConsoleToolKit;
+namespace Agitprop.Scraper.ConsoleToolKit;
 
 public static class QueueCommand
 {
@@ -37,7 +36,7 @@ public static class QueueCommand
             archiveOption,
             prodOption
         };
-        addCommand.SetHandler((DateOnly date, string? article, string? archive, bool prod) =>
+        addCommand.SetHandler((date, article, archive, prod) =>
             PublishJob(date, article, archive, prod), dateOption, articleOption, archiveOption, prodOption);
 
         rootCommand.Add(addCommand);

@@ -1,12 +1,4 @@
-﻿using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
-
-using Agitprop.Core;
-using Agitprop.Infrastructure.Interfaces;
-
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-
-namespace Agitprop.Scraper.Sinks.Newsfeed;
+﻿namespace Agitprop.Sinks.Newsfeed;
 
 /// <summary>
 /// Represents a sink for processing and storing newsfeed data.
@@ -38,7 +30,7 @@ public class NewsfeedSink : ISink
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the page has been visited.</returns>
     public async Task<bool> CheckPageAlreadyVisited(string url)
     {
-        using var trace = this.ActivitySource.StartActivity("CheckPageAlreadyVisited");
+        using var trace = ActivitySource.StartActivity("CheckPageAlreadyVisited");
         return await DataBase.IsUrlAlreadyExists(url);
     }
 
@@ -51,7 +43,7 @@ public class NewsfeedSink : ISink
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
     {
-        using var trace = this.ActivitySource.StartActivity("EmitAsync");
+        using var trace = ActivitySource.StartActivity("EmitAsync");
         foreach (var article in data)
         {
             var entities = await NerService.AnalyzeSingleAsync(article.Text);

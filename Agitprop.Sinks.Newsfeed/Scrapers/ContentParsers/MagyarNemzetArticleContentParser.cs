@@ -1,6 +1,7 @@
-using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
-
 using Agitprop.Core.Enums;
+using Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
+
+namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 internal class MagyarNemzetArticleContentParser : BaseArticleContentParser
 {

@@ -1,8 +1,6 @@
-using Agitprop.Scraper.Sinks.Newsfeed.Scrapers.ContentParsers;
-
 using Agitprop.Core.Enums;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Scrapers;
+namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 internal class HvgArticleContentParser : BaseArticleContentParser
 {

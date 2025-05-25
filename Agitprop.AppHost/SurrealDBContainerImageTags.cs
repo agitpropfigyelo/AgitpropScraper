@@ -1,5 +1,3 @@
-using System;
-
 namespace Agitprop.AppHost;
 
 public class SurrealDBContainerImageTags
