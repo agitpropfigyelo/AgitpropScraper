@@ -1,7 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+using Agitprop.Infrastructure;
+using Agitprop.Infrastructure.Interfaces;
 
 using Microsoft.Extensions.Logging;
 

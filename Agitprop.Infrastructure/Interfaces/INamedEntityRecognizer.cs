@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+﻿namespace Agitprop.Infrastructure.Interfaces;
 
 /// <summary>
 /// Defines the contract for a named entity recognizer service.

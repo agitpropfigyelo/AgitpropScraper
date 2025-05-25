@@ -9,6 +9,7 @@ using SurrealDb.Net;
 using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Response;
 using Agitprop.Infrastructure.SurrealDB.Models;
+using Agitprop.Infrastructure;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Database;
 

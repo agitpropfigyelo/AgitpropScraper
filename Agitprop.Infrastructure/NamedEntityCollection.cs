@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed;
+namespace Agitprop.Infrastructure;
 
 /// <summary>
 /// Represents a collection of named entities categorized by type.

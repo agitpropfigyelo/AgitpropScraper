@@ -1,4 +1,5 @@
 ﻿using Agitprop.Core;
+using Agitprop.Infrastructure;
 
 namespace Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
 
