@@ -1,3 +1,9 @@
+using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
+
+using HtmlAgilityPack;
+
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 public class RtlArchivePaginator : IPaginator
@@ -10,7 +16,11 @@ public class RtlArchivePaginator : IPaginator
         {
             newUlr = $"https://rtl.hu/legfrissebb?oldal={++page}";
         }
-        return new NewsfeedJobDescrpition { Url = new Uri(newUlr).ToString(), Type = PageContentType.Archive };
+        return new NewsfeedJobDescrpition
+        {
+            Url = new Uri(newUlr).ToString(),
+            Type = PageContentType.Archive
+        };
     }
 
     public Task<ScrapingJobDescription> GetNextPageAsync(string currentUrl, string docString)

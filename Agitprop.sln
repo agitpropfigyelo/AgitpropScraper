@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Puppeteer", "Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj", "{77DABB6D-5834-475E-AFD5-A184A355BF5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Consumer", "Agitprop.Consumer\Agitprop.Scraper.Consumer.csproj", "{1CBAD7FA-FB04-4121-9575-39E2DBE41605}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.Consumer", "Agitprop.Scraper.Consumer\Agitprop.Scraper.Consumer.csproj", "{1CBAD7FA-FB04-4121-9575-39E2DBE41605}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Scraper.ConsoleToolKit", "Agitprop.Scraper.ConsoleToolKit\Agitprop.Scraper.ConsoleToolKit.csproj", "{7A89CD2B-5E5C-4A8E-A790-520129D70FB2}"
 EndProject

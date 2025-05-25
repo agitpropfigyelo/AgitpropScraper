@@ -1,3 +1,5 @@
+using Agitprop.Core;
+
 namespace Agitprop.Sinks.Newsfeed_Test;
 internal class ContentParserTestCase
 {

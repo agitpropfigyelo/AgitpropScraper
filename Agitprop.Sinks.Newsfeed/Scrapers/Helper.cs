@@ -1,4 +1,7 @@
-﻿namespace Agitprop.Sinks.Newsfeed.Scrapers;
+﻿using System.Net;
+using System.Text.RegularExpressions;
+
+namespace Agitprop.Sinks.Newsfeed.Scrapers;
 
 /// <summary>
 /// Provides helper methods for processing and cleaning text.

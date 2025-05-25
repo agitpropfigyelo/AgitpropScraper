@@ -1,3 +1,6 @@
+using Agitprop.Core.Enums;
+using Agitprop.Sinks.Newsfeed.Factories;
+
 namespace Agitprop.Sinks.Newsfeed_Test;
 
 public class ArchiveParserTests

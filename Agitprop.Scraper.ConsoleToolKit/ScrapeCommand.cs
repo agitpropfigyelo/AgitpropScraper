@@ -8,6 +8,7 @@ using Agitprop.Infrastructure.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
 using Agitprop.Infrastructure.Puppeteer;
+using Agitprop.Sinks.Newsfeed;
 
 namespace Agitprop.Scraper.ConsoleToolKit;
 

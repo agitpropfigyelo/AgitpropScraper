@@ -10,8 +10,10 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Registry;
 using System.Diagnostics;
+using Agitprop.Sinks.Newsfeed;
+using Agitprop.Core;
 
-namespace Agitprop.Consumer.Consumers
+namespace Agitprop.Scraper.Consumer.Consumers
 {
     /// <summary>
     /// Consumes newsfeed job descriptions and processes them using a web scraping spider.
@@ -46,7 +48,7 @@ namespace Agitprop.Consumer.Consumers
         /// <param name="context">The consume context containing the job description.</param>
         public async Task Consume(ConsumeContext<NewsfeedJobDescrpition> context)
         {
-            using var trace = this.ActivitySource.StartActivity("Consume");
+            using var trace = ActivitySource.StartActivity("Consume");
             NewsfeedJobDescrpition descriptor = context.Message;
             var job = descriptor.ConvertToScrapingJob();
             logger.LogInformation("Crawling started: {url}", job.Url);

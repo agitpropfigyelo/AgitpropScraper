@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Agitprop.Infrastructure.Puppeteer\Agitprop.Infrastructure.Puppeteer.csproj" />
     <ProjectReference Include="..\Agitprop.Infrastructure\Agitprop.Infrastructure.csproj" />
     <ProjectReference Include="..\Agitprop.Scraper.Sinks.Newsfeed\Agitprop.Sinks.Newsfeed.csproj" />
+    <ProjectReference Include="..\Agitprop.Sinks.Newsfeed\Agitprop.Sinks.Newsfeed.csproj" />
   </ItemGroup>
 
   <ItemGroup>

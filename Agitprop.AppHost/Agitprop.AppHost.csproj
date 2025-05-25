@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Agitprop.Consumer\Agitprop.Scraper.Consumer.csproj" />
-    <ProjectReference Include="..\Agitprop.RssFeedReader\Agitprop.Scraper.RssFeedReader.csproj" />
+    <ProjectReference Include="..\Agitprop.Scraper.Consumer\Agitprop.Scraper.Consumer.csproj" />
+    <ProjectReference Include="..\Agitprop.Scraper.RssFeedReader\Agitprop.Scraper.RssFeedReader.csproj" />
     <ProjectReference Include="..\Agitprop.Web.Api\Agitprop.Web.Api.csproj" />
   </ItemGroup>
   

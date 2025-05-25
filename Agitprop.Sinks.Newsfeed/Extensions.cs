@@ -1,4 +1,14 @@
-﻿using Agitprop.Sinks.Newsfeed.Factories;
+﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Infrastructure.SurrealDB;
+using Agitprop.Scraper.NLPService;
+using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+using Agitprop.Sinks.Newsfeed.Factories;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Agitprop.Sinks.Newsfeed;
 

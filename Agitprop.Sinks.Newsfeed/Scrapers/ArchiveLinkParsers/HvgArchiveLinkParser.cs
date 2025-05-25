@@ -1,4 +1,10 @@
-﻿namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
+﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
+
+using HtmlAgilityPack;
+
+namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class HvgArchiveLinkParser : ILinkParser
 {

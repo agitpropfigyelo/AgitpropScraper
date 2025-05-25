@@ -1,3 +1,9 @@
+using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
+
+using HtmlAgilityPack;
+
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchiveLinkParsers;
 
 internal class KurucinfoArchiveLinkParser : ILinkParser
@@ -6,7 +12,7 @@ internal class KurucinfoArchiveLinkParser : ILinkParser
     {
         var jobs = doc.DocumentNode.SelectNodes(".//div[@class='alcikkheader']/a")
                                    .Select(x => x.GetAttributeValue<string>("href", ""))
-                                   .Select(url => new NewsfeedJobDescrpition
+                                   .Select(static url => new NewsfeedJobDescrpition
                                    {
                                        Url = new Uri(url).ToString(),
                                        Type = PageContentType.Article,

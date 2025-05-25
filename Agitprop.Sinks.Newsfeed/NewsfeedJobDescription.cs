@@ -1,4 +1,7 @@
-﻿namespace Agitprop.Sinks.Newsfeed
+﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+
+namespace Agitprop.Sinks.Newsfeed
 {
     /// <summary>
     /// Represents a description of a newsfeed job, extending the base scraping job description.

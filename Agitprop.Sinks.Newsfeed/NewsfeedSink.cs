@@ -1,4 +1,12 @@
-﻿namespace Agitprop.Sinks.Newsfeed;
+﻿using System.Diagnostics;
+
+using Agitprop.Core;
+using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+
+using Microsoft.Extensions.Logging;
+
+namespace Agitprop.Sinks.Newsfeed;
 
 /// <summary>
 /// Represents a sink for processing and storing newsfeed data.

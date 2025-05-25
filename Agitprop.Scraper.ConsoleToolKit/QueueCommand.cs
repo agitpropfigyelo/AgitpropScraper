@@ -4,6 +4,7 @@ using System.Text;
 using Agitprop.Core.Enums;
 using RabbitMQ.Client;
 using Microsoft.Extensions.Configuration;
+using Agitprop.Sinks.Newsfeed;
 
 namespace Agitprop.Scraper.ConsoleToolKit;
 

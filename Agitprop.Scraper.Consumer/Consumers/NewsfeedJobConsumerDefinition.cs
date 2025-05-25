@@ -1,5 +1,7 @@
 ﻿namespace Agitprop.Consumer.Consumers
 {
+    using Agitprop.Scraper.Consumer.Consumers;
+
     using MassTransit;
 
     using Microsoft.Extensions.Configuration;

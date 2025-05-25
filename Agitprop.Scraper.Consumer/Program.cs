@@ -1,8 +1,9 @@
 ﻿using Agitprop.Infrastructure.Puppeteer;
-using Microsoft.Extensions.Hosting;
-using Agitprop.Scraper.Consumer;
+using Agitprop.Sinks.Newsfeed;
 
-namespace Agitprop.Consumer;
+using Microsoft.Extensions.Hosting;
+
+namespace Agitprop.Scraper.Consumer;
 
 /// <summary>
 /// The entry point for the Agitprop Consumer application.

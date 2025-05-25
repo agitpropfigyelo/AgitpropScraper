@@ -1,3 +1,9 @@
+using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Interfaces;
+
+using HtmlAgilityPack;
+
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ArchivePaginators;
 
 internal class MagyarJelenArchivePaginator : DateBasedArchive, IPaginator

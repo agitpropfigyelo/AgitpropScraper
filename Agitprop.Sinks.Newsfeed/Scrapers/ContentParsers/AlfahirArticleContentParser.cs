@@ -1,3 +1,5 @@
+using Agitprop.Core.Enums;
+
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 /// <summary>

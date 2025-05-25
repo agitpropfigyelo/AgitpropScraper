@@ -1,3 +1,10 @@
+using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Core.Exceptions;
+using Agitprop.Core.Interfaces;
+
+using HtmlAgilityPack;
+
 namespace Agitprop.Sinks.Newsfeed.Scrapers.ContentParsers;
 
 internal abstract class BaseArticleContentParser : IContentParser

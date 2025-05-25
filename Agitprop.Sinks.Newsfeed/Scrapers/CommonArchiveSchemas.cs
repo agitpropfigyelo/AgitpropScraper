@@ -1,4 +1,8 @@
-﻿namespace Agitprop.Sinks.Newsfeed.Scrapers;
+﻿using System.Xml;
+
+using HtmlAgilityPack;
+
+namespace Agitprop.Sinks.Newsfeed.Scrapers;
 
 internal class DateBasedArchive
 {

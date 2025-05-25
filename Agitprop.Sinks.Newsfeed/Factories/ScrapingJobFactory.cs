@@ -1,4 +1,8 @@
-﻿namespace Agitprop.Sinks.Newsfeed.Factories;
+﻿using Agitprop.Core;
+using Agitprop.Core.Enums;
+using Agitprop.Sinks.Newsfeed.Scrapers;
+
+namespace Agitprop.Sinks.Newsfeed.Factories;
 
 /// <summary>
 /// Provides factory methods for creating scraping jobs for articles and archives.
