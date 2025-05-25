@@ -10,7 +10,7 @@ var messaging = builder.AddRabbitMQ("messaging")
                        .PublishAsConnectionString();
 
 var surrealDb = builder.AddSurrealDB("surrealdb")
-                       .WithHttpEndpoint(port:1289,targetPort: 8000,name:"SurrealistConnection")
+                       .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
                        .WithBindMount("../databaseMount", "/mydata")
                        .WithOtlpExporter();
 
@@ -22,11 +22,13 @@ IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.A
                         .PublishAsDockerFile();
 #pragma warning restore ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
+
+
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Consumer>("consumer")
                       .WaitFor(surrealDb)
                       .WithReference(surrealDb)
-                      .WithReference(messaging)
                       .WaitFor(messaging)
+                      .WithReference(messaging)
                       .WaitFor(nlpService)
                       .WithEnvironment("nlpService", nlpService.GetEndpoint("http"))
                       .WithOtlpExporter()
@@ -35,8 +37,20 @@ IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Consume
 var rssReader = builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
                        .WithReference(messaging)
                        .WaitFor(messaging)
-                       .WithReference(consumer)
+                       .WaitFor(consumer)
                        .WithOtlpExporter()
                        .PublishAsDockerFile();
+
+var backend = builder.AddProject<Agitprop_Web_Api>("backend")
+                       .WithReference(surrealDb)
+                       .WaitFor(surrealDb)
+                       .PublishAsDockerFile();
+
+builder.AddNpmApp("angular", "../Agitprop.Web.Client")
+    .WithReference(backend)
+    .WaitFor(backend)
+    .WithHttpEndpoint(env: "PORT")
+    .WithExternalHttpEndpoints()
+    .PublishAsDockerFile();
 
 builder.Build().Run();
