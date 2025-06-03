@@ -1,3 +1,6 @@
+using Agitprop.Web.Api.Services;
+using Agitprop.Web.Api.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -6,6 +9,16 @@ builder.Services.AddServiceDiscovery();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<EntityService>();
+builder.Services.AddScoped<IEntityRepository, EntityRepository>();
+builder.Services.AddScoped<ITrendingRepository, TrendingRepository>();
+// OpenTelemetry Tracer registration (if not already present)
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracerProviderBuilder =>
+    {
+        tracerProviderBuilder.AddAspNetCoreInstrumentation();
+    });
 
 var app = builder.Build();
 

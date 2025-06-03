@@ -5,7 +5,7 @@ namespace Agitprop.Infrastructure.SurrealDB.Models
     /// <summary>
     /// Represents a source entity in the database.
     /// </summary>
-    internal class Source : Record
+    public class Source : Record
     {
         /// <summary>
         /// Gets or sets the source identifier.

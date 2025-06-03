@@ -5,7 +5,7 @@ namespace Agitprop.Infrastructure.SurrealDB.Models;
 /// <summary>
 /// Represents an entity that can be mentioned in articles.
 /// </summary>
-internal class Entity : Record
+public class Entity : Record
 {
     /// <summary>
     /// Gets or sets the name of the entity.

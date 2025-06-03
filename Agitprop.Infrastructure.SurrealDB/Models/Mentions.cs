@@ -5,7 +5,7 @@ namespace Agitprop.Infrastructure.SurrealDB.Models;
 /// <summary>
 /// Represents a relationship indicating that an article mentions an entity.
 /// </summary>
-internal class Mentions : RelationRecord
+public class Mentions : RelationRecord
 {
     /// <summary>
     /// Gets or sets the URL of the article that mentions the entity.
