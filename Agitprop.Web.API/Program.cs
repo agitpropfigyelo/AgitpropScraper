@@ -1,5 +1,7 @@
+using Agitprop.Infrastructure.SurrealDB;
 using Agitprop.Web.Api.Services;
-using Agitprop.Web.Api.Repositories;
+
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<EntityService>();
 builder.Services.AddScoped<IEntityRepository, EntityRepository>();
-builder.Services.AddScoped<ITrendingRepository, TrendingRepository>();
+// builder.Services.AddScoped<ITrendingRepository, TrendingRepository>();
 // OpenTelemetry Tracer registration (if not already present)
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracerProviderBuilder =>

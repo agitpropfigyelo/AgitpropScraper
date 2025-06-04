@@ -29,4 +29,5 @@ public interface IEntityRepository
     /// <param name="entityId">Entity id.</param>
     /// <returns>Entity or null.</returns>
     Task<Entity?> GetEntityByIdAsync(string entityId);
+    Task<IEnumerable<(DateTime date, int count)>> GetTrendingMentionsAsync(string entityId, DateTime from, DateTime to);
 }

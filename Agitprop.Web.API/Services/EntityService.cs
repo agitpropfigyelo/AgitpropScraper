@@ -1,5 +1,5 @@
-using Agitprop.Web.Api.Models;
-using Agitprop.Web.Api.Repositories;
+using Agitprop.Infrastructure.SurrealDB;
+using Agitprop.Infrastructure.SurrealDB.Models;
 
 namespace Agitprop.Web.Api.Services;
 
@@ -15,10 +15,10 @@ public class EntityService
     }
 
     public async Task<Entity?> GetEntityAsync(string id)
-        => await _entityRepository.GetByIdAsync(id);
+        => await _entityRepository.GetEntityByIdAsync(id);
 
-    public async Task<IEnumerable<Mention>> GetMentionsAsync(string entityId, DateTime from, DateTime to)
-        => await _entityRepository.GetMentionsAsync(entityId, from, to);
+    public async Task<IEnumerable<Mentions>> GetMentionsAsync(string entityId, DateTime from, DateTime to)
+        => (await _entityRepository.GetMentionsAsync(entityId, from, to)).Select(x => x.Mention);
 
     public async Task<IEnumerable<(DateTime date, int count)>> GetTrendingMentionsAsync(string entityId, DateTime from, DateTime to)
         => await _entityRepository.GetTrendingMentionsAsync(entityId, from, to);

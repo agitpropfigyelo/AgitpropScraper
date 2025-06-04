@@ -1,4 +1,4 @@
-using Agitprop.Web.Api.Repositories;
+using Agitprop.Infrastructure.SurrealDB;
 
 namespace Agitprop.Web.Api.Services;
 
@@ -14,5 +14,9 @@ public class TrendingService
     }
 
     public async Task<IEnumerable<(string entityId, string entityName, DateTime date, int count)>> GetTrendingEntitiesAsync(DateTime from, DateTime to)
-        => await _trendingRepository.GetTrendingEntitiesAsync(from, to);
+    {
+        throw new NotImplementedException("This method is not implemented yet.");
+        // var entities = await _trendingRepository.GetTrendingEntitiesAsync(from, to);
+        // return entities.Select(e => (e.Id, e.Name, e.Date, e.Count));
+    }
 }

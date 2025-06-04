@@ -1,6 +1,7 @@
-using Agitprop.Web.Api.Models;
 using Agitprop.Web.Api.Services;
+
 using Microsoft.AspNetCore.Mvc;
+
 using OpenTelemetry.Trace;
 
 namespace Agitprop.Web.Api.Controllers;
@@ -51,7 +52,7 @@ public class EntityController : ControllerBase
             var fromDate = from ?? DateTime.UtcNow.AddDays(-7);
             var toDate = to ?? DateTime.UtcNow;
             var entity = await _entityService.GetEntityAsync(id);
-            if (entity == null)
+            if (entity is null)
                 return NotFound(new { error = "Entity not found." });
             var counts = await _entityService.GetTrendingMentionsAsync(id, fromDate, toDate);
             return Ok(new
