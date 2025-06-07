@@ -30,10 +30,10 @@ public class TrendsController : ControllerBase
             var fromDate = from ?? DateTime.UtcNow.AddDays(-7);
             var toDate = to ?? DateTime.UtcNow;
             var trending = await _trendingRepository.GetTrendingEntitiesAsync(fromDate, toDate);
-            var result = trending.GroupBy(x => x.date)
+            var result = trending.GroupBy(x => x.Name)
                 .Select(g => new {
-                    date = g.Key.ToString("yyyy-MM-dd"),
-                    entities = g.Select(e => new { entityId = e.entityId, entityName = e.entityName, count = e.count })
+                    //date = g.Key.ToString("yyyy-MM-dd"),
+                    //entities = g.Select(e => new { entityId = e.entityId, entityName = e.entityName, count = e.count })
                 });
             return Ok(new { trending = result });
         }
