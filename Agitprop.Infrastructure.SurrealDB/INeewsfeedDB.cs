@@ -1,7 +1,6 @@
 ﻿using Agitprop.Core;
-using Agitprop.Infrastructure;
 
-namespace Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+namespace Agitprop.Infrastructure.SurrealDB;
 
 public interface INewsfeedDB
 {

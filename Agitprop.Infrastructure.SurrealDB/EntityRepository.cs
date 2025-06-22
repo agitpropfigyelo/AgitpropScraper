@@ -1,8 +1,8 @@
 using Agitprop.Infrastructure.SurrealDB.Models;
 using SurrealDb.Net;
-using SurrealDb.Net.Models.Response;
 using Microsoft.Extensions.Logging;
 using SurrealDb.Net.Models;
+using System.Collections;
 
 namespace Agitprop.Infrastructure.SurrealDB;
 
@@ -27,39 +27,26 @@ public class EntityRepository : IEntityRepository
         return result.FirstOk.GetValues<Entity>();
     }
 
-    public async Task<IEnumerable<(Article Article, Mentions Mention)>> GetMentionsAsync(string entityId, DateTime from, DateTime to)
+    public async Task<IEnumerable<Entity>> GetEntitiesAsync()
     {
-        string surrealQuery = @"
-            SELECT article.*, mention.* FROM mentions AS mention
-            <-[in]- article
-            WHERE mention.out = $entityId
-            AND mention.Date >= $from AND mention.Date <= $to
-        ";
-        var parameters = new Dictionary<string, object?>
-        {
-            { "entityId", entityId },
-            { "from", from },
-            { "to", to }
-        };
-        var result = await _client.RawQuery(surrealQuery, parameters);
-        var list = new List<(Article, Mentions)>();
-        foreach (var row in result.FirstOk.GetValues<dynamic>())
-        {
-            var article = row["article"].ToObject<Article>();
-            var mention = row["mention"].ToObject<Mentions>();
-            list.Add((article, mention));
-        }
-        return list;
+        var res = await _client.Select<Entity>("entity");
+        return res;
     }
 
-    public async Task<Entity?> GetEntityByIdAsync(string entityId)
-    {
-        var result = await _client.Select<Entity>(new StringRecordId(entityId));
-        return result;
-    }
-
-    public Task<IEnumerable<(DateTime date, int count)>> GetTrendingMentionsAsync(string entityId, DateTime from, DateTime to)
+    public Task<Entity?> GetEntityByIdAsync(string entityId)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateTime from, DateTime to)
+    {
+        var result = await _client.Select();
+    }
+
+    public async Task<IEnumerable<Entity>> SearchEntitiesAsync(string query)
+    {
+        var result = await _client.RawQuery("SELECT $this, string::similarity::jaro($input, $this.Name) AS similarity FROM entity ORDER BY similarity DESC LIMIT 10;",
+            new Dictionary<string, object?> { { "input", query } });
+        return result.FirstOk.GetValues<Entity>();
     }
 }

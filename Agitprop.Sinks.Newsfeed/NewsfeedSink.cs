@@ -2,7 +2,7 @@
 
 using Agitprop.Core;
 using Agitprop.Infrastructure.Interfaces;
-using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
+using Agitprop.Infrastructure.SurrealDB;
 
 using Microsoft.Extensions.Logging;
 

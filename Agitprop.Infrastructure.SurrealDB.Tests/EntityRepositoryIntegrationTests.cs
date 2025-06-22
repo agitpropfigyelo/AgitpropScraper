@@ -14,8 +14,7 @@ public class EntityRepositoryIntegrationTests
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
-        _client = new SurrealDbMemoryClient(
-        );
+        _client = new SurrealDbMemoryClient();
         // Initialize the repository with the SurrealDB client
     }
 

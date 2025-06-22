@@ -6,11 +6,10 @@ public class EntityDto
 }
 
 // DTO for mentions result
-public class MentionDto
+public class ArticleDto
 {
     public string ArticleUrl { get; set; }
     public DateTime ArticlePublishedTime { get; set; }
-    public DateTimeOffset MentionDate { get; set; }
 }
 
 // DTO for trending result (per entity, per day)

@@ -3,7 +3,6 @@ using Agitprop.Core.Enums;
 using Agitprop.Infrastructure.Interfaces;
 using Agitprop.Infrastructure.SurrealDB;
 using Agitprop.Scraper.NLPService;
-using Agitprop.Scraper.Sinks.Newsfeed.Interfaces;
 using Agitprop.Sinks.Newsfeed.Factories;
 
 using Microsoft.Extensions.Configuration;
@@ -24,14 +23,6 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        var surrealConnectionString = builder.Configuration.GetConnectionString("surrealdb");
-        builder.Services.AddSurreal(options=>
-        {
-            options.FromConnectionString(surrealConnectionString);
-            options.WithNamespace("agitprop");
-            options.WithDatabase("newsfeed");
-        });
-
         builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
 
         var nlp = builder.Configuration.GetValue<string>("nlpService");
@@ -39,7 +30,7 @@ public static class Extensions
         {
             client.BaseAddress = new Uri(nlp);
         });
-        builder.Services.AddTransient<INewsfeedDB, NewsfeedDB>();
+        builder.AddNewsfeedDB();
         builder.Services.AddTransient<NewsfeedSink>();
         return builder;
     }

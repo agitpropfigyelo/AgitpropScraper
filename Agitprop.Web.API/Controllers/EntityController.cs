@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using Agitprop.Web.Api.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -12,59 +14,26 @@ public class EntityController : ControllerBase
 {
     private readonly EntityService _entityService;
     private readonly ILogger<EntityController> _logger;
-    private readonly Tracer _tracer;
 
-    public EntityController(EntityService entityService, ILogger<EntityController> logger, Tracer tracer)
+    public EntityController(EntityService entityService, ILogger<EntityController> logger)
     {
         _entityService = entityService;
         _logger = logger;
-        _tracer = tracer;
+    }
+    [HttpGet]
+    public async Task<IActionResult> GetEntities([FromQuery][MaxLength(100)] string? query)
+    {
+        var result = await _entityService.GetEntitiesAsync(query);
+        return Ok(result);
     }
 
     [HttpGet("{id}/mentions")]
     public async Task<IActionResult> GetMentions(string id, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        using var span = _tracer.StartActiveSpan("GetMentions");
-        try
-        {
-            if (string.IsNullOrWhiteSpace(id))
-                return BadRequest(new { error = "Missing entity id." });
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-7);
-            var toDate = to ?? DateTime.UtcNow;
-            var mentions = await _entityService.GetMentionsAsync(id, fromDate, toDate);
-            return Ok(new { entityId = id, mentions });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in GetMentions");
-            return StatusCode(500, new { error = "Internal server error." });
-        }
-    }
+        if (string.IsNullOrWhiteSpace(id))
+            return BadRequest(new { error = "Missing entity id." });
 
-    [HttpGet("{id}/trending")]
-    public async Task<IActionResult> GetTrending(string id, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
-    {
-        using var span = _tracer.StartActiveSpan("GetTrending");
-        try
-        {
-            if (string.IsNullOrWhiteSpace(id))
-                return BadRequest(new { error = "Missing entity id." });
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-7);
-            var toDate = to ?? DateTime.UtcNow;
-            var entity = await _entityService.GetEntityAsync(id);
-            if (entity is null)
-                return NotFound(new { error = "Entity not found." });
-            var counts = await _entityService.GetTrendingMentionsAsync(id, fromDate, toDate);
-            return Ok(new
-            {
-                entityName = entity.Name,
-                mentionCounts = counts.Select(c => new { date = c.date.ToString("yyyy-MM-dd"), count = c.count })
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in GetTrending");
-            return StatusCode(500, new { error = "Internal server error." });
-        }
+        var mentioningArticles = await _entityService.GetMentioningArticlesAsync(id, from, to);
+        return Ok(new { entityId = id, mentioningArticles });
     }
 }
