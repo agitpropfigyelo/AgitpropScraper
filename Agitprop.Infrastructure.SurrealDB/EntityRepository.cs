@@ -17,7 +17,12 @@ public class EntityRepository : IEntityRepository
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Entity>> GetEntitiesAsync(string? query = null)
+    public Task<IEnumerable<Entity>> GetEntitiesPaginatedAsync(DateOnly startDate, DateOnly endDate, int page, int pageSize)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<IEnumerable<Entity>> SearchEntitiesByNameAsync(string? query = null)
     {
         string surrealQuery = string.IsNullOrWhiteSpace(query)
             ? "SELECT * FROM entity;"
@@ -37,10 +42,11 @@ public class EntityRepository : IEntityRepository
     {
         throw new NotImplementedException();
     }
+    
 
     public async Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateTime from, DateTime to)
     {
-        var result = await _client.Select();
+        throw new NotImplementedException("This method is not implemented yet.");
     }
 
     public async Task<IEnumerable<Entity>> SearchEntitiesAsync(string query)
