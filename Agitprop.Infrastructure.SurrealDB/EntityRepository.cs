@@ -2,7 +2,6 @@ using Agitprop.Infrastructure.SurrealDB.Models;
 using SurrealDb.Net;
 using Microsoft.Extensions.Logging;
 using SurrealDb.Net.Models;
-using System.Collections;
 
 namespace Agitprop.Infrastructure.SurrealDB;
 
@@ -22,27 +21,19 @@ public class EntityRepository : IEntityRepository
         throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<Entity>> SearchEntitiesByNameAsync(string? query = null)
-    {
-        string surrealQuery = string.IsNullOrWhiteSpace(query)
-            ? "SELECT * FROM entity;"
-            : "SELECT * FROM entity WHERE string::lower(Name) CONTAINS string::lower($q);";
-        var parameters = string.IsNullOrWhiteSpace(query) ? null : new Dictionary<string, object?> { { "q", query } };
-        var result = await _client.RawQuery(surrealQuery, parameters);
-        return result.FirstOk.GetValues<Entity>();
-    }
-
     public async Task<IEnumerable<Entity>> GetEntitiesAsync()
     {
         var res = await _client.Select<Entity>("entity");
         return res;
     }
 
-    public Task<Entity?> GetEntityByIdAsync(string entityId)
+    public async Task<Entity?> GetEntityByIdAsync(string entityId)
     {
-        throw new NotImplementedException();
+        var recordId=new StringRecordId("entity:"+entityId);
+        var res = await _client.Select<Entity>(recordId);
+        return res;
     }
-    
+
 
     public async Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateTime from, DateTime to)
     {

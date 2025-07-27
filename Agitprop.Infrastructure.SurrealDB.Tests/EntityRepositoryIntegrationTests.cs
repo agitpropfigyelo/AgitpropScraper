@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 using SurrealDb.Embedded.InMemory;
@@ -12,10 +14,16 @@ public class EntityRepositoryIntegrationTests
     private EntityRepository _repository;
 
     [OneTimeSetUp]
-    public void OneTimeSetup()
+    public async Task OneTimeSetup()
     {
         _client = new SurrealDbMemoryClient();
         // Initialize the repository with the SurrealDB client
+        _client.Use("test_db", "test_ns");
+        // Run the db_init.surql file to initialize the database
+        var dbInitScript = File.ReadAllText("db_init.surql");
+        await _client.Import(dbInitScript);
+
+        _repository = new EntityRepository(_client, new NullLogger<EntityRepository>());
     }
 
     [OneTimeTearDownAttribute]
@@ -28,29 +36,26 @@ public class EntityRepositoryIntegrationTests
     [SetUp]
     public async Task Setup()
     {
-        _repository = new EntityRepository(_client, new NullLogger<EntityRepository>());
         Assert.That(_repository, Is.Not.Null);
-
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        if (_client != null)
-            await _client.DisposeAsync();
     }
 
     [Test]
-    public async Task GetEntitiesAsync_ReturnsAllEntities()
+    public void GetEntitiesAsync_ReturnsAllEntities()
     {
-        var entities = await _repository.GetEntitiesAsync();
-        Assert.That(entities, Is.Not.Empty);
+        var entities = _repository.GetEntitiesAsync().Result;
+        var result = entities.ToList(); //have to materialize the async result
+        Assert.Multiple(() =>
+                {
+                    Assert.That(result, Is.Not.Null,"The result should not be null");
+                    Assert.That(result, Is.Not.Empty,"The result should not be empty");
+                    Assert.That(result, Has.Count.EqualTo(13119),"Contains wrong number of entities");
+                });
     }
 
     [Test]
     public async Task GetEntitiesAsync_FuzzySearch_Works()
     {
-        var entities = await _repository.GetEntitiesAsync("test");
+        var entities = await _repository.SearchEntitiesAsync("Orbán");
         Assert.That(entities.Any(e => e.Name.Contains("Test", StringComparison.OrdinalIgnoreCase)), Is.True);
     }
 
