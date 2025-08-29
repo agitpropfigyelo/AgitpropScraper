@@ -1,5 +1,5 @@
 ﻿using Agitprop.Core.Enums;
-using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.Interfaces;
 
 using Microsoft.Extensions.Logging;
 

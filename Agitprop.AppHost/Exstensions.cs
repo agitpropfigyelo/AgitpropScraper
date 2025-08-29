@@ -1,7 +1,3 @@
-using System;
-
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Agitprop.AppHost;
 
 public static class Exstensions

@@ -15,16 +15,17 @@ var surrealDb = builder.AddSurrealDB("surrealdb")
                        .WithOtlpExporter();
 
 #pragma warning disable ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.AddPythonApp("nlpService", "../Agitprop.NLPService", "app.py")
-                        .WithHttpEndpoint(targetPort: 8111)
+IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.AddPythonApp("nlpService", "../Agitprop.Scraper.NLPService", "app.py")
+                        .WithHttpEndpoint(env: "PORT")
                         .WithHttpHealthCheck("/health", 200)
+                        .WithExternalHttpEndpoints()
                         .WithOtlpExporter()
                         .PublishAsDockerFile();
 #pragma warning restore ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 
 
-IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Consumer>("consumer")
+IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
                       .WaitFor(surrealDb)
                       .WithReference(surrealDb)
                       .WaitFor(messaging)
@@ -34,7 +35,7 @@ IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Consume
                       .WithOtlpExporter()
                       .PublishAsDockerFile();
 
-var rssReader = builder.AddProject<Agitprop_RssFeedReader>("rss-feed-reader")
+var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-reader")
                        .WithReference(messaging)
                        .WaitFor(messaging)
                        .WaitFor(consumer)

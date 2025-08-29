@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Agitprop.Core.Exceptions;
+﻿namespace Agitprop.Core.Exceptions;
 
 /// <summary>
 /// Exception thrown when content parsing fails.

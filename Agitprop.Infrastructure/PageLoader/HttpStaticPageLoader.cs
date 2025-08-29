@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Text;
 
-using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Interfaces;
 
 using Microsoft.Extensions.Logging;

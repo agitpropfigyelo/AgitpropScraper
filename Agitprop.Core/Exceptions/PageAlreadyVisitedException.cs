@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Core;
+﻿namespace Agitprop.Core.Exceptions;
 
 /// <summary>
 /// Exception thrown when a page that has already been visited is encountered.

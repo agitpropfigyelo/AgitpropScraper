@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.Interfaces;
 
 namespace Agitprop.Infrastructure;
 
