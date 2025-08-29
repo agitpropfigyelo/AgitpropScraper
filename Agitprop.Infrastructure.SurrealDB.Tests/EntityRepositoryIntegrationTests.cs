@@ -26,7 +26,7 @@ public class EntityRepositoryIntegrationTests
         _repository = new EntityRepository(_client, new NullLogger<EntityRepository>());
     }
 
-    [OneTimeTearDownAttribute]
+    [OneTimeTearDown]
     public void OneTimeTearDown()
     {
         // Dispose of the client if necessary
@@ -55,8 +55,8 @@ public class EntityRepositoryIntegrationTests
     [Test]
     public async Task GetEntitiesAsync_FuzzySearch_Works()
     {
-        var entities = await _repository.SearchEntitiesAsync("Orbán");
-        Assert.That(entities.Any(e => e.Name.Contains("Test", StringComparison.OrdinalIgnoreCase)), Is.True);
+        var entities = await _repository.SearchEntitiesAsync("Yves");
+        Assert.That(entities.Any(e => e.Name.Contains("Yves", StringComparison.OrdinalIgnoreCase)), Is.True);
     }
 
     [Test]
@@ -65,7 +65,7 @@ public class EntityRepositoryIntegrationTests
         var all = await _repository.GetEntitiesAsync();
         var first = all.FirstOrDefault();
         Assert.That(first, Is.Not.Null);
-        var entity = await _repository.GetEntityByIdAsync(first!.Id.ToString());
+        var entity = await _repository.GetEntityByIdAsync(first!.Id.DeserializeId<string>());
         Assert.That(entity, Is.Not.Null);
         Assert.That(entity!.Name, Is.EqualTo(first.Name));
     }
@@ -73,6 +73,9 @@ public class EntityRepositoryIntegrationTests
     [Test]
     public async Task GetMentionsAsync_ReturnsMentions()
     {
-        Assert.Ignore("SurrealDB test instance is not configured. Please provide a running SurrealDB for integration tests.");
+        var result = await _repository.GetMentioningArticlesAsync("00evx2b5d2aaot6usg2n", DateTime.Parse("2025-06-06T00:00:00Z"), DateTime.Parse("2025-06-28T00:00:00Z"));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.Not.Empty);
+        Assert.That(result.Count(), Is.EqualTo(18));
     }
 }
