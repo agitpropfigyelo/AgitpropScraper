@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -10,7 +11,7 @@ export class EntityService {
 
   searchEntities(term: string): Observable<any[]> {
     // TODO: Replace with actual API endpoint and params
-    return this.http.get<any>(`/api/entity?search=${encodeURIComponent(term)}&page=1&pageSize=25`)
+  return this.http.get<any>(`api/entity?search=${encodeURIComponent(term)}&page=1&pageSize=25`)
       .pipe(
         timeout(10000),
         map((res: any) => res || []),
@@ -20,7 +21,7 @@ export class EntityService {
 
   getEntityTimeline(entityId: string): Observable<any[]> {
     // TODO: Replace with actual API endpoint and params
-    return this.http.get<any>(`/api/entity/${entityId}/timeline`)
+  return this.http.get<any>(`api/entity/${entityId}/timeline`)
       .pipe(
         timeout(10000),
         map((res: any) => res.timeline || []),
@@ -30,7 +31,7 @@ export class EntityService {
 
   getAssociatedEntities(entityId: string): Observable<any[]> {
     // TODO: Replace with actual API endpoint and params
-    return this.http.get<any>(`/api/entity/${entityId}/associated`)
+  return this.http.get<any>(`api/entity/${entityId}/associated`)
       .pipe(
         timeout(10000),
         map((res: any) => res.associated?.slice(0, 25) || []),

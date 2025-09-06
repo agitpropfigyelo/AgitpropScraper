@@ -2,8 +2,7 @@ import { Component, Injectable } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { WeatherForecasts } from '../types/weatherForecast';
+// Removed unused imports
 import { TrendingMentionsComponent } from './components/trending-mentions.component';
 import { EntitySearchComponent } from './components/entity-search.component';
 import { EntityTimelineComponent } from './components/entity-timeline.component';
@@ -25,15 +24,6 @@ import { AssociatedEntitiesComponent } from './components/associated-entities.co
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-
-  title = 'weather';
-  forecasts: WeatherForecasts = [];
   selectedEntity: any = null;
-
-  constructor(private http: HttpClient) {
-    http.get<WeatherForecasts>('api/weatherforecast').subscribe({
-      next: result => this.forecasts = result,
-      error: console.error
-    });
-  }
+  // AppComponent now only manages entity selection for the UI
 }
