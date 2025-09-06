@@ -34,8 +34,6 @@ public class EntityRepository : IEntityRepository
         return res;
     }
 
-
-
     public async Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateTime from, DateTime to)
     {
         var recordId = new StringRecordId("entity:" + entityId);
