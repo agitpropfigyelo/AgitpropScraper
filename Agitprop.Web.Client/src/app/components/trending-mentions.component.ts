@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { TrendingService } from '../services/trending.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-trending-mentions',
   standalone: true,
   templateUrl: './trending-mentions.component.html',
-  styleUrls: ['./trending-mentions.component.css']
+  styleUrls: ['./trending-mentions.component.css'],
+  imports: [CommonModule]
 })
 export class TrendingMentionsComponent implements OnInit {
   trending: any[] = [];

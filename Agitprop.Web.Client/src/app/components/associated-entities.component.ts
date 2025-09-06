@@ -1,11 +1,13 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { EntityService } from '../services/entity.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-associated-entities',
   standalone: true,
   templateUrl: './associated-entities.component.html',
-  styleUrls: ['./associated-entities.component.css']
+  styleUrls: ['./associated-entities.component.css'],
+  imports: [CommonModule]
 })
 export class AssociatedEntitiesComponent implements OnChanges {
   @Input() entity: any;

@@ -1,11 +1,13 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { EntityService } from '../services/entity.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-entity-timeline',
   standalone: true,
   templateUrl: './entity-timeline.component.html',
-  styleUrls: ['./entity-timeline.component.css']
+  styleUrls: ['./entity-timeline.component.css'],
+  imports: [CommonModule]
 })
 export class EntityTimelineComponent implements OnChanges {
   @Input() entity: any;

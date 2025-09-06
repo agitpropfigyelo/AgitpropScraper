@@ -1,11 +1,14 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { EntityService } from '../services/entity.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-entity-search',
   standalone: true,
   templateUrl: './entity-search.component.html',
-  styleUrls: ['./entity-search.component.css']
+  styleUrls: ['./entity-search.component.css'],
+  imports: [CommonModule, FormsModule]
 })
 export class EntitySearchComponent {
   entities: any[] = [];
