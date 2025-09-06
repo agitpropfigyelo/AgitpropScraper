@@ -14,7 +14,7 @@ internal static class Extensions
     {
         return new EntityDto
         {
-            Id = e.Id.ToString(),
+            Id = e.Id?.ToString()??"<empty>",
             Name = e.Name,
         };
     }
