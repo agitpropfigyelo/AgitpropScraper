@@ -16,6 +16,7 @@ public static class Extensions
     {
         builder.AddSurrealDbConnection();
         builder.Services.AddTransient<IEntityRepository, EntityRepository>();
+        builder.Services.AddTransient<ITrendingRepository, TrendingRepository>();
         return builder;
     }
 

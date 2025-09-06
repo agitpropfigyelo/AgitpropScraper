@@ -12,19 +12,16 @@ public class TrendsController : ControllerBase
 {
     private readonly ITrendingRepository _trendingRepository;
     private readonly ILogger<TrendsController> _logger;
-    private readonly Tracer _tracer;
 
-    public TrendsController(ITrendingRepository trendingRepository, ILogger<TrendsController> logger, Tracer tracer)
+    public TrendsController(ITrendingRepository trendingRepository, ILogger<TrendsController> logger)
     {
         _trendingRepository = trendingRepository;
         _logger = logger;
-        _tracer = tracer;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetTrending([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        using var span = _tracer.StartActiveSpan("GetTrendingEntities");
         try
         {
             var fromDate = from ?? DateTime.UtcNow.AddDays(-7);
