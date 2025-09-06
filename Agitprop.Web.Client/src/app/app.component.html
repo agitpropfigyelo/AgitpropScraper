@@ -151,6 +151,14 @@
           target="_blank"
           rel="noopener"
         >
+            <div class="main-page">
+              <app-trending-mentions></app-trending-mentions>
+              <div class="entity-section">
+                <app-entity-search (entitySelected)="selectedEntity = $event"></app-entity-search>
+                <app-entity-timeline [entity]="selectedEntity"></app-entity-timeline>
+                <app-associated-entities [entity]="selectedEntity"></app-associated-entities>
+              </div>
+            </div>
           <svg
             width="29"
             height="20"

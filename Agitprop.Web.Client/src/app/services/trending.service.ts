@@ -1,0 +1,18 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+
+@Injectable({ providedIn: 'root' })
+export class TrendingService {
+  constructor(private http: HttpClient) {}
+
+  getTrending(): Observable<any[]> {
+    // TODO: Replace with actual API endpoint and params
+    return this.http.get<any>('/api/trending')
+      .pipe(
+        map((res: any) => res.trending?.slice(0, 10) || []),
+        catchError(() => of([]))
+      );
+  }
+}

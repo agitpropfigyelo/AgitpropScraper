@@ -1,0 +1,11 @@
+<div class="trending-mentions">
+  <h2>Trending Mentions</h2>
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <ul *ngIf="!loading && !error">
+    <li *ngFor="let entity of trending">
+      {{ entity.name }} ({{ entity.count }})
+    </li>
+  </ul>
+  <button (click)="fetchTrending()">Refresh</button>
+</div>
