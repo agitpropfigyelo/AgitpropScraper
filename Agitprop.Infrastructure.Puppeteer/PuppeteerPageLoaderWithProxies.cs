@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using Polly;
+using Microsoft.Extensions.Configuration;
+using System.Reflection;
 
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
@@ -24,10 +26,18 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="proxyProvider">The provider for managing proxies.</param>
     /// <param name="cookieStorage">The storage for managing cookies.</param>
-    public PuppeteerPageLoaderWithProxies(ILogger<PuppeteerPageLoaderWithProxies> logger, IProxyProvider proxyProvider, ICookiesStorage cookieStorage) : base(logger)
+    private readonly int _retryCount;
+
+    public PuppeteerPageLoaderWithProxies(
+        ILogger<PuppeteerPageLoaderWithProxies> logger,
+        IProxyProvider proxyProvider,
+        ICookiesStorage cookieStorage,
+        IConfiguration? configuration = null)
+        : base(logger)
     {
         ProxyProvider = proxyProvider;
         CookieStorage = cookieStorage;
+    _retryCount = configuration?.GetValue<int>("Retry:PuppeteerPageLoaderWithProxies", 3) ?? 3;
     }
 
     /// <summary>
@@ -65,17 +75,21 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
     {
         if (executablePath == null)
         {
-
-            var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
-            {
-                Path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+            var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions {
+                Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
             });
 
             await Semaphore.WaitAsync();
             try
             {
                 Logger?.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
-                await browserFetcher.DownloadAsync();
+                await Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                    {
+                        Logger?.LogWarning(ex, "[RETRY] Exception downloading browser on attempt {attempt}", attempt);
+                    })
+                    .ExecuteAsync(() => browserFetcher.DownloadAsync());
                 executablePath = browserFetcher.GetInstalledBrowsers().First().GetExecutablePath();
                 Logger?.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
             }
@@ -130,13 +144,18 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         }
         try
         {
-
-            await page.GoToAsync(url, WaitUntilNavigation.Networkidle2);
+            await Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                {
+                    Logger?.LogWarning(ex, "[RETRY] Exception navigating to page {url} on attempt {attempt}", url, attempt);
+                })
+                .ExecuteAsync(() => page.GoToAsync(url, WaitUntilNavigation.Networkidle2));
         }
         catch (Exception ex)
         {
             ex.Data.Add("Proxy:", proxy.Address);
-            Logger?.LogError(ex, "Failed to open page: {url}",url);
+            Logger?.LogError(ex, "Failed to open page: {url}", url);
             throw;
         }
 

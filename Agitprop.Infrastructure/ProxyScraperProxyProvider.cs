@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿using Polly;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using System.Net;
 
 using Agitprop.Core.Interfaces;
 
@@ -11,6 +14,8 @@ public class ProxyScrapeProxyProvider : IProxyProvider
 {
     // Static HTTP client for making requests to the ProxyScrape service.
     static readonly HttpClient client = new HttpClient();
+    private readonly ILogger<ProxyScrapeProxyProvider>? _logger;
+    private readonly int _retryCount;
 
     // URL to fetch the list of proxies.
     private string proxyScraperUrl = "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks4/data.txt";
@@ -32,8 +37,10 @@ public class ProxyScrapeProxyProvider : IProxyProvider
     /// <summary>
     /// Initializes a new instance of the <see cref="ProxyScrapeProxyProvider"/> class.
     /// </summary>
-    public ProxyScrapeProxyProvider()
+    public ProxyScrapeProxyProvider(ILogger<ProxyScrapeProxyProvider>? logger = null, IConfiguration? configuration = null)
     {
+        _logger = logger;
+    _retryCount = configuration?.GetValue<int>("Retry:ProxyProvider", 3) ?? 3;
         Initialization = InitAsync();
     }
 
@@ -52,7 +59,34 @@ public class ProxyScrapeProxyProvider : IProxyProvider
     /// <returns>An enumerable of <see cref="WebProxy"/> objects.</returns>
     private async Task<IEnumerable<WebProxy>> GetWebProxies()
     {
-        string data = await (await client.GetAsync(proxyScraperUrl)).Content.ReadAsStringAsync();
+        string data = string.Empty;
+        try
+        {
+            var response = await Policy
+                .Handle<Exception>()
+                .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (outcome, ts, attempt, ctx) =>
+                {
+                    if (outcome.Exception != null)
+                        _logger?.LogWarning(outcome.Exception, "[RETRY] Exception fetching proxies from {url} on attempt {attempt}", proxyScraperUrl, attempt);
+                    else if (outcome.Result != null)
+                        _logger?.LogWarning("[RETRY] Failed to fetch proxies from {url} on attempt {attempt}. Status: {statusCode}", proxyScraperUrl, attempt, outcome.Result.StatusCode);
+                })
+                .ExecuteAsync(() => client.GetAsync(proxyScraperUrl));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger?.LogError("Failed to fetch proxies from {url}. Status: {statusCode}", proxyScraperUrl, response.StatusCode);
+                throw new InvalidOperationException($"Failed to fetch proxies from {proxyScraperUrl}. Status: {response.StatusCode}");
+            }
+
+            data = await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Exception thrown while fetching proxies from {url}", proxyScraperUrl);
+            throw;
+        }
         var result = data.Trim().Split('\n');
         return result.Select(proxy => new WebProxy(proxy, true));
     }

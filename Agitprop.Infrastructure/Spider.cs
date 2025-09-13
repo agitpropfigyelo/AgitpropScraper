@@ -56,7 +56,7 @@ public sealed class Spider(
             return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
 
-        var retryCount = Configuration.GetValue<int>("Spider:RetryCount", 3);
+    var retryCount = Configuration.GetValue<int>("Retry:Spider", 3);
         var doc = await Polly.Policy
             .Handle<Exception>()
             .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
@@ -106,7 +106,7 @@ public sealed class Spider(
 
     private async Task ProcessTargetPage(ScrapingJob job, HtmlDocument doc, ISink sink, CancellationToken cancellationToken = default)
     {
-        var retryCount = Configuration.GetValue<int>("Spider:RetryCount", 3);
+    var retryCount = Configuration.GetValue<int>("Retry:Spider", 3);
         List<ContentParserResult> results = [];
         foreach (var contentParser in job.ContentParsers)
         {

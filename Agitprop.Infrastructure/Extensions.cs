@@ -1,4 +1,6 @@
-﻿using Agitprop.Core.Interfaces;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
 
@@ -19,13 +21,28 @@ public static class Extensions
     /// <returns>The updated service collection.</returns>
     public static IServiceCollection ConfigureInfrastructureWithoutBrowser(this IServiceCollection services, bool useProxies = false)
     {
-        services.AddTransient<ISpider, Spider>();
+        services.AddTransient<ISpider>(sp =>
+            new Spider(
+                sp.GetRequiredService<IBrowserPageLoader>(),
+                sp.GetRequiredService<IStaticPageLoader>(),
+                sp.GetRequiredService<IConfiguration>(),
+                sp.GetRequiredService<ILogger<Spider>>()));
+
         services.AddTransient<ICookiesStorage, CookieStorage>();
-        services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
+        services.AddTransient<IStaticPageLoader>(sp =>
+            new HttpStaticPageLoader(
+                sp.GetRequiredService<IPageRequester>(),
+                sp.GetRequiredService<ICookiesStorage>(),
+                sp.GetRequiredService<ILogger<HttpStaticPageLoader>>(),
+                sp.GetRequiredService<IConfiguration>()));
+
         if (useProxies)
         {
             services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
-            services.AddTransient<IProxyProvider, ProxyScrapeProxyProvider>();
+            services.AddTransient<IProxyProvider>(sp =>
+                new ProxyScrapeProxyProvider(
+                    sp.GetRequiredService<ILogger<ProxyScrapeProxyProvider>>(),
+                    sp.GetRequiredService<IConfiguration>()));
         }
         else
         {

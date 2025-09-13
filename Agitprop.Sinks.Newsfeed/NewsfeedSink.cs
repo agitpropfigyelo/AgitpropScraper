@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Polly;
+using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
 
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
@@ -17,6 +19,7 @@ public class NewsfeedSink : ISink
     private INewsfeedDB DataBase;
     private ILogger<NewsfeedSink> Logger;
     private ActivitySource ActivitySource = new("Agitprop.Sink.Newsfeed");
+    private readonly int _retryCount;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NewsfeedSink"/> class.
@@ -24,11 +27,12 @@ public class NewsfeedSink : ISink
     /// <param name="nerService">The named entity recognizer service.</param>
     /// <param name="dataBase">The database for storing newsfeed data.</param>
     /// <param name="logger">The logger for logging information and errors.</param>
-    public NewsfeedSink(INamedEntityRecognizer nerService, INewsfeedDB dataBase, ILogger<NewsfeedSink> logger)
+    public NewsfeedSink(INamedEntityRecognizer nerService, INewsfeedDB dataBase, ILogger<NewsfeedSink> logger, IConfiguration? configuration = null)
     {
         NerService = nerService;
         DataBase = dataBase;
         Logger = logger;
+    _retryCount = configuration?.GetValue<int>("Retry:NewsfeedSink", 3) ?? 3;
     }
 
     /// <summary>
@@ -39,7 +43,21 @@ public class NewsfeedSink : ISink
     public async Task<bool> CheckPageAlreadyVisited(string url)
     {
         using var trace = ActivitySource.StartActivity("CheckPageAlreadyVisited");
-        return await DataBase.IsUrlAlreadyExists(url);
+        try
+        {
+            return await Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                {
+                    Logger?.LogWarning(ex, "[RETRY] Exception checking page already visited for {url} on attempt {attempt}", url, attempt);
+                })
+                .ExecuteAsync(() => DataBase.IsUrlAlreadyExists(url));
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Failed to check if page already visited: {url}", url);
+            throw;
+        }
     }
 
     /// <summary>
@@ -54,10 +72,30 @@ public class NewsfeedSink : ISink
         using var trace = ActivitySource.StartActivity("EmitAsync");
         foreach (var article in data)
         {
-            var entities = await NerService.AnalyzeSingleAsync(article.Text);
-            Logger.LogInformation("Recieved named entitees for {url}", url);
-            var count = await DataBase.CreateMentionsAsync(url, article, entities);
-            Logger.LogInformation("Inserted {count} mentions for {url}", count, url);
+            try
+            {
+                var entities = await Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                    {
+                        Logger?.LogWarning(ex, "[RETRY] Exception analyzing entities for {url} on attempt {attempt}", url, attempt);
+                    })
+                    .ExecuteAsync(() => NerService.AnalyzeSingleAsync(article.Text));
+                Logger.LogInformation("Recieved named entitees for {url}", url);
+                var count = await Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                    {
+                        Logger?.LogWarning(ex, "[RETRY] Exception inserting mentions for {url} on attempt {attempt}", url, attempt);
+                    })
+                    .ExecuteAsync(() => DataBase.CreateMentionsAsync(url, article, entities));
+                Logger.LogInformation("Inserted {count} mentions for {url}", count, url);
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, "Failed to process and store article for {url}", url);
+                throw;
+            }
         }
     }
 }

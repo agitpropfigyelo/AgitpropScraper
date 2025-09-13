@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using Polly;
+using Microsoft.Extensions.Configuration;
+using System.Reflection;
 
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
@@ -23,9 +25,16 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
     /// </summary>
     /// <param name="cookiesStorage">The storage for managing cookies.</param>
     /// <param name="logger">The logger for logging information and errors.</param>
-    public PuppeteerPageLoader(ICookiesStorage cookiesStorage, ILogger<PuppeteerPageLoader>? logger = default) : base(logger)
+    private readonly int _retryCount;
+
+    public PuppeteerPageLoader(
+        ICookiesStorage cookiesStorage,
+        ILogger<PuppeteerPageLoader>? logger = default,
+        IConfiguration? configuration = null)
+        : base(logger)
     {
         _cookiesStorage = cookiesStorage;
+    _retryCount = configuration?.GetValue<int>("Retry:PuppeteerPageLoader", 3) ?? 3;
     }
 
     /// <summary>
@@ -48,7 +57,13 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         try
         {
             Logger?.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoader), nameof(Load));
-            await browserFetcher.DownloadAsync(BrowserTag.Stable);
+            await Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                {
+                    Logger?.LogWarning(ex, "[RETRY] Exception downloading browser on attempt {attempt}", attempt);
+                })
+                .ExecuteAsync(() => browserFetcher.DownloadAsync(BrowserTag.Stable));
             Logger?.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoader), nameof(Load));
         }
         finally
@@ -79,7 +94,13 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
             await page.SetCookieAsync(cookieParams);
         }
 
-        await page.GoToAsync(url, WaitUntilNavigation.Networkidle2);
+        await Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+            {
+                Logger?.LogWarning(ex, "[RETRY] Exception navigating to page {url} on attempt {attempt}", url, attempt);
+            })
+            .ExecuteAsync(() => page.GoToAsync(url, WaitUntilNavigation.Networkidle2));
 
         if (pageActions != null)
         {
