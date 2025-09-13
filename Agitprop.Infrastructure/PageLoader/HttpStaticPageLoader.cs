@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Configuration;
+using Polly;
+using System.Net;
 using System.Text;
 
 using Agitprop.Core.Interfaces;
@@ -18,17 +20,19 @@ public class HttpStaticPageLoader : IStaticPageLoader
     /// <param name="pageRequester">The page requester to use for sending HTTP requests.</param>
     /// <param name="cookiesStorage">The storage for managing cookies.</param>
     /// <param name="logger">The logger for logging information and errors.</param>
-    public HttpStaticPageLoader(IPageRequester pageRequester, ICookiesStorage cookiesStorage, ILogger<HttpStaticPageLoader>? logger = default)
-    {
-        ServicePointManager.DefaultConnectionLimit = int.MaxValue;
-        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    private readonly int _retryCount;
 
+    public HttpStaticPageLoader(
+        IPageRequester pageRequester,
+        ICookiesStorage cookiesStorage,
+        ILogger<HttpStaticPageLoader>? logger = default,
+        IConfiguration? configuration = null)
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         PageRequester = pageRequester;
         CookiesStorage = cookiesStorage;
         Logger = logger;
-
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        _retryCount = configuration?.GetValue<int>("PageLoader:RetryCount", 3) ?? 3;
     }
 
     /// <summary>
@@ -56,12 +60,33 @@ public class HttpStaticPageLoader : IStaticPageLoader
     {
         PageRequester.CookieContainer = await CookiesStorage.GetAsync(); // TODO move to init factory func
 
-        var response = await PageRequester.GetAsync(url);
+        HttpResponseMessage response = null!;
+        try
+        {
+            response = await Policy
+                .Handle<Exception>()
+                .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (outcome, ts, attempt, ctx) =>
+                {
+                    if (outcome.Exception != null)
+                        Logger?.LogWarning(outcome.Exception, "[RETRY] Exception loading page {url} on attempt {attempt}", url, attempt);
+                    else if (outcome.Result != null)
+                        Logger?.LogWarning("[RETRY] Failed to load page {url} on attempt {attempt}. Status: {statusCode}", url, attempt, outcome.Result.StatusCode);
+                })
+                .ExecuteAsync(() => PageRequester.GetAsync(url));
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "Exception thrown while loading page {url}", url);
+            throw;
+        }
 
-        if (response.IsSuccessStatusCode) return await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsStringAsync();
+        }
 
         Logger?.LogError("Failed to load page {url}. Error code: {statusCode}", url, response.StatusCode);
-
         throw new InvalidOperationException($"Failed to load page {url}. Error code: {response.StatusCode}. Headers: {response.Headers}")
         {
             Data = { ["url"] = url, ["statusCode"] = response.StatusCode, ["headers"] = response.Headers }

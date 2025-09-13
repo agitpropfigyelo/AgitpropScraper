@@ -1,9 +1,9 @@
-﻿using System.Diagnostics;
+﻿using Polly;
+using System.Diagnostics;
 
 using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
-using Agitprop.Core.Interfaces;
 using Agitprop.Core.Interfaces;
 
 using HtmlAgilityPack;
@@ -56,7 +56,14 @@ public sealed class Spider(
             return Enumerable.Empty<ScrapingJobDescription>().ToList();
         }
 
-        var doc = await LoadPageAsync(job);
+        var retryCount = Configuration.GetValue<int>("Spider:RetryCount", 3);
+        var doc = await Polly.Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+            {
+                Logger?.LogWarning(ex, "[RETRY] Failed to load page {url} on attempt {attempt}", job.Url, attempt);
+            })
+            .ExecuteAsync(() => LoadPageAsync(job));
 
         if (job.PageCategory == PageCategory.TargetPage)
         {
@@ -70,16 +77,28 @@ public sealed class Spider(
         {
             try
             {
-                newJobs.AddRange(await linkParser.GetLinksAsync(job.Url, doc ?? throw new ArgumentException("Failed to convert HTML document to string")));
+                newJobs.AddRange(await Polly.Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                    {
+                        Logger?.LogWarning(ex, "[RETRY] Failed to get links from site {url} on attempt {attempt}", job.Url, attempt);
+                    })
+                    .ExecuteAsync(() => linkParser.GetLinksAsync(job.Url, doc ?? throw new ArgumentException("Failed to convert HTML document to string"))));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Logger?.LogWarning("Failed to get links from site: {url}", job.Url);
+                Logger?.LogError(ex, "Failed to get links from site: {url}", job.Url);
             }
         }
         if (job.PageCategory == PageCategory.PageWithPagination && Configuration.GetValue<bool>("Continous"))
         {
-            newJobs.Add(await job.Pagination!.GetNextPageAsync(job.Url, doc.ToString() ?? throw new ArgumentException("Failed to convert HTML document to string")));
+            newJobs.Add(await Polly.Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                {
+                    Logger?.LogWarning(ex, "[RETRY] Failed to get next page for {url} on attempt {attempt}", job.Url, attempt);
+                })
+                .ExecuteAsync(() => job.Pagination!.GetNextPageAsync(job.Url, doc.ToString() ?? throw new ArgumentException("Failed to convert HTML document to string"))));
         }
 
         return newJobs;
@@ -87,24 +106,33 @@ public sealed class Spider(
 
     private async Task ProcessTargetPage(ScrapingJob job, HtmlDocument doc, ISink sink, CancellationToken cancellationToken = default)
     {
-
+        var retryCount = Configuration.GetValue<int>("Spider:RetryCount", 3);
         List<ContentParserResult> results = [];
         foreach (var contentParser in job.ContentParsers)
         {
             try
             {
-                var idk = await contentParser.ParseContentAsync(doc);
+                var idk = await Polly.Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                    {
+                        Logger?.LogWarning(ex, "[RETRY] Failed to run content parser on {url} attempt {attempt}", job.Url, attempt);
+                    })
+                    .ExecuteAsync(() => contentParser.ParseContentAsync(doc));
                 results.Add(idk);
-
             }
             catch (Exception ex)
             {
-                Logger?.LogWarning("Failed to run content parser on {url}: {msg}",job.Url,ex.Message);
+                Logger?.LogError(ex, "Failed to run content parser on {url}", job.Url);
                 throw new Exception($"Failed to run content parsing {job.Url}", ex);
             }
         }
 
-        if (results.Count == 0) throw new ContentParserException($"No content was scraped from: {job.Url}");
+        if (results.Count == 0)
+        {
+            Logger?.LogError("No content was scraped from: {url}", job.Url);
+            throw new ContentParserException($"No content was scraped from: {job.Url}");
+        }
 
         Logger?.LogInformation("Sending scraped data to sink: {url} ", job.Url);
         await sink.EmitAsync(job.Url, results, cancellationToken);
