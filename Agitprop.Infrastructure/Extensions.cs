@@ -1,4 +1,4 @@
-﻿using Agitprop.Infrastructure.Interfaces;
+﻿using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
 using Agitprop.Infrastructure.PageRequester;
 

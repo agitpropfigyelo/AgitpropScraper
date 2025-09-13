@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
-namespace Agitprop.Infrastructure;
+namespace Agitprop.Core;
 
 /// <summary>
 /// Represents a collection of named entities categorized by type.

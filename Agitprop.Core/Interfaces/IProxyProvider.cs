@@ -1,6 +1,6 @@
-﻿using System.Net;
+using System.Net;
 
-namespace Agitprop.Infrastructure.Interfaces;
+namespace Agitprop.Core.Interfaces;
 
 /// <summary>
 /// Defines the contract for providing web proxies.

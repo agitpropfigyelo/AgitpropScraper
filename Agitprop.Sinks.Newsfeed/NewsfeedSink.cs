@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 
 using Agitprop.Core;
-using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.SurrealDB;
 
 using Microsoft.Extensions.Logging;

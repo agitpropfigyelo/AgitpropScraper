@@ -1,10 +1,9 @@
-﻿using PuppeteerSharp;
+using PuppeteerSharp;
 
-namespace Agitprop.Infrastructure.Interfaces
+namespace Agitprop.Core.Interfaces
 {
     public interface IBrowserAction
     {
         Task ExecuteAsync(IPage page);
-
     }
 }

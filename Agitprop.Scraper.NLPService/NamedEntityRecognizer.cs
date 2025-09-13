@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Core;
+using Agitprop.Core.Interfaces;
 
 using Microsoft.Extensions.Logging;
 

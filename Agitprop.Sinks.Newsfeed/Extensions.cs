@@ -1,6 +1,6 @@
 ﻿using Agitprop.Core;
 using Agitprop.Core.Enums;
-using Agitprop.Infrastructure.Interfaces;
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.SurrealDB;
 using Agitprop.Scraper.NLPService;
 using Agitprop.Sinks.Newsfeed.Factories;

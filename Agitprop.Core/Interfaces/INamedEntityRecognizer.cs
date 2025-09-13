@@ -1,4 +1,4 @@
-﻿namespace Agitprop.Infrastructure.Interfaces;
+namespace Agitprop.Core.Interfaces;
 
 /// <summary>
 /// Defines the contract for a named entity recognizer service.
