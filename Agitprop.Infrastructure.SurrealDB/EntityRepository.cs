@@ -1,12 +1,14 @@
-using Polly;
-using Microsoft.Extensions.Configuration;
-using Agitprop.Infrastructure.SurrealDB.Models;
-using SurrealDb.Net;
-using Microsoft.Extensions.Logging;
-using SurrealDb.Net.Models;
 using Agitprop.Core.Interfaces;
 using Agitprop.Core.Models;
-using Entity = Agitprop.Infrastructure.SurrealDB.Models.Entity;
+using Agitprop.Infrastructure.SurrealDB.Models;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+using Polly;
+
+using SurrealDb.Net;
+using SurrealDb.Net.Models;
 
 namespace Agitprop.Infrastructure.SurrealDB;
 
@@ -20,7 +22,7 @@ public class EntityRepository : IEntityRepository
     {
         _client = client;
         _logger = logger;
-    _retryCount = configuration?.GetValue<int>("Retry:SurrealDB", 3) ?? 3;
+        _retryCount = configuration?.GetValue<int>("Retry:SurrealDB", 3) ?? 3;
     }
 
     public Task<IEnumerable<Entity>> GetEntitiesPaginatedAsync(DateOnly startDate, DateOnly endDate, int page, int pageSize)
@@ -38,8 +40,8 @@ public class EntityRepository : IEntityRepository
                 {
                     _logger?.LogWarning(ex, "[RETRY] Exception selecting entities on attempt {attempt}", attempt);
                 })
-                .ExecuteAsync(() => _client.Select<Entity>("entity"));
-            return res;
+                .ExecuteAsync(() => _client.Select<EntityRecord>("entity"));
+            return res.Select(e=>e.ToEnity());
         }
         catch (Exception ex)
         {
@@ -59,8 +61,8 @@ public class EntityRepository : IEntityRepository
                 {
                     _logger?.LogWarning(ex, "[RETRY] Exception selecting entity by id on attempt {attempt}", attempt);
                 })
-                .ExecuteAsync(() => _client.Select<Entity>(recordId));
-            return res;
+                .ExecuteAsync(() => _client.Select<EntityRecord>(recordId));
+            return res.ToEnity();
         }
         catch (Exception ex)
         {
@@ -87,7 +89,8 @@ public class EntityRepository : IEntityRepository
                     _logger?.LogWarning(ex, "[RETRY] Exception querying mentioning articles on attempt {attempt}", attempt);
                 })
                 .ExecuteAsync(() => _client.RawQuery(GetMentioningArticlesQuery, vars as IReadOnlyDictionary<string, object?>));
-            return response.FirstOk != null ? response.FirstOk.GetValues<Article>() : Enumerable.Empty<Article>();
+            var res = response.FirstOk != null ? response.FirstOk.GetValues<ArticleRecord>() : Enumerable.Empty<ArticleRecord>();
+            return res.Select(e=>e.ToArticle());
         }
         catch (Exception ex)
         {
@@ -116,7 +119,7 @@ public class EntityRepository : IEntityRepository
                 })
                 .ExecuteAsync(() => _client.RawQuery(SearchEntitiesQuery, new Dictionary<string, object?> { { "input", query } }));
             var entities = result.FirstOk != null ? result.FirstOk.GetValues<EntityFuzzySearchResult>().ToList() : new List<EntityFuzzySearchResult>();
-            return entities.Select(e => e.Entity).Where(e => e != null)!;
+            return entities.Select(e => e.Entity.ToEnity()).Where(e => e != null)!;
         }
         catch (Exception ex)
         {
@@ -132,7 +135,7 @@ public class EntityRepository : IEntityRepository
 
     private class EntityFuzzySearchResult
     {
-    public Entity? Entity { get; set; }
+        public EntityRecord? Entity { get; set; }
         public double Similarity { get; set; }
     }
 }

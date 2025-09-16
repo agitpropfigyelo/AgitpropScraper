@@ -5,7 +5,7 @@ namespace Agitprop.Infrastructure.SurrealDB.Models;
 /// <summary>
 /// Represents an article stored in the database.
 /// </summary>
-public class Article : Record
+public class ArticleRecord : Record
 {
     /// <summary>
     /// Gets the URL of the article.

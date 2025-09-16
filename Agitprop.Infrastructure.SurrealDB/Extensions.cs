@@ -1,4 +1,6 @@
 using Agitprop.Core.Interfaces;
+using Agitprop.Core.Models;
+using Agitprop.Infrastructure.SurrealDB.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

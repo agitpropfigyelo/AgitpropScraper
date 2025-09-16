@@ -1,3 +1,5 @@
+using Agitprop.Core.Models;
+
 namespace Agitprop.Core.Interfaces;
 
 public interface ITrendingRepository

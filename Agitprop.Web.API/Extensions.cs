@@ -1,6 +1,4 @@
-using System;
-
-using Agitprop.Infrastructure.SurrealDB.Models;
+using Agitprop.Core.Models;
 
 namespace Agitprop.Web.Api;
 
