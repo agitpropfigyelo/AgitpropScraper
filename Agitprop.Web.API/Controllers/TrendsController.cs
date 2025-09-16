@@ -1,4 +1,4 @@
-using Agitprop.Infrastructure.SurrealDB;
+using Agitprop.Core.Interfaces;
 
 using Microsoft.AspNetCore.Mvc;
 

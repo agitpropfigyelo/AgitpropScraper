@@ -1,6 +1,4 @@
-﻿using Agitprop.Core;
-
-namespace Agitprop.Infrastructure.SurrealDB;
+﻿namespace Agitprop.Core.Interfaces;
 
 public interface INewsfeedDB
 {

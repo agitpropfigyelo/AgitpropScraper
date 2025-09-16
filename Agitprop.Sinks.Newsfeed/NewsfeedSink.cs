@@ -4,7 +4,6 @@ using System.Diagnostics;
 
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure.SurrealDB;
 
 using Microsoft.Extensions.Logging;
 

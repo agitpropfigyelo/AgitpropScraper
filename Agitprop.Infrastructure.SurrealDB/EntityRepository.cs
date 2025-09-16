@@ -4,6 +4,9 @@ using Agitprop.Infrastructure.SurrealDB.Models;
 using SurrealDb.Net;
 using Microsoft.Extensions.Logging;
 using SurrealDb.Net.Models;
+using Agitprop.Core.Interfaces;
+using Agitprop.Core.Models;
+using Entity = Agitprop.Infrastructure.SurrealDB.Models.Entity;
 
 namespace Agitprop.Infrastructure.SurrealDB;
 

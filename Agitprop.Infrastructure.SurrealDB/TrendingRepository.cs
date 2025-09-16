@@ -1,4 +1,5 @@
 
+using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.SurrealDB.Models;
 
 using Microsoft.Extensions.Logging;

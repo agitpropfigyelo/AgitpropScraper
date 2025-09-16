@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Sur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.SurrealDB.Tests", "Agitprop.Infrastructure.SurrealDB.Tests\Agitprop.Infrastructure.SurrealDB.Tests.csproj", "{FDA229C6-2373-411E-800C-DEAECAC26B22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Postgres", "Agitprop.Infrastructure.Postgres\Agitprop.Infrastructure.Postgres.csproj", "{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{FDA229C6-2373-411E-800C-DEAECAC26B22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDA229C6-2373-411E-800C-DEAECAC26B22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDA229C6-2373-411E-800C-DEAECAC26B22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

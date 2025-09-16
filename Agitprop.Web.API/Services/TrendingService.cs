@@ -1,4 +1,4 @@
-using Agitprop.Infrastructure.SurrealDB;
+using Agitprop.Core.Interfaces;
 
 namespace Agitprop.Web.Api.Services;
 
