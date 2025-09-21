@@ -1,6 +1,12 @@
-﻿using Agitprop.Infrastructure.Puppeteer;
+﻿using System;
+
+using Agitprop.Infrastructure.Postgres;
+using Agitprop.Infrastructure.Puppeteer;
 using Agitprop.Sinks.Newsfeed;
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Agitprop.Scraper.Consumer;
@@ -32,6 +38,15 @@ public class Program
         builder.AddServiceDefaults();
 
         var app = builder.Build();
+
+        if (builder.Environment.IsDevelopment()
+            || builder.Configuration.GetValue<bool>("ApplyMigrationsAtStartup"))
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.Migrate();
+            Console.WriteLine("!!!!!!!!!!Applied migrations at startup!!!!!!!!!!");
+        }
         app.Run();
     }
 }
