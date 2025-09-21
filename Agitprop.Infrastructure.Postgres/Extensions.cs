@@ -20,15 +20,15 @@ public static class Extensions
         builder.AddPostgresConnection();
         builder.Services.AddTransient<IEntityRepository, EntityRepository>();
         builder.Services.AddTransient<ITrendingRepository, TrendingRepository>();
+        builder.Services.AddTransient<IEntityRepository, EntityRepository>();
         return builder;
     }
 
     private static IHostApplicationBuilder AddPostgresConnection(this IHostApplicationBuilder builder)
     {
-        var conn = builder.Configuration.GetConnectionString("postgres"); // Aspire provides this if configured
+        var conn = builder.Configuration.GetConnectionString("newsfeed"); // Aspire provides this if configured
         builder.Services.AddDbContext<AppDbContext>(opts =>
             opts.UseNpgsql(conn, o => o.EnableRetryOnFailure()));
-        builder.Services.AddTransient<IEntityRepository, EntityRepository>();
         return builder;
     }
 }

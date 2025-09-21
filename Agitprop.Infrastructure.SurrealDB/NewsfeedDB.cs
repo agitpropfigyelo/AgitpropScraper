@@ -41,7 +41,7 @@ public class NewsfeedDB : INewsfeedDB
     {
         var src = RecordId.From("source", $"{parserResult.SourceSite}");
 
-        var article = await Client.Create("articles", new ArticleRecord { Url = url, PublishedTime = parserResult.PublishDate.DateTime });
+        var article = await Client.Create("articles", new ArticleRecord { Url = url, PublishedTime = parserResult.PublishDate });
         Logger?.LogInformation("Added article {art}", article);
         //add publish
         var published = await Client.Relate<PublishedRelation>("published", src, article.Id);

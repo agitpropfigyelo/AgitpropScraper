@@ -1,16 +1,13 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Agitprop.Infrastructure.Postgres.Models;
-
-[Table("mentions")]
-public class PostgresMention
+namespace Agitprop.Infrastructure.Postgres.Models
 {
-    [Key] public Guid Id { get; set; }
+    public class PostgresMention
+    {
+        public Guid Id { get; set; }
 
-    public Guid ArticleId { get; set; }
-    [ForeignKey(nameof(ArticleId))] public PostgresArticle Article { get; set; } = null!;
+        public Guid ArticleId { get; set; }
+        public PostgresArticle Article { get; set; } = null!;
 
-    public Guid EntityId { get; set; }
-    [ForeignKey(nameof(EntityId))] public PostgresEntity Entity { get; set; } = null!;
+        public Guid EntityId { get; set; }
+        public PostgresEntity Entity { get; set; } = null!;
+    }
 }

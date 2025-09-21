@@ -6,20 +6,40 @@ namespace Agitprop.Infrastructure.Postgres;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> opts) : base(opts) {}
+  public AppDbContext(DbContextOptions<AppDbContext> opts) : base(opts) { }
 
-    public DbSet<PostgresArticle> Articles => Set<PostgresArticle>();
-    public DbSet<PostgresEntity> Entities => Set<PostgresEntity>();
-    public DbSet<PostgresMention> Mentions => Set<PostgresMention>();
+  public DbSet<PostgresArticle> Articles => Set<PostgresArticle>();
+  public DbSet<PostgresEntity> Entities => Set<PostgresEntity>();
+  public DbSet<PostgresMention> Mentions => Set<PostgresMention>();
 
-    protected override void OnModelCreating(ModelBuilder mb)
+  protected override void OnModelCreating(ModelBuilder modelBuilder)
+  {
+    modelBuilder.Entity<PostgresArticle>(entity =>
     {
-        mb.Entity<PostgresMention>()
-          .HasOne(m => m.Article).WithMany(a => a.Mentions).HasForeignKey(m => m.ArticleId);
-        mb.Entity<PostgresMention>()
-          .HasOne(m => m.Entity).WithMany(e => e.Mentions).HasForeignKey(m => m.EntityId);
+      entity.ToTable("articles");
+      entity.HasKey(a => a.Id);
+      entity.HasIndex(a => a.Url).IsUnique();
+    });
 
-        mb.Entity<PostgresArticle>().HasIndex(a => a.PublishedTime);
-        // further constraints/indexes as needed
-    }
+    modelBuilder.Entity<PostgresEntity>(entity =>
+    {
+      entity.ToTable("entities");
+      entity.HasKey(e => e.Id);
+      entity.HasIndex(e => e.Name);
+    });
+
+    modelBuilder.Entity<PostgresMention>(mention =>
+    {
+      mention.ToTable("mentions");
+      mention.HasKey(m => m.Id);
+
+      mention.HasOne(m => m.Article)
+                 .WithMany(a => a.Mentions)
+                 .HasForeignKey(m => m.ArticleId);
+
+      mention.HasOne(m => m.Entity)
+                 .WithMany(e => e.Mentions)
+                 .HasForeignKey(m => m.EntityId);
+    });
+  }
 }
