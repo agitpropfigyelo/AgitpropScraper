@@ -1,5 +1,3 @@
-using System;
-
 using Agitprop.Core.Interfaces;
 
 using Microsoft.EntityFrameworkCore;

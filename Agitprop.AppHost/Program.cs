@@ -1,5 +1,7 @@
 using Agitprop.AppHost;
 
+using Aspire.Hosting;
+
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -9,10 +11,14 @@ var messaging = builder.AddRabbitMQ("messaging")
                        .WithOtlpExporter()
                        .PublishAsConnectionString();
 
-var surrealDb = builder.AddSurrealDB("surrealdb")
-                       .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
-                       .WithBindMount("../databaseMount", "/mydata")
-                       .WithOtlpExporter();
+// var surrealDb = builder.AddSurrealDB("surrealdb")
+//                        .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
+//                        .WithBindMount("../databaseMount", "/mydata")
+//                        .WithOtlpExporter();
+var postgres = builder.AddPostgres("postgres")
+                      .WithPgAdmin(pgAdmin => pgAdmin.WithHostPort(5050))
+                      .WithOtlpExporter()
+                      .AddDatabase("newsfeed");
 
 #pragma warning disable ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.AddPythonApp("nlpService", "../Agitprop.Scraper.NLPService", "app.py")
@@ -26,8 +32,10 @@ IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.A
 
 
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
-                      .WaitFor(surrealDb)
-                      .WithReference(surrealDb)
+                      //.WaitFor(surrealDb)
+                      //.WithReference(surrealDb)
+                      .WaitFor(postgres)
+                      .WithReference(postgres)
                       .WaitFor(messaging)
                       .WithReference(messaging)
                       .WaitFor(nlpService)
@@ -43,9 +51,11 @@ var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-rea
                        .PublishAsDockerFile();
 
 var backend = builder.AddProject<Agitprop_Web_Api>("backend")
-                       .WithReference(surrealDb)
-                       .WaitFor(surrealDb)
-                       .PublishAsDockerFile();
+                     .WaitFor(postgres)
+                     .WithReference(postgres)
+                     .PublishAsDockerFile();
+//.WithReference(surrealDb)
+//.WaitFor(surrealDb)
 
 builder.AddNpmApp("angular", "../Agitprop.Web.Client")
     .WithReference(backend)

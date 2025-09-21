@@ -2,7 +2,7 @@
 using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Interfaces;
-using Agitprop.Infrastructure.SurrealDB;
+using Agitprop.Infrastructure.Postgres;
 using Agitprop.Scraper.NLPService;
 using Agitprop.Sinks.Newsfeed.Factories;
 
