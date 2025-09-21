@@ -10,16 +10,14 @@ namespace Agitprop.Web.Api.Controllers
     [Route("api/[controller]")]
     public class EntityController : ControllerBase
     {
-        private readonly EntityService _entityService;
-        private readonly ILogger<EntityController> _logger;
+    private readonly IEntityService _entityService;
+    private readonly ILogger<EntityController> _logger;
 
-        public EntityController(EntityService entityService, ILogger<EntityController> logger)
-        {
-            _entityService = entityService;
-            _logger = logger;
-        }
-
-        [HttpGet]
+    public EntityController(IEntityService entityService, ILogger<EntityController> logger)
+    {
+        _entityService = entityService;
+        _logger = logger;
+    }        [HttpGet]
         public async Task<ActionResult<List<EntityDto>>> GetEntities(
             [FromQuery] DateOnly? startDate,
             [FromQuery] DateOnly? endDate,
@@ -189,7 +187,7 @@ namespace Agitprop.Web.Api.Controllers
             _logger.LogInformation("Fetching network for entity: id={EntityId}, startDate={StartDate}, endDate={EndDate}, limit={Limit}",
                 id, startDate, endDate, limit);
 
-            var result = await _entityService.GetNetworkDetailskAsync(id, startDate, endDate, limit);
+            var result = await _entityService.GetNetworkDetailsAsync(id, startDate, endDate, limit);
 
             _logger.LogInformation("Network fetched: count={Count}", result.Count);
 

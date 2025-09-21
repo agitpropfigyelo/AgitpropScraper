@@ -15,7 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.AddNewsfeedRepositories();
-builder.Services.AddTransient<EntityService>();
+builder.Services.AddTransient<IEntityService, EntityService>();
 builder.Services.AddControllers();
 
 // OpenTelemetry Tracer registration (if not already present)
