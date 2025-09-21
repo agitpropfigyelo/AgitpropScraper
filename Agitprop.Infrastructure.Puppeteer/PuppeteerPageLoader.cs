@@ -1,6 +1,7 @@
 ﻿using Polly;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
+using System.Diagnostics;
 
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
@@ -19,13 +20,8 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
 {
     private readonly ICookiesStorage _cookiesStorage;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PuppeteerPageLoader"/> class.
-    /// </summary>
-    /// <param name="cookiesStorage">The storage for managing cookies.</param>
-    /// <param name="logger">The logger for logging information and errors.</param>
     private readonly int _retryCount;
+    private readonly ActivitySource ActivitySource = new("Agitprop.PageLoader.PuppeteerPageLoader");
 
     public PuppeteerPageLoader(
         ICookiesStorage cookiesStorage,
@@ -34,19 +30,14 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         : base(logger)
     {
         _cookiesStorage = cookiesStorage;
-    _retryCount = configuration?.GetValue<int>("Retry:PuppeteerPageLoader", 3) ?? 3;
+        _retryCount = configuration?.GetValue<int>("Retry:PuppeteerPageLoader", 3) ?? 3;
     }
 
-    /// <summary>
-    /// Loads a web page using Puppeteer, with optional page actions and headless mode.
-    /// </summary>
-    /// <param name="url">The URL of the page to load.</param>
-    /// <param name="pageActions">Optional actions to perform on the page.</param>
-    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public async Task<string> Load(string url, List<PageAction>? pageActions = null, bool headless = true)
     {
-        Logger?.LogInformation("{class}.{method}", nameof(PuppeteerPageLoader), nameof(Load));
+        using var trace = ActivitySource.StartActivity("Load", ActivityKind.Producer);
+        trace?.SetTag("url", url);
+        Logger?.LogInformation("Starting page load: {url}", url);
 
         var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
         {
@@ -56,33 +47,35 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         await _semaphore.WaitAsync();
         try
         {
-            Logger?.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoader), nameof(Load));
+            Logger?.LogInformation("Downloading browser...");
             await Policy
                 .Handle<Exception>()
-                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
-                {
-                    Logger?.LogWarning(ex, "[RETRY] Exception downloading browser on attempt {attempt}", attempt);
-                })
+                .WaitAndRetryAsync(
+                    _retryCount,
+                    attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                    (ex, ts, attempt, ctx) =>
+                    {
+                        Logger?.LogWarning(ex, "[RETRY] Exception downloading browser on attempt {attempt}", attempt);
+                    })
                 .ExecuteAsync(() => browserFetcher.DownloadAsync(BrowserTag.Stable));
-            Logger?.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoader), nameof(Load));
+            Logger?.LogInformation("Browser downloaded successfully");
         }
         finally
         {
             _semaphore.Release();
         }
 
-        Logger?.LogInformation("{class}.{method}: Launching a browser", nameof(PuppeteerPageLoader), nameof(Load));
+        Logger?.LogInformation("Launching browser");
         await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
             Headless = headless,
             ExecutablePath = browserFetcher.GetInstalledBrowsers().First().GetExecutablePath(),
         });
 
-        Logger?.LogInformation("{class}.{method}: creating a new page", nameof(PuppeteerPageLoader), nameof(Load));
+        Logger?.LogInformation("Creating a new page");
         await using var page = (await browser.PagesAsync())[0];
 
         var cookies = await _cookiesStorage.GetAsync();
-
         if (cookies != null)
         {
             var cookieParams = cookies.GetAllCookies().Select(c => new CookieParam
@@ -94,26 +87,27 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
             await page.SetCookieAsync(cookieParams);
         }
 
+        Logger?.LogInformation("Navigating to page: {url}", url);
         await Policy
             .Handle<Exception>()
-            .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
-            {
-                Logger?.LogWarning(ex, "[RETRY] Exception navigating to page {url} on attempt {attempt}", url, attempt);
-            })
+            .WaitAndRetryAsync(
+                _retryCount,
+                attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                (ex, ts, attempt, ctx) =>
+                {
+                    Logger?.LogWarning(ex, "[RETRY] Exception navigating to page {url} on attempt {attempt}", url, attempt);
+                })
             .ExecuteAsync(() => page.GoToAsync(url, WaitUntilNavigation.Networkidle2));
 
         if (pageActions != null)
         {
-            Logger?.LogInformation("{class}.{method}: performing page actions", nameof(PuppeteerPageLoader), nameof(Load));
-
+            Logger?.LogInformation("Performing page actions ({count})", pageActions.Count);
             for (int i = 0; i < pageActions.Count; i++)
             {
                 var pageAction = pageActions[i];
-                Logger?.LogInformation("{class}.{method}: performing page action {current} of {count} with type {actionType}",
-                    nameof(PuppeteerPageLoader),
-                    nameof(Load),
-                    i,
-                    pageActions.Count - 1,
+                Logger?.LogInformation("Executing page action {current}/{total} of type {type}",
+                    i + 1,
+                    pageActions.Count,
                     pageAction.Type);
 
                 await PageActions[pageAction.Type](page, pageAction.Parameters);
@@ -121,19 +115,10 @@ public class PuppeteerPageLoader : BrowserPageLoader, IBrowserPageLoader
         }
 
         var html = await page.GetContentAsync();
-
+        Logger?.LogInformation("Page load completed: {url}", url);
         return html;
     }
 
-    /// <summary>
-    /// Loads a web page using Puppeteer, with optional page actions and headless mode.
-    /// </summary>
-    /// <param name="url">The URL of the page to load.</param>
-    /// <param name="pageActions">Optional actions to perform on the page, as an object.</param>
-    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public Task<string> Load(string url, object? pageActions, bool headless)
-    {
-        return Load(url, (List<PageAction>?)pageActions, headless);
-    }
+        => Load(url, (List<PageAction>?)pageActions, headless);
 }

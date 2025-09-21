@@ -2,7 +2,6 @@ using System.ServiceModel.Syndication;
 using System.Text;
 using System.Xml;
 using Agitprop.Core.Enums;
-
 using MassTransit;
 using System.Diagnostics;
 using Agitprop.Sinks.Newsfeed;
@@ -15,18 +14,12 @@ namespace Agitprop.Scraper.RssFeedReader;
 public class RssFeedReader : IHostedService, IDisposable
 {
     private Timer? _timer;
-    private string[] _feeds;
-    private ILogger<RssFeedReader> _logger;
-    private IServiceScopeFactory _scopeFactory;
-    private TimeSpan _interval;
-    private ActivitySource ActivitySource = new("Agitprop.RssFeedReader");
+    private readonly string[] _feeds;
+    private readonly ILogger<RssFeedReader> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly TimeSpan _interval;
+    private static readonly ActivitySource _activitySource = new("Agitprop.RssFeedReader");
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RssFeedReader"/> class.
-    /// </summary>
-    /// <param name="configuration">The application configuration.</param>
-    /// <param name="logger">The logger for logging information and errors.</param>
-    /// <param name="scopeFactory">The service scope factory for creating service scopes.</param>
     public RssFeedReader(IConfiguration configuration, ILogger<RssFeedReader> logger, IServiceScopeFactory scopeFactory)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -37,65 +30,68 @@ public class RssFeedReader : IHostedService, IDisposable
         _interval = TimeSpan.FromMinutes(configuration.GetValue<double>("IntervalMinutes", 60));
     }
 
-    /// <summary>
-    /// Starts the hosted service.
-    /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A completed task.</returns>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        using var trace = ActivitySource.StartActivity("StartAsync");
+        using var activity = _activitySource.StartActivity("StartAsync");
+        _logger.LogInformation("Starting RSS Feed Reader. Interval: {Interval} minutes, Feeds: {FeedCount}", _interval.TotalMinutes, _feeds.Length);
         _timer = new Timer(ExecuteTask, null, TimeSpan.Zero, _interval);
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Executes the task to fetch and publish scraping jobs.
-    /// </summary>
-    /// <param name="state">The state object passed to the timer.</param>
     private void ExecuteTask(object? state)
     {
-        using var trace = ActivitySource.StartActivity("ExecuteTask");
-        _logger.LogInformation("Running RSS readers");
+        using var activity = _activitySource.StartActivity("ExecuteTask", ActivityKind.Producer);
+        _logger.LogInformation("Running RSS feed scraping task");
+
         using var scope = _scopeFactory.CreateScope();
         var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
-        var jobs = FetchScrapingJobs();
-        publishEndpoint.PublishBatch(jobs).Wait();
+
+        try
+        {
+            var jobs = FetchScrapingJobs();
+            if (jobs.Count == 0)
+            {
+                _logger.LogInformation("No new jobs fetched in this cycle");
+            }
+            else
+            {
+                _logger.LogInformation("Publishing {JobCount} scraping jobs", jobs.Count);
+                publishEndpoint.PublishBatch(jobs).Wait();
+            }
+
+            activity?.SetStatus(ActivityStatusCode.Ok, "RSS feed task completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while publishing scraping jobs");
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+        }
     }
 
-    /// <summary>
-    /// Stops the hosted service.
-    /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A completed task.</returns>
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        using var trace = ActivitySource.StartActivity("StopAsync");
+        using var activity = _activitySource.StartActivity("StopAsync");
+        _logger.LogInformation("Stopping RSS Feed Reader");
         _timer?.Change(Timeout.Infinite, 0);
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Disposes the resources used by the service.
-    /// </summary>
     public void Dispose()
     {
         _timer?.Dispose();
     }
 
-    /// <summary>
-    /// Fetches scraping jobs from the configured RSS feeds.
-    /// </summary>
-    /// <returns>A list of <see cref="NewsfeedJobDescrpition"/> objects representing the scraping jobs.</returns>
     private List<NewsfeedJobDescrpition> FetchScrapingJobs()
     {
-        using var trace = ActivitySource.StartActivity("FetchScrapingJobs", ActivityKind.Producer);
-
+        using var activity = _activitySource.StartActivity("FetchScrapingJobs", ActivityKind.Producer);
         var scrapingJobs = new List<NewsfeedJobDescrpition>();
 
         foreach (var feedUrl in _feeds)
         {
-            _logger.LogDebug("Reading RSS feed: {feedUrl}", feedUrl);
+            using var feedActivity = _activitySource.StartActivity("ProcessFeed", ActivityKind.Consumer);
+            feedActivity?.SetTag("feed.url", feedUrl);
+            _logger.LogDebug("Reading RSS feed: {FeedUrl}", feedUrl);
+
             try
             {
                 using var reader = XmlReader.Create(feedUrl);
@@ -103,21 +99,41 @@ public class RssFeedReader : IHostedService, IDisposable
 
                 if (feed != null)
                 {
-                    var news = feed.Items.Select(item => new NewsfeedJobDescrpition
+                    var news = feed.Items.Select(item =>
                     {
-                        Url = item.Links.FirstOrDefault()?.Uri.GetLeftPart(UriPartial.Path) ?? throw new ArgumentException("No link found"),
-                        Type = PageContentType.Article // Assuming all RSS feed items are articles
-                    });
-                    _logger.LogDebug("New articles: {newList}", news); //TODO: improve logging with stringyfied list
+                        var link = item.Links.FirstOrDefault()?.Uri?.GetLeftPart(UriPartial.Path);
+                        feedActivity?.AddEvent(new ActivityEvent("FeedItemRead", default, new ActivityTagsCollection
+                        {
+                            { "item.title", item.Title.Text },
+                            { "item.link", link ?? "null" }
+                        }));
+
+                        return new NewsfeedJobDescrpition
+                        {
+                            Url = link ?? throw new ArgumentException("No link found"),
+                            Type = PageContentType.Article
+                        };
+                    }).ToList();
+
+                    _logger.LogInformation("Fetched {ItemCount} items from feed {FeedUrl}", news.Count, feedUrl);
                     scrapingJobs.AddRange(news);
                 }
+                else
+                {
+                    _logger.LogWarning("RSS feed {FeedUrl} returned no items", feedUrl);
+                }
+
+                feedActivity?.SetStatus(ActivityStatusCode.Ok);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error processing feed {feedUrl}: {msg}", feedUrl, ex.Message);
+                _logger.LogError(ex, "Error processing feed {FeedUrl}", feedUrl);
+                feedActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             }
         }
 
+        _logger.LogInformation("Total scraping jobs fetched: {JobCount}", scrapingJobs.Count);
+        activity?.SetStatus(ActivityStatusCode.Ok, "FetchScrapingJobs completed");
         return scrapingJobs;
     }
 }

@@ -41,7 +41,7 @@ public class NewsfeedDB(AppDbContext db, ILogger<NewsfeedDB> logger) : INewsfeed
             {
                 Id = Guid.NewGuid(),
                 Url = url,
-                PublishedTime = article.PublishDate
+                PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc)
             };
 
             int addedEntities = 0;

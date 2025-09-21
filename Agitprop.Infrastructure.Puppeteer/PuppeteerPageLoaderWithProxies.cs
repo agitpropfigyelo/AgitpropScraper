@@ -1,6 +1,7 @@
 ﻿using Polly;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
+using System.Diagnostics;
 
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
@@ -20,13 +21,10 @@ namespace Agitprop.Infrastructure.Puppeteer;
 /// </summary>
 internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageLoader
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PuppeteerPageLoaderWithProxies"/> class.
-    /// </summary>
-    /// <param name="logger">The logger for logging information and errors.</param>
-    /// <param name="proxyProvider">The provider for managing proxies.</param>
-    /// <param name="cookieStorage">The storage for managing cookies.</param>
     private readonly int _retryCount;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly ActivitySource ActivitySource = new("Agitprop.PageLoader.PuppeteerPageLoaderWithProxies");
+    private string? _executablePath;
 
     public PuppeteerPageLoaderWithProxies(
         ILogger<PuppeteerPageLoaderWithProxies> logger,
@@ -37,84 +35,62 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
     {
         ProxyProvider = proxyProvider;
         CookieStorage = cookieStorage;
-    _retryCount = configuration?.GetValue<int>("Retry:PuppeteerPageLoaderWithProxies", 3) ?? 3;
+        _retryCount = configuration?.GetValue<int>("Retry:PuppeteerPageLoaderWithProxies", 3) ?? 3;
     }
 
-    /// <summary>
-    /// Gets the proxy provider used for managing proxies.
-    /// </summary>
     public IProxyProvider ProxyProvider { get; }
-
-    /// <summary>
-    /// Gets the storage for managing cookies.
-    /// </summary>
     public ICookiesStorage CookieStorage { get; }
-    private readonly SemaphoreSlim Semaphore = new(1, 1);
-    private string? executablePath = null;
 
-    /// <summary>
-    /// Loads a web page using Puppeteer with proxy support, with optional page actions and headless mode.
-    /// </summary>
-    /// <param name="url">The URL of the page to load.</param>
-    /// <param name="pageActions">Optional actions to perform on the page, as an object.</param>
-    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public Task<string> Load(string url, object? pageActions, bool headless)
-    {
-        return Load(url, (List<PageAction>?)pageActions, headless);
-    }
+        => Load(url, (List<PageAction>?)pageActions, headless);
 
-    /// <summary>
-    /// Loads a web page using Puppeteer with proxy support, with optional page actions and headless mode.
-    /// </summary>
-    /// <param name="url">The URL of the page to load.</param>
-    /// <param name="pageActions">Optional actions to perform on the page, as a list of <see cref="PageAction"/>.</param>
-    /// <param name="headless">Indicates whether the browser should run in headless mode.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the page content as a string.</returns>
     public async Task<string> Load(string url, List<PageAction>? pageActions = null, bool headless = true)
     {
-        if (executablePath == null)
+        using var trace = ActivitySource.StartActivity("Load", ActivityKind.Internal);
+        trace?.SetTag("url", url);
+        Logger?.LogInformation("Starting page load: {url}", url);
+
+        if (_executablePath == null)
         {
-            var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions {
-                Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
+            var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
+            {
+                Path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
             });
 
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
-                Logger?.LogInformation("{class}.{method}: Downloading browser...", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
+                Logger?.LogInformation("Downloading browser...");
                 await Policy
                     .Handle<Exception>()
-                    .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
-                    {
-                        Logger?.LogWarning(ex, "[RETRY] Exception downloading browser on attempt {attempt}", attempt);
-                    })
+                    .WaitAndRetryAsync(_retryCount,
+                        attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                        (ex, ts, attempt, ctx) =>
+                        {
+                            Logger?.LogWarning(ex, "[RETRY] Exception downloading browser on attempt {attempt}", attempt);
+                        })
                     .ExecuteAsync(() => browserFetcher.DownloadAsync());
-                executablePath = browserFetcher.GetInstalledBrowsers().First().GetExecutablePath();
-                Logger?.LogInformation("{class}.{method}: Browser is downloaded", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
+                _executablePath = browserFetcher.GetInstalledBrowsers().First().GetExecutablePath();
+                Logger?.LogInformation("Browser downloaded successfully");
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
-        //var puppeteerExtra = new PuppeteerExtra().Use(new StealthPlugin());
-
         var proxy = await ProxyProvider.GetProxyAsync();
-        //var proxyAddress = $"--proxy-server={proxy.Address!.Host}:{proxy.Address.Port}";
         var proxyAddress = $"--proxy-server={proxy.Address}";
+        trace?.SetTag("proxy", proxy.Address);
 
+        Logger?.LogInformation("Launching Puppeteer browser with proxy: {proxy}", proxy.Address);
         var extra = new PuppeteerExtra();
-
-        // Use stealth plugin
         extra.Use(new StealthPlugin());
-        //extra.Use(new AnonymizeUaPlugin());
 
         await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
             Headless = headless,
-            ExecutablePath = executablePath,
+            ExecutablePath = _executablePath,
             Args =
             [
                 "--disable-infobars",
@@ -129,7 +105,6 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         await using var page = (await browser.PagesAsync())[0];
 
         var cookies = await CookieStorage.GetAsync();
-
         if (cookies != null)
         {
             var cookieParams = cookies.GetAllCookies().Select(c => new CookieParam
@@ -142,43 +117,43 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
 
             await page.SetCookieAsync(cookieParams);
         }
+
         try
         {
+            Logger?.LogInformation("Navigating to page: {url}", url);
             await Policy
                 .Handle<Exception>()
-                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
-                {
-                    Logger?.LogWarning(ex, "[RETRY] Exception navigating to page {url} on attempt {attempt}", url, attempt);
-                })
+                .WaitAndRetryAsync(_retryCount,
+                    attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                    (ex, ts, attempt, ctx) =>
+                    {
+                        Logger?.LogWarning(ex, "[RETRY] Exception navigating to page {url} on attempt {attempt}", url, attempt);
+                    })
                 .ExecuteAsync(() => page.GoToAsync(url, WaitUntilNavigation.Networkidle2));
+            Logger?.LogInformation("Page navigation successful: {url}", url);
         }
         catch (Exception ex)
         {
-            ex.Data.Add("Proxy:", proxy.Address);
-            Logger?.LogError(ex, "Failed to open page: {url}", url);
+            ex.Data.Add("Proxy", proxy.Address);
+            Logger?.LogError(ex, "Failed to navigate to page: {url}", url);
+            trace?.SetStatus(ActivityStatusCode.Error, ex.Message);
             throw;
         }
 
         if (pageActions != null)
         {
-            Logger?.LogInformation("{class}.{method}: performing page actions", nameof(PuppeteerPageLoaderWithProxies), nameof(Load));
-
+            Logger?.LogInformation("Performing {count} page actions", pageActions.Count);
             for (int i = 0; i < pageActions.Count; i++)
             {
                 var pageAction = pageActions[i];
-                Logger?.LogInformation("{class}.{method}: performing page action {current} of {count} with type {actionType}",
-                    nameof(PuppeteerPageLoaderWithProxies),
-                    nameof(Load),
-                    i,
-                    pageActions.Count - 1,
-                    pageAction.Type);
-
+                Logger?.LogInformation("Executing page action {current}/{total} type {actionType}",
+                    i + 1, pageActions.Count, pageAction.Type);
                 await PageActions[pageAction.Type](page, pageAction.Parameters);
             }
         }
 
         var html = await page.GetContentAsync();
-
+        Logger?.LogInformation("Page load completed: {url}", url);
         return html;
     }
 }
