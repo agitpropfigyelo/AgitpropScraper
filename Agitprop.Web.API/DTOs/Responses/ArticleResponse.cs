@@ -1,6 +1,6 @@
-namespace Agitprop.Web.Api.DTOs;
+namespace Agitprop.Web.Api.DTOs.Responses;
 
-public class ArticleDto
+public class ArticleResponse
 {
     public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;

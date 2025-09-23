@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+
 using Agitprop.Core.Interfaces;
 using Agitprop.Web.Api.DTOs;
 
@@ -22,6 +23,9 @@ public partial class EntityService : IEntityService
     {
         try
         {
+            var from = DateTime.SpecifyKind(startDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            var to = DateTime.SpecifyKind(endDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
+
             var result = await _entityRepository.GetEntitiesPaginatedAsync(startDate, endDate, page, pageSize);
             return result.ToEntityDtos().ToList();
         }
@@ -50,44 +54,40 @@ public partial class EntityService : IEntityService
     {
         try
         {
-            var articles = await _entityRepository.GetMentioningArticlesAsync(id.ToString(), startDate, endDate, page, pageSize);
-            return articles.Select(a => new ArticleDto
-            {
-                Id = a.Id,
-                Title = a.Title,
-                Url = a.Url,
-                Source = a.Source,
-                PublishedAt = DateOnly.FromDateTime(a.PublishedAt),
-                Sentiment = a.Sentiment,
-                MentionedEntities = a.MentionedEntities
-            }).ToList();
+            var from = DateTime.SpecifyKind(startDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            var to = DateTime.SpecifyKind(endDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
+
+            var articles = await _entityRepository.GetMentioningArticlesAsync(id.ToString(), from, to);
+            return articles.ToArticleDto().ToList();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching articles mentioning entity {EntityId}", id);
             throw;
         }
+        throw new NotImplementedException();
     }
 
     public async Task<List<NetworkItemDto>> GetNetworkDetailsAsync(Guid id, DateOnly? startDate, DateOnly? endDate, int limit)
     {
-        try
-        {
-            var networkItems = await _entityRepository.GetEntityNetworkAsync(id.ToString(), startDate, endDate, limit);
-            return networkItems.Select(n => new NetworkItemDto
-            {
-                EntityId = Guid.Parse(n.Id),
-                Name = n.Name,
-                EntityType = n.EntityType,
-                CooccurrenceCount = n.CooccurrenceCount,
-                AverageSentiment = n.AverageSentiment
-            }).ToList();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching network details for entity {EntityId}", id);
-            throw;
-        }
+        // try
+        // {
+        //     var networkItems = await _entityRepository.GetEntityNetworkAsync(id.ToString(), startDate, endDate, limit);
+        //     return networkItems.Select(n => new NetworkItemDto
+        //     {
+        //         EntityId = Guid.Parse(n.Id),
+        //         Name = n.Name,
+        //         EntityType = n.EntityType,
+        //         CooccurrenceCount = n.CooccurrenceCount,
+        //         AverageSentiment = n.AverageSentiment
+        //     }).ToList();
+        // }
+        // catch (Exception ex)
+        // {
+        //     _logger.LogError(ex, "Error fetching network details for entity {EntityId}", id);
+        //     throw;
+        // }
+        throw new NotImplementedException();
     }
 
     public async Task<List<EntityDto>> SearchForEntity(string query)
