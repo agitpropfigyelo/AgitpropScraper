@@ -68,6 +68,7 @@ internal abstract class BaseArticleContentParser : IContentParser
 
             return Task.FromResult(new ContentParserResult()
             {
+                Title = Helper.CleanUpText(titleText.Trim()),
                 PublishDate = date,
                 SourceSite = SourceSite,
                 Text = Helper.CleanUpText(concatenatedText)

@@ -45,7 +45,7 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
                         else if (outcome.Result != null)
                             _logger.LogWarning("[RETRY] Failed to ping NLP service on attempt {Attempt}. Status: {StatusCode}", attempt, outcome.Result.StatusCode);
                     })
-                .ExecuteAsync(() => _client.GetAsync("ping"));
+                .ExecuteAsync(() => _client.GetAsync("health"));
 
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsStringAsync();
@@ -87,12 +87,25 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
                     })
                 .ExecuteAsync(() => _client.PostAsync("analyzeSingle", content));
 
+            activity?.SetTag("response", response);
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<NamedEntityCollection>(responseBody) ?? new NamedEntityCollection();
-            _logger.LogInformation("Single corpus analyzed successfully. Entities found: {Count}", result.All.Count);
-            activity?.SetStatus(ActivityStatusCode.Ok);
-            return result;
+            
+            try
+            {
+                var entities = JsonSerializer.Deserialize<List<NamedEntity>>(responseBody,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+                var result = new NamedEntityCollection { Entities = entities };
+                _logger.LogInformation("Single corpus analyzed successfully. Entities found: {Count}", result.All.Count);
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return result;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize NLP service response: {Response}", responseBody);
+                activity?.SetStatus(ActivityStatusCode.Error, "JSON deserialization failed");
+                throw new InvalidOperationException("Failed to parse NLP service response", ex);
+            }
         }
         catch (Exception ex)
         {
@@ -101,13 +114,14 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
             throw;
         }
     }
+    
 
     public async Task<NamedEntityCollection[]> AnalyzeBatchAsync(object[] corpora)
     {
         using var activity = _activitySource.StartActivity("AnalyzeBatchCorpus", ActivityKind.Client);
         activity?.SetTag("batch.size", corpora?.Length ?? 0);
 
-        _logger.LogInformation("Analyzing batch of {Count} corpora", corpora.Length);
+        _logger.LogInformation("Analyzing batch of {Count} corpora", corpora?.Length ?? 0);
 
         var json = JsonSerializer.Serialize(corpora);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -129,16 +143,34 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
                     })
                 .ExecuteAsync(() => _client.PostAsync("analyzeBatch", content));
 
+            activity?.SetTag("response", response);
+            activity?.SetTag("responseContent", response.Content);
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<NamedEntityCollection[]>(responseBody) ?? Array.Empty<NamedEntityCollection>();
-            _logger.LogInformation("Batch analysis completed successfully. Total corpora: {Count}", result.Length);
-            activity?.SetStatus(ActivityStatusCode.Ok);
-            return result;
+            
+            try
+            {
+                var batchEntities = JsonSerializer.Deserialize<List<List<NamedEntity>>>(responseBody,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+                
+                var result = batchEntities.Select(entities => 
+                    new NamedEntityCollection { Entities = entities }).ToArray();
+                
+                _logger.LogInformation("Batch analysis completed successfully. Total corpora: {Count}", result.Length);
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return result;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize NLP service batch response: {Response}", responseBody);
+                activity?.SetStatus(ActivityStatusCode.Error, "JSON deserialization failed");
+                throw new InvalidOperationException("Failed to parse NLP service batch response", ex);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to analyze batch corpus");
+
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             throw;
         }

@@ -4,4 +4,5 @@ huspacy==0.12.1
 opentelemetry-distro
 opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-instrumentation-flask
+opentelemetry-instrumentation-logging
 gunicorn

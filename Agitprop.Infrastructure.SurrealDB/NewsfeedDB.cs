@@ -47,7 +47,7 @@ public class NewsfeedDB : INewsfeedDB
         var published = await Client.Relate<PublishedRelation>("published", src, article.Id);
         Logger?.LogInformation("Added published relation for {url} with id {id}", url, published.Id);
         //add mentions
-        var entIds = entities.All.Select(e => GetOrAddEntityAsync(e).Result.Id);
+        var entIds = entities.All.Select(e => GetOrAddEntityAsync(e.Name).Result.Id);
         var mentions = await Client.Relate<MentionsRelation>("mentions", article.Id, entIds);
         Logger?.LogInformation("Added {count} mentions for {url}", mentions.Count(), url);
 

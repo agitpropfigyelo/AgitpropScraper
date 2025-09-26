@@ -1,154 +1,158 @@
-using Agitprop.Web.Api.Services;
-using Agitprop.Web.Api.DTOs.Requests;
-using Agitprop.Web.Api.DTOs.Responses;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+using Agitprop.Core.Interfaces;
+using Agitprop.Web.Api.DTOs.Requests;
+using Agitprop.Web.Api;
+using Agitprop.Web.Api.DTOs.Responses;
+using Agitprop.Web.Api.DTOs;
+using Agitprop.Core.Models;
+using Agitprop.Web.Api.Models;
 
-namespace Agitprop.Web.Api.Controllers
+namespace Agitprop.Api.Controllers;
+
+/// <summary>
+/// Provides endpoints for browsing and analyzing entities.
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
+public class EntitiesController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class EntitiesController : ControllerBase
-    {
-    private readonly IEntityService _entityService;
     private readonly ILogger<EntitiesController> _logger;
+    private readonly IEntityRepository _entityRepository;
 
-    public EntitiesController(IEntityService entityService, ILogger<EntitiesController> logger)
+    public EntitiesController(
+        ILogger<EntitiesController> logger,
+        IEntityRepository repository)
     {
-        _entityService = entityService;
         _logger = logger;
-    }        [HttpPost("search")]
-        public async Task<ActionResult<List<EntityResponse>>> GetEntities([FromBody] GetEntitiesRequest request)
+        _entityRepository = repository;
+    }
+
+    /// <summary>
+    /// Returns a paginated list of entities mentioned in articles within the given date range.
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<PaginatedEntitiesResponse>> GetEntitiesPaginatedAsync(
+        [FromBody] EntitiesPaginatedRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var entities = await _entityRepository.GetEntitiesPaginatedAsync(
+            request.StartDate,
+            request.EndDate,
+            request.Page,
+            request.PageSize);
+
+        var response = new PaginatedEntitiesResponse
         {
-            using var activity = Activity.Current?.Source.StartActivity("GetEntities");
+            Entities = entities.ToEntityDtos(),
+            Page = request.Page
+        };
 
-            if (request.StartDate > request.EndDate)
-            {
-                _logger.LogWarning("StartDate after EndDate: startDate={StartDate}, endDate={EndDate}", 
-                    request.StartDate, request.EndDate);
-                return BadRequest("StartDate cannot be after EndDate.");
-            }
+        return Ok(response);
+    }
 
-            _logger.LogInformation("Fetching entities: startDate={StartDate}, endDate={EndDate}",
-                request.StartDate, request.EndDate);
+    /// <summary>
+    /// Returns details for a specific entity.
+    /// </summary>
+    [HttpGet("{entityId}/details")]
+    public async Task<ActionResult<EntityDetailsResponse>> GetEntityDetailsAsync(
+        string entityId,
+        [FromBody] EntityDetailsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await _entityRepository.GetEntityByIdAsync(entityId);
 
-            var result = await _entityService.GetEntitiesAsync(request.StartDate, request.EndDate, request.Page, request.PageSize);
+        if (entity == null)
+            return NotFound();
 
-            _logger.LogInformation("Entities fetched: count={Count}", result.Count);
-
-            return Ok(result);
-        }
-
-        [HttpPost("{id}")]
-        public async Task<ActionResult<EntityDetailsResponse>> GetEntity(Guid id, [FromBody] GetEntityDetailsRequest request)
+        var dto = new EntityDetailsResponse
         {
-            using var activity = Activity.Current?.Source.StartActivity("GetEntityDetails");
-            
-            if (id == Guid.Empty)
+            EntityId = entity.Id,
+            Name = entity.Name,
+            Type = entity.Type,
+            TotalMentions = -1 //TODO: Implement total mentions calculation
+        };
+
+        return Ok(dto);
+    }
+
+    /// <summary>
+    /// Returns a timeline of mentions for a specific entity.
+    /// </summary>
+    [HttpGet("{entityId}/timeline")]
+    public async Task<ActionResult<EntityTimelineResponse>> GetEntityTimelineAsync(
+        string entityId,
+        [FromBody] EntityTimelineRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var articles = await _entityRepository.GetMentioningArticlesAsync(
+            entityId,
+            request.StartDate.ToDateTime(TimeOnly.MinValue),
+            request.EndDate.ToDateTime(TimeOnly.MaxValue));
+
+        var timeline = articles
+            .GroupBy(a => DateOnly.FromDateTime(a.PublishedTime))
+            .Select(g => new EntityTimelinePoint
             {
-                _logger.LogWarning("Invalid entity id: {EntityId}", id);
-                return BadRequest("Invalid entity id.");
-            }
+                Date = g.Key,
+                Count = g.Count()
+            })
+            .OrderBy(p => p.Date);
 
-            if (request.StartDate > request.EndDate)
-            {
-                _logger.LogWarning("StartDate after EndDate: startDate={StartDate}, endDate={EndDate}", 
-                    request.StartDate, request.EndDate);
-                return BadRequest("StartDate cannot be after EndDate.");
-            }
-
-            _logger.LogInformation("Fetching entity details: id={EntityId}, startDate={StartDate}, endDate={EndDate}",
-                id, request.StartDate, request.EndDate);
-
-            var result = await _entityService.GetEntityDetailsAsync(id, request.StartDate, request.EndDate);
-            if (result == null)
-            {
-                _logger.LogWarning("Entity not found: id={EntityId}", id);
-                return NotFound();
-            }
-
-            _logger.LogInformation("Entity details fetched: id={EntityId}", id);
-
-            return Ok(result);
-        }
-
-        [HttpPost("{id}/articles")]
-        public async Task<ActionResult<List<ArticleResponse>>> GetEntityMentioningArticles(
-            Guid id, [FromBody] GetEntityArticlesRequest request)
+        var response = new EntityTimelineResponse
         {
-            using var activity = Activity.Current?.Source.StartActivity("GetEntityArticles");
+            Timeline = timeline.ToList()
+        };
 
-            if (id == Guid.Empty)
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Returns articles that mention a specific entity.
+    /// </summary>
+    [HttpGet("{entityId}/articles")]
+    public async Task<ActionResult<MentioningArticlesResponse>> GetArticlesMentioningEntityAsync(
+        string entityId,
+        [FromBody] MentioningArticlesRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var articles = await _entityRepository.GetMentioningArticlesAsync(
+            entityId,
+            request.StartDate.ToDateTime(TimeOnly.MinValue),
+            request.EndDate.ToDateTime(TimeOnly.MaxValue));
+
+        return Ok(new MentioningArticlesResponse { Articles = articles.ToArticleDto().ToList() });
+    }
+
+    /// <summary>
+    /// Returns related entities that co-occur with the given entity.
+    /// </summary>
+    [HttpGet("{entityId}/related")]
+    public async Task<ActionResult<RelatedEntityResponse>> GetRelatedEntitiesAsync(
+        string entityId,
+        [FromBody] RelatedEntitiesRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        // This assumes your repository will have a CoMention query later
+        var articles = await _entityRepository.GetMentioningArticlesAsync(
+            entityId,
+            request.StartDate.ToDateTime(TimeOnly.MinValue),
+            request.EndDate.ToDateTime(TimeOnly.MaxValue));
+
+        var related = articles
+            .SelectMany(article => article.MentionedEntities)
+            .Where(entity => entity.Id != entityId)
+            .GroupBy(entity => entity.Id)
+            .Select(g => new EntityCoMentionDto
             {
-                _logger.LogWarning("Invalid entity id: {EntityId}", id);
-                return BadRequest("Invalid entity id.");
-            }
+                Id = g.Key,
+                Name = g.First().Name,
+                CoMentionCount = g.Count()
+            })
+            .OrderByDescending(r => r.CoMentionCount);
 
-            if (request.StartDate > request.EndDate)
-            {
-                _logger.LogWarning("StartDate after EndDate: startDate={StartDate}, endDate={EndDate}", 
-                    request.StartDate, request.EndDate);
-                return BadRequest("StartDate cannot be after EndDate.");
-            }
-
-            _logger.LogInformation("Fetching articles for entity: id={EntityId}, startDate={StartDate}, endDate={EndDate}, page={Page}, pageSize={PageSize}",
-                id, request.StartDate, request.EndDate, request.Page, request.PageSize);
-
-            var result = await _entityService.GetMentioningArticlesAsync(id, request.StartDate, request.EndDate, request.Page, request.PageSize);
-            _logger.LogInformation("Articles fetched: count={Count}", result.Count);
-
-            return Ok(result);
-        }
-
-        [HttpPost("{id}/network")]
-        public async Task<ActionResult<List<NetworkItemResponse>>> GetEntityNetwork(
-            Guid id, [FromBody] GetEntityNetworkRequest request)
+        return Ok(new RelatedEntityResponse
         {
-            using var activity = Activity.Current?.Source.StartActivity("GetEntityNetwork");
-
-            if (id == Guid.Empty)
-            {
-                _logger.LogWarning("Invalid entity id: {EntityId}", id);
-                return BadRequest("Invalid entity id.");
-            }
-
-            if (request.StartDate.HasValue && request.EndDate.HasValue && request.StartDate > request.EndDate)
-            {
-                _logger.LogWarning("StartDate after EndDate: startDate={StartDate}, endDate={EndDate}", 
-                    request.StartDate, request.EndDate);
-                return BadRequest("StartDate cannot be after EndDate.");
-            }
-
-            _logger.LogInformation("Fetching network for entity: id={EntityId}, startDate={StartDate}, endDate={EndDate}, limit={Limit}",
-                id, request.StartDate, request.EndDate, request.Limit);
-
-            var result = await _entityService.GetNetworkDetailsAsync(id, request.StartDate, request.EndDate, request.Limit);
-
-            _logger.LogInformation("Network fetched: count={Count}", result.Count);
-
-            return Ok(result);
-        }
-
-        [HttpGet("search")]
-        public async Task<ActionResult<List<EntityDto>>> SearchEntities([FromQuery] string query)
-        {
-            using var activity = Activity.Current?.Source.StartActivity("SearchEntities");
-
-
-            // Input validation
-            if (string.IsNullOrWhiteSpace(query) || query.Length < 2 || query.Length > 100)
-            {
-                _logger.LogWarning("Invalid search query: {Query}", query);
-                return BadRequest("Query parameter is required and must be between 2 and 100 characters.");
-            }
-
-            _logger.LogInformation("Searching entities: query={Query}", query);
-
-            var result = await _entityService.SearchForEntity(query);
-
-            _logger.LogInformation("Search result: count={Count}", result.Count);
-
-            return Ok(result);
-        }
+            CoMentionedEntities = related.ToList()
+        });
     }
 }

@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using Agitprop.Core.Interfaces;
 using Agitprop.Core.Models;
-using Agitprop.Infrastructure.Postgres.Models;
 
 namespace Agitprop.Infrastructure.Postgres;
 

@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
+
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.Postgres.Models;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -29,60 +31,95 @@ public class NewsfeedDB(AppDbContext db, ILogger<NewsfeedDB> logger) : INewsfeed
             _logger.LogInformation("Creating mentions for article {@Url} from {@Source} at {@PublishDate}",
                 url, article.SourceSite, article.PublishDate);
 
-            // Check if article already exists
-            if (await _db.Articles.AnyAsync(a => a.Url == url))
+            // Check if article already exists and get it if it does
+            var existingArticle = await _db.Articles
+                .Include(a => a.Mentions)
+                .FirstOrDefaultAsync(a => a.Url == url);
+
+            PostgresArticle articleToUse;
+            bool isUpdate = false;
+
+            if (existingArticle != null)
             {
                 _logger.LogInformation("Article already exists in DB: {@Url}", url);
-                activity?.SetStatus(ActivityStatusCode.Ok, "Article exists");
-                return 0;
+                articleToUse = existingArticle;
+                isUpdate = true;
+
+                // Update article fields
+                articleToUse.Title = article.Title;
+                articleToUse.PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc);
+
+                // Remove existing mentions to recreate them
+                _db.Mentions.RemoveRange(existingArticle.Mentions);
+            }
+            else
+            {
+                _logger.LogInformation("Article does not exist in DB: {@Url}", url);
+                articleToUse = new PostgresArticle
+                {
+                    Id = Guid.NewGuid(),
+                    Title = article.Title,
+                    Url = url,
+                    PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc)
+                };
+                _db.Articles.Add(articleToUse);
             }
 
-            var newArticle = new PostgresArticle
-            {
-                Id = Guid.NewGuid(),
-                Url = url,
-                PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc)
-            };
+            // var newArticle = new PostgresArticle
+            // {
+            //     Id = Guid.NewGuid(),
+            //     Title = article.Title,
+            //     Url = url,
+            //     PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc)
+            // };
+            // _db.Articles.Add(newArticle);
 
             int addedEntities = 0;
 
-            foreach (var name in entities.All.Distinct())
+            foreach (var entity in entities.All.Distinct())
             {
                 using var entityActivity = _activitySource.StartActivity("ProcessEntity");
-                entityActivity?.SetTag("entity.name", name);
+                entityActivity?.SetTag("entity.name", entity);
 
-                var dbEntity = await _db.Entities.FirstOrDefaultAsync(e => e.Name == name);
+                var dbEntity = await _db.Entities.FirstOrDefaultAsync(e => e.Name == entity.Name);
 
                 if (dbEntity == null)
                 {
                     dbEntity = new PostgresEntity
                     {
                         Id = Guid.NewGuid(),
-                        Name = name
+                        Name = entity.Name,
+                        Type = entity.Type
                     };
                     _db.Entities.Add(dbEntity);
                     addedEntities++;
-                    _logger.LogDebug("Added new entity {@EntityName} with Id {@EntityId}", name, dbEntity.Id);
+                    _logger.LogDebug("Added new entity {@EntityName} with Id {@EntityId}", entity, dbEntity.Id);
                 }
 
-                newArticle.Mentions.Add(new PostgresMention
+                _db.Mentions.Add(new PostgresMention
                 {
                     Id = Guid.NewGuid(),
-                    Article = newArticle,
+                    Article = articleToUse,
                     Entity = dbEntity
                 });
-                _logger.LogDebug("Created mention for entity {@EntityName} in article {@ArticleUrl}", name, url);
+                _logger.LogDebug(
+                    isUpdate
+                        ? "Updated mention for entity {@EntityName} in article {@ArticleUrl}"
+                        : "Created mention for entity {@EntityName} in article {@ArticleUrl}",
+                    entity, url);
 
                 entityActivity?.SetStatus(ActivityStatusCode.Ok);
             }
 
-            _db.Articles.Add(newArticle);
             int changes = await _db.SaveChangesAsync();
 
-            _logger.LogInformation("Finished creating mentions. Total entities added: {EntitiesAdded}, DB changes: {DbChanges}",
+            _logger.LogInformation(
+                isUpdate 
+                    ? "Finished updating mentions. Total entities added: {EntitiesAdded}, DB changes: {DbChanges}"
+                    : "Finished creating mentions. Total entities added: {EntitiesAdded}, DB changes: {DbChanges}",
                 addedEntities, changes);
 
-            activity?.SetStatus(ActivityStatusCode.Ok, "Mentions created");
+            activity?.SetStatus(ActivityStatusCode.Ok, isUpdate ? "Mentions updated" : "Mentions created");
             return changes;
         }
         catch (Exception ex)

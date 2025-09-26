@@ -1,15 +1,9 @@
-namespace Agitprop.Web.Api.DTOs.Responses;
+namespace Agitprop.Api.Controllers;
 
-public class TimeSeriesDataPoint
+public class EntityDetailsResponse
 {
-    public DateOnly Date { get; set; }
-    public double Value { get; set; }
-}
-
-public class EntityDetailsResponse : EntityResponse
-{
-    public List<TimeSeriesDataPoint> MentionTimeSeries { get; set; } = new();
-    public List<TimeSeriesDataPoint> SentimentTimeSeries { get; set; } = new();
-    public List<string> TopKeywords { get; set; } = new();
-    public List<string> TopCooccurringEntities { get; set; } = new();
+    public string EntityId { get; set; } = default!;
+    public string Name { get; set; } = default!;
+    public string Type { get; set; } = default!;
+    public int TotalMentions { get; set; }
 }

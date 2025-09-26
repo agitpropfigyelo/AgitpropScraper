@@ -1,12 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Agitprop.Web.Api.DTOs.Requests;
 
-public class GetEntityDetailsRequest
+public class EntityTimelineRequest
 {
-    [Required]
+    public string EntityId { get; set; } = default!;
     public DateOnly StartDate { get; set; }
-
-    [Required]
     public DateOnly EndDate { get; set; }
 }

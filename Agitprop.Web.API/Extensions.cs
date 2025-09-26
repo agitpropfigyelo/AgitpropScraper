@@ -49,6 +49,7 @@ internal static class Extensions
         return new ArticleDto
         {
             Id = a.Id ?? "<empty>",
+            Title=a.Title,
             ArticleUrl = a.Url,
             ArticlePublishedTime = a.PublishedTime,
         };

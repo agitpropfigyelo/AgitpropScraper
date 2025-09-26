@@ -28,8 +28,11 @@ public static class Mappers
     {
         return new Article
         {
+            Id = article.Id.ToString(),
+            Title = article.Title,
             Url = article.Url,
             PublishedTime = article.PublishedTime,
+            MentionedEntities = article.Mentions.Select(m => m.Entity.ToCoreModel()).ToList()
         };
     }
 

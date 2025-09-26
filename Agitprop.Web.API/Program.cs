@@ -1,4 +1,3 @@
-using Agitprop.Web.Api.Services;
 using Agitprop.Infrastructure.Postgres;
 using OpenTelemetry.Trace;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +14,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.AddNewsfeedRepositories();
-builder.Services.AddTransient<IEntityService, EntityService>();
 builder.Services.AddControllers();
 
 // OpenTelemetry Tracer registration (if not already present)
