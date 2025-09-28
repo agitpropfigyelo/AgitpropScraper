@@ -6,6 +6,5 @@ namespace Agitprop.Core.Models
         public string Title { init; get; }
         public string Url { init; get; }
         public DateTime PublishedTime { init; get; }
-        public List<Entity> MentionedEntities { init; get; } = new();
     }
 }

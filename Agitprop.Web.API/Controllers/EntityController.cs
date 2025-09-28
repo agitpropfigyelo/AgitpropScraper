@@ -4,7 +4,6 @@ using Agitprop.Web.Api.DTOs.Requests;
 using Agitprop.Web.Api;
 using Agitprop.Web.Api.DTOs.Responses;
 using Agitprop.Web.Api.DTOs;
-using Agitprop.Core.Models;
 using Agitprop.Web.Api.Models;
 
 namespace Agitprop.Api.Controllers;
@@ -32,7 +31,7 @@ public class EntitiesController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<PaginatedEntitiesResponse>> GetEntitiesPaginatedAsync(
-        [FromBody] EntitiesPaginatedRequest request,
+        [FromQuery] EntitiesPaginatedRequest request,
         CancellationToken cancellationToken = default)
     {
         var entities = await _entityRepository.GetEntitiesPaginatedAsync(
@@ -56,7 +55,7 @@ public class EntitiesController : ControllerBase
     [HttpGet("{entityId}/details")]
     public async Task<ActionResult<EntityDetailsResponse>> GetEntityDetailsAsync(
         string entityId,
-        [FromBody] EntityDetailsRequest request,
+        [FromQuery] EntityDetailsRequest request,
         CancellationToken cancellationToken = default)
     {
         var entity = await _entityRepository.GetEntityByIdAsync(entityId);
@@ -81,13 +80,14 @@ public class EntitiesController : ControllerBase
     [HttpGet("{entityId}/timeline")]
     public async Task<ActionResult<EntityTimelineResponse>> GetEntityTimelineAsync(
         string entityId,
-        [FromBody] EntityTimelineRequest request,
+        [FromQuery] EntityTimelineRequest request,
         CancellationToken cancellationToken = default)
     {
-        var articles = await _entityRepository.GetMentioningArticlesAsync(
-            entityId,
-            request.StartDate.ToDateTime(TimeOnly.MinValue),
-            request.EndDate.ToDateTime(TimeOnly.MaxValue));
+        var entity = await _entityRepository.GetEntityByIdAsync(entityId);
+        var articles = await _entityRepository.GetMentioningArticlesAsync(entityId,
+                                                                          request.StartDate,
+                                                                          request.EndDate);
+
 
         var timeline = articles
             .GroupBy(a => DateOnly.FromDateTime(a.PublishedTime))
@@ -100,6 +100,8 @@ public class EntitiesController : ControllerBase
 
         var response = new EntityTimelineResponse
         {
+            EntityId = entity.Id,
+            Name = entity.Name,
             Timeline = timeline.ToList()
         };
 
@@ -112,13 +114,13 @@ public class EntitiesController : ControllerBase
     [HttpGet("{entityId}/articles")]
     public async Task<ActionResult<MentioningArticlesResponse>> GetArticlesMentioningEntityAsync(
         string entityId,
-        [FromBody] MentioningArticlesRequest request,
+        [FromQuery] MentioningArticlesRequest request,
         CancellationToken cancellationToken = default)
     {
         var articles = await _entityRepository.GetMentioningArticlesAsync(
             entityId,
-            request.StartDate.ToDateTime(TimeOnly.MinValue),
-            request.EndDate.ToDateTime(TimeOnly.MaxValue));
+            request.StartDate,
+            request.EndDate);
 
         return Ok(new MentioningArticlesResponse { Articles = articles.ToArticleDto().ToList() });
     }
@@ -129,30 +131,29 @@ public class EntitiesController : ControllerBase
     [HttpGet("{entityId}/related")]
     public async Task<ActionResult<RelatedEntityResponse>> GetRelatedEntitiesAsync(
         string entityId,
-        [FromBody] RelatedEntitiesRequest request,
+        [FromQuery] RelatedEntitiesRequest request,
         CancellationToken cancellationToken = default)
     {
         // This assumes your repository will have a CoMention query later
-        var articles = await _entityRepository.GetMentioningArticlesAsync(
+        var articles = (await _entityRepository.GetMentioningArticlesAsync(
             entityId,
-            request.StartDate.ToDateTime(TimeOnly.MinValue),
-            request.EndDate.ToDateTime(TimeOnly.MaxValue));
+            request.StartDate,
+            request.EndDate)).ToList();
 
-        var related = articles
-            .SelectMany(article => article.MentionedEntities)
-            .Where(entity => entity.Id != entityId)
-            .GroupBy(entity => entity.Id)
-            .Select(g => new EntityCoMentionDto
-            {
-                Id = g.Key,
-                Name = g.First().Name,
-                CoMentionCount = g.Count()
-            })
-            .OrderByDescending(r => r.CoMentionCount);
+        // var related = articles
+        //     .Where(entity => entity.Id != entityId)
+        //     .GroupBy(entity => entity.Id)
+        //     .Select(g => new EntityCoMentionDto
+        //     {
+        //         Id = g.Key,
+        //         Name = g.First().Name,
+        //         CoMentionCount = g.Count()
+        //     })
+        //     .OrderByDescending(r => r.CoMentionCount);
 
         return Ok(new RelatedEntityResponse
         {
-            CoMentionedEntities = related.ToList()
+            CoMentionedEntities = []
         });
     }
 }

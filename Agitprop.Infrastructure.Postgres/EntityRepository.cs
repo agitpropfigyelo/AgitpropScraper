@@ -78,7 +78,7 @@ public class EntityRepository : IEntityRepository
 
         try
         {
-            var results = await _dbContext.Entities.FirstOrDefaultAsync(e => e.Id == Guid.Parse(entityId));
+            var results = await _dbContext.Entities.Include(e => e.Mentions).FirstOrDefaultAsync(e => e.Id == Guid.Parse(entityId));
             return results?.ToCoreModel();
         }
         catch (Exception ex)
@@ -89,21 +89,34 @@ public class EntityRepository : IEntityRepository
         }
     }
 
-    public async Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateTime from, DateTime to)
+    public async Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateOnly startDate, DateOnly endDate)
     {
         using var trace = _activitySource.StartActivity("GetMentioningArticles", ActivityKind.Internal);
         trace?.SetTag("entityId", entityId);
+
+        var from = DateTime.SpecifyKind(startDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var to = DateTime.SpecifyKind(endDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
         trace?.SetTag("from", from.ToString("o"));
         trace?.SetTag("to", to.ToString("o"));
 
         try
         {
+            var uuid = Guid.Parse(entityId);
             var result = await _dbContext.Articles
-                .Where(a => a.Mentions.Any(m => m.EntityId == Guid.Parse(entityId))
+                .Where(a => a.Mentions.Any(m => m.EntityId == uuid)
                          && a.PublishedTime >= from
                          && a.PublishedTime <= to)
                 .ToListAsync();
-            return result.ToCoreModel();
+
+            var result2 = await _dbContext.Mentions
+               .Where(a => a.EntityId == uuid)
+               .Include(m => m.Article)
+               .Where(a => a.Article.PublishedTime >= from && a.Article.PublishedTime <= to)
+               .Include(a => a.Entity)
+               .Select(m => m.Article)
+               .ToListAsync();
+
+            return result2.ToCoreModel();
         }
         catch (Exception ex)
         {
