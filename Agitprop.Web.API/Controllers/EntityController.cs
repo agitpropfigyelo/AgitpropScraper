@@ -140,20 +140,22 @@ public class EntitiesController : ControllerBase
             request.StartDate,
             request.EndDate)).ToList();
 
-        // var related = articles
-        //     .Where(entity => entity.Id != entityId)
-        //     .GroupBy(entity => entity.Id)
-        //     .Select(g => new EntityCoMentionDto
-        //     {
-        //         Id = g.Key,
-        //         Name = g.First().Name,
-        //         CoMentionCount = g.Count()
-        //     })
-        //     .OrderByDescending(r => r.CoMentionCount);
+        var related = articles
+            .Where(entity => entity.Id != entityId)
+            .SelectMany(entity => entity.MentionedEntities)
+            .GroupBy(entity => entity.Id)
+            .Select(g => new EntityCoMentionDto
+            {
+                Id = g.Key,
+                Name = g.First().Name,
+                CoMentionCount = g.Count()
+            })
+            .OrderByDescending(r => r.CoMentionCount);
 
         return Ok(new RelatedEntityResponse
         {
-            CoMentionedEntities = []
+            EntityId = entityId,
+            CoMentionedEntities = related.ToList()
         });
     }
 }

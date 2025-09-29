@@ -103,6 +103,8 @@ public class EntityRepository : IEntityRepository
         {
             var uuid = Guid.Parse(entityId);
             var result = await _dbContext.Articles
+            .Include(a => a.Mentions)
+            .ThenInclude(m => m.Entity)
                 .Where(a => a.Mentions.Any(m => m.EntityId == uuid)
                          && a.PublishedTime >= from
                          && a.PublishedTime <= to)
