@@ -1,8 +1,4 @@
 Flask==3.1.0
 hu_core_news_lg @ https://huggingface.co/huspacy/hu_core_news_lg/resolve/main/hu_core_news_lg-any-py3-none-any.whl#sha256=803471467921b9db7e77c48ac7bdf9a57c08949427a9dd957a1655cbbdf65adc
 huspacy==0.12.1
-opentelemetry-distro
-opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-instrumentation-flask
-opentelemetry-instrumentation-logging
 gunicorn

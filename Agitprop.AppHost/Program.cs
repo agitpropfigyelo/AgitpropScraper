@@ -27,9 +27,9 @@ var postgres = builder.AddPostgres("postgres")
 IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.AddPythonApp("nlpService", "../Agitprop.Scraper.NLPService", "app.py")
                         .WithHttpEndpoint(env: "PORT")
                         .WithHttpHealthCheck("/health", 200)
-                        .WithExternalHttpEndpoints()
-                        .WithOtlpExporter()
-                        .PublishAsDockerFile();
+                        .WithExternalHttpEndpoints();
+                        //.WithOtlpExporter()
+                        // .PublishAsDockerFile();
 #pragma warning restore ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 

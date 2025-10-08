@@ -20,7 +20,7 @@ public class TrendsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetTrending([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+    public async Task<ActionResult<TrendingResponse>> GetTrending([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
         try
         {
@@ -29,8 +29,8 @@ public class TrendsController : ControllerBase
             var trending = await _trendingRepository.GetTrendingEntitiesAsync(fromDate, toDate);
             var result = trending.GroupBy(x => x.Name)
                 .Select(g => new {
-                    //date = g.Key.ToString("yyyy-MM-dd"),
-                    //entities = g.Select(e => new { entityId = e.entityId, entityName = e.entityName, count = e.count })
+                    date = g.Key.ToString("yyyy-MM-dd"),
+                    entities = g.Select(e => new { entityId = e.entityId, entityName = e.entityName, count = e.count })
                 });
             return Ok(new { trending = result });
         }
@@ -40,4 +40,9 @@ public class TrendsController : ControllerBase
             return StatusCode(500, new { error = "Internal server error." });
         }
     }
+}
+
+public class TrendingResponse
+{
+    public required IEnumerable<TrendingEntity> Trending { get; set; }
 }
