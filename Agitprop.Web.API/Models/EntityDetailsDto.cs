@@ -1,4 +1,5 @@
 public class EntityDetailsDto: EntityDto
 {
-public KeyValuePair<DateOnly, int> MentionsCountByDate { get; set; }
+public required Dictionary<DateOnly, int> MentionsCountByDate { get; set; }
+public required int TotalMentions { get; set; }
 }

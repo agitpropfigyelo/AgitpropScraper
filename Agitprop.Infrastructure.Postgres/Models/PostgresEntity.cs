@@ -1,5 +1,3 @@
-using Agitprop.Core.Enums;
-
 namespace Agitprop.Infrastructure.Postgres.Models;
 
 public class PostgresEntity

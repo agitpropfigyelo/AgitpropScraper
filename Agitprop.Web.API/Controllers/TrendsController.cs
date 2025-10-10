@@ -11,27 +11,31 @@ namespace Agitprop.Web.Api.Controllers;
 public class TrendsController : ControllerBase
 {
     private readonly ITrendingRepository _trendingRepository;
+    private readonly IEntityRepository _entityRepository;
     private readonly ILogger<TrendsController> _logger;
 
-    public TrendsController(ITrendingRepository trendingRepository, ILogger<TrendsController> logger)
+    public TrendsController(ITrendingRepository trendingRepository, ILogger<TrendsController> logger, IEntityRepository entityRepository)
     {
         _trendingRepository = trendingRepository;
         _logger = logger;
+        _entityRepository = entityRepository;
     }
 
     [HttpGet]
-    public async Task<ActionResult<TrendingResponse>> GetTrending([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+    public async Task<ActionResult<TrendingResponse>> GetTrending([FromQuery] DateOnly from, [FromQuery] DateOnly to)
     {
         try
         {
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-7);
-            var toDate = to ?? DateTime.UtcNow;
-            var trending = await _trendingRepository.GetTrendingEntitiesAsync(fromDate, toDate);
-            var result = trending.GroupBy(x => x.Name)
-                .Select(g => new {
-                    date = g.Key.ToString("yyyy-MM-dd"),
-                    entities = g.Select(e => new { entityId = e.entityId, entityName = e.entityName, count = e.count })
-                });
+            var trending = _trendingRepository.GetTrendingEntitiesAsync(from, to);
+            var mentionings = _entityRepository.GetMentioningArticlesAsync(trending.Select(e => e.Id.ToString()), from, to);
+            
+            var result=trending.Select(e=>new EntityDetailsDto
+            {
+                Id=e.Id,
+                Name=e.Name,
+                TotalMentions=mentionings[e.Id.ToString()].Count(),
+                MentionsCountByDate=mentionings[e.Id.ToString()].GroupBy(a=>DateOnly.FromDateTime(a.PublishedTime)).ToDictionary(g=>g.Key,g=>g.Count())
+            });
             return Ok(new { trending = result });
         }
         catch (Exception ex)
@@ -44,5 +48,5 @@ public class TrendsController : ControllerBase
 
 public class TrendingResponse
 {
-    public required IEnumerable<TrendingEntity> Trending { get; set; }
+    public required IEnumerable<EntityDetailsDto> Trending { get; set; }
 }

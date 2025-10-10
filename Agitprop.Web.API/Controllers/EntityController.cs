@@ -34,7 +34,7 @@ public class EntitiesController : ControllerBase
         [FromQuery] EntitiesPaginatedRequest request,
         CancellationToken cancellationToken = default)
     {
-        var entities = await _entityRepository.GetEntitiesPaginatedAsync(
+        var entities = _entityRepository.GetEntitiesPaginatedAsync(
             request.StartDate,
             request.EndDate,
             request.Page,
@@ -84,7 +84,7 @@ public class EntitiesController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var entity = await _entityRepository.GetEntityByIdAsync(entityId);
-        var articles = await _entityRepository.GetMentioningArticlesAsync(entityId,
+        var articles = _entityRepository.GetMentioningArticlesAsync(entityId,
                                                                           request.StartDate,
                                                                           request.EndDate);
 
@@ -117,7 +117,7 @@ public class EntitiesController : ControllerBase
         [FromQuery] MentioningArticlesRequest request,
         CancellationToken cancellationToken = default)
     {
-        var articles = await _entityRepository.GetMentioningArticlesAsync(
+        var articles =  _entityRepository.GetMentioningArticlesAsync(
             entityId,
             request.StartDate,
             request.EndDate);
@@ -135,10 +135,10 @@ public class EntitiesController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         // This assumes your repository will have a CoMention query later
-        var articles = (await _entityRepository.GetMentioningArticlesAsync(
+        var articles = _entityRepository.GetMentioningArticlesAsync(
             entityId,
             request.StartDate,
-            request.EndDate)).ToList();
+            request.EndDate);
 
         var related = articles
             .Where(entity => entity.Id != entityId)

@@ -1,7 +1,3 @@
-using Agitprop.AppHost;
-
-using Aspire.Hosting;
-
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -57,8 +53,6 @@ var backend = builder.AddProject<Agitprop_Web_Api>("backend")
                      .WaitFor(postgres)
                      .WithReference(postgres)
                      .PublishAsDockerFile();
-//.WithReference(surrealDb)
-//.WaitFor(surrealDb)
 
 builder.AddNpmApp("angular", "../Agitprop.Web.Client")
     .WithReference(backend)

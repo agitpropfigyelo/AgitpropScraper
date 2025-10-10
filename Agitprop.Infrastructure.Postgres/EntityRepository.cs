@@ -16,19 +16,18 @@ public class EntityRepository : IEntityRepository
 
     public EntityRepository(
         AppDbContext dbContext,
-        ILogger<EntityRepository> logger,
-        IConfiguration? configuration = null)
+        ILogger<EntityRepository> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Entity>> GetEntitiesAsync()
+    public IEnumerable<Entity> GetEntitiesAsync()
     {
         using var trace = _activitySource.StartActivity("GetEntities", ActivityKind.Internal);
         try
         {
-            var results = await _dbContext.Entities.ToListAsync();
+            var results = _dbContext.Entities;
             return results.ToCoreModel();
         }
         catch (Exception ex)
@@ -39,7 +38,7 @@ public class EntityRepository : IEntityRepository
         }
     }
 
-    public async Task<IEnumerable<Entity>> GetEntitiesPaginatedAsync(DateOnly startDate, DateOnly endDate, int page, int pageSize)
+    public IEnumerable<Entity> GetEntitiesPaginatedAsync(DateOnly startDate, DateOnly endDate, int page, int pageSize)
     {
         using var trace = _activitySource.StartActivity("GetEntitiesPaginated", ActivityKind.Internal);
         trace?.SetTag("startDate", startDate.ToString());
@@ -52,15 +51,14 @@ public class EntityRepository : IEntityRepository
             var from = DateTime.SpecifyKind(startDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
             var to = DateTime.SpecifyKind(endDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
 
-            var entities = await _dbContext.Entities
+            var entities = _dbContext.Entities
                 .Where(e => e.Mentions.Any(m =>
                     m.Article.PublishedTime >= from &&
                     m.Article.PublishedTime <= to))
                 .Skip(page * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                .Take(pageSize);
 
-            trace?.SetTag("resultCount", entities.Count);
+            trace?.SetTag("resultCount", entities.Count());
             return entities.ToCoreModel();
         }
         catch (Exception ex)
@@ -89,7 +87,7 @@ public class EntityRepository : IEntityRepository
         }
     }
 
-    public async Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateOnly startDate, DateOnly endDate)
+    public IEnumerable<Article> GetMentioningArticlesAsync(string entityId, DateOnly startDate, DateOnly endDate)
     {
         using var trace = _activitySource.StartActivity("GetMentioningArticles", ActivityKind.Internal);
         trace?.SetTag("entityId", entityId);
@@ -102,23 +100,15 @@ public class EntityRepository : IEntityRepository
         try
         {
             var uuid = Guid.Parse(entityId);
-            var result = await _dbContext.Articles
-            .Include(a => a.Mentions)
-            .ThenInclude(m => m.Entity)
-                .Where(a => a.Mentions.Any(m => m.EntityId == uuid)
-                         && a.PublishedTime >= from
-                         && a.PublishedTime <= to)
-                .ToListAsync();
 
-            var result2 = await _dbContext.Mentions
+            var result = _dbContext.Mentions
                .Where(a => a.EntityId == uuid)
                .Include(m => m.Article)
                .Where(a => a.Article.PublishedTime >= from && a.Article.PublishedTime <= to)
                .Include(a => a.Entity)
-               .Select(m => m.Article)
-               .ToListAsync();
+               .Select(m => m.Article);
 
-            return result2.ToCoreModel();
+            return result.ToCoreModel();
         }
         catch (Exception ex)
         {
@@ -128,16 +118,43 @@ public class EntityRepository : IEntityRepository
         }
     }
 
-    public async Task<IEnumerable<Entity>> SearchEntitiesAsync(string query)
+    public IDictionary<string,IEnumerable<Article>> GetMentioningArticlesAsync(IEnumerable<string> entityIds, DateOnly startDate, DateOnly endDate)
+    {
+        using var trace = _activitySource.StartActivity("GetMentioningArticles", ActivityKind.Internal);
+        trace?.SetTag("entityId", entityIds);
+
+        var from = DateTime.SpecifyKind(startDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var to = DateTime.SpecifyKind(endDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
+        trace?.SetTag("from", from.ToString("o"));
+        trace?.SetTag("to", to.ToString("o"));
+
+        try
+        {
+            var result = _dbContext.Mentions
+               .Where(m => entityIds.Contains(m.EntityId.ToString()))
+               .Include(m => m.Article)
+               .Where(a => a.Article.PublishedTime >= from && a.Article.PublishedTime <= to)
+               .GroupBy(e=> e.EntityId.ToString());
+
+            return result.ToDictionary(g => g.Key, g => g.Select(m => m.Article).ToCoreModel());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve mentioning articles for entities {entityIds}", entityIds);
+            trace?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
+    }
+
+    public IEnumerable<Entity> SearchEntitiesAsync(string query)
     {
         using var trace = _activitySource.StartActivity("SearchEntities", ActivityKind.Internal);
         trace?.SetTag("query", query);
 
         try
         {
-            var results = await _dbContext.Entities
-                .Where(e => EF.Functions.ILike(e.Name, $"%{query}%"))
-                .ToListAsync();
+            var results = _dbContext.Entities
+                .Where(e => EF.Functions.ILike(e.Name, $"%{query}%"));
             return results.ToCoreModel();
         }
         catch (Exception ex)

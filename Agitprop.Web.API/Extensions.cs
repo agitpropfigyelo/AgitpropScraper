@@ -20,23 +20,6 @@ internal static class Extensions
         };
     }
 
-    internal static IEnumerable<EntityDetailsDto> ToEntityDetailsDtos(this IEnumerable<Entity> entities)
-    {
-        foreach (var entity in entities)
-        {
-            yield return entity.ToEntityDetailsDto();
-        }
-    }
-    internal static EntityDetailsDto ToEntityDetailsDto(this Entity e)
-    {
-        return new EntityDetailsDto
-        {
-            Id = e.Id?.ToString() ?? "<empty>",
-            Name = e.Name,
-            MentionsCountByDate = new KeyValuePair<DateOnly, int>(DateOnly.MinValue, 0)
-        };
-    }
-
     internal static IEnumerable<ArticleDto> ToArticleDto(this IEnumerable<Article> articles)
     {
         foreach (var article in articles)

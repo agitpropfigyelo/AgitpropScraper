@@ -22,4 +22,9 @@ public class TrendingRepository : ITrendingRepository
     {
         throw new NotImplementedException();
     }
+
+    public IEnumerable<Entity> GetTrendingEntitiesAsync(DateOnly fromDate, DateOnly toDate, int topN = 10)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -4,10 +4,11 @@ namespace Agitprop.Core.Interfaces
 {
     public interface IEntityRepository
     {
-        Task<IEnumerable<Entity>> GetEntitiesAsync();
-        Task<IEnumerable<Article>> GetMentioningArticlesAsync(string entityId, DateOnly from, DateOnly to);
+        IEnumerable<Entity> GetEntitiesAsync();
+        IEnumerable<Article> GetMentioningArticlesAsync(string entityId, DateOnly from, DateOnly to);
+        IDictionary<string,IEnumerable<Article>> GetMentioningArticlesAsync(IEnumerable<string> entityIds, DateOnly from, DateOnly to);
         Task<Entity?> GetEntityByIdAsync(string entityId);
-        Task<IEnumerable<Entity>> SearchEntitiesAsync(string query);
-        Task<IEnumerable<Entity>> GetEntitiesPaginatedAsync(DateOnly startDate, DateOnly endDate, int page, int pageSize);
+        IEnumerable<Entity> SearchEntitiesAsync(string query);
+        IEnumerable<Entity> GetEntitiesPaginatedAsync(DateOnly from, DateOnly to, int page, int pageSize);
     }
 }

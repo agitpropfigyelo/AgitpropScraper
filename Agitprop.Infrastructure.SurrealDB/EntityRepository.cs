@@ -127,6 +127,32 @@ public class EntityRepository : IEntityRepository
             throw;
         }
     }
+
+    IEnumerable<Entity> IEntityRepository.GetEntitiesAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public IEnumerable<Article> GetMentioningArticlesAsync(string entityId, DateOnly from, DateOnly to)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IDictionary<string, IEnumerable<Article>> GetMentioningArticlesAsync(IEnumerable<string> entityIds, DateOnly from, DateOnly to)
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerable<Entity> IEntityRepository.SearchEntitiesAsync(string query)
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerable<Entity> IEntityRepository.GetEntitiesPaginatedAsync(DateOnly from, DateOnly to, int page, int pageSize)
+    {
+        throw new NotImplementedException();
+    }
+
     private const string SearchEntitiesQuery =
     """
     SELECT $this as Entity, string::similarity::jaro($input, $this.Name) AS Similarity 
