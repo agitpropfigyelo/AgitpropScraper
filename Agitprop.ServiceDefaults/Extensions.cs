@@ -7,6 +7,7 @@ using Microsoft.Extensions.ServiceDiscovery;
 
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Hosting;
@@ -27,7 +28,7 @@ public static class Extensions
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             // Turn on resilience by default
-            http.AddStandardResilienceHandler(options=>
+            http.AddStandardResilienceHandler(options =>
             {
                 // Set the default timeout to 5 seconds
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
@@ -43,7 +44,7 @@ public static class Extensions
         // Uncomment the following to restrict the allowed schemes for service discovery.
         builder.Services.Configure<ServiceDiscoveryOptions>(options =>
         {
-            options.AllowedSchemes = ["https","http"];
+            options.AllowedSchemes = ["https", "http"];
         });
 
         return builder;
@@ -58,24 +59,22 @@ public static class Extensions
         });
 
         builder.Services.AddOpenTelemetry()
-            .WithMetrics(metrics =>
-            {
-                metrics.AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
-            })
-            .WithTracing(tracing =>
-            {
-                tracing.AddAspNetCoreInstrumentation()
-                    // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                    //.AddGrpcClientInstrumentation()
-                    .AddSource("Agitprop.RssFeedReader")
-                    // .AddSource("MassTransit")
-                    .AddSource("Agitprop.Sink.Newsfeed")
-                    .AddSource("Agitprop.Spider")
-                    .AddSource("Agitprop.NewsfeedJobConsumer")
-                    .AddHttpClientInstrumentation();
-            });
+    .WithTracing(builder =>
+    {
+        builder
+            .AddSource("Agitprop.ProxyScrapeProxyProvider")
+            .AddSource("Agitprop.Spider")
+            .AddSource("Agitprop.NewsfeedDB")
+            .AddSource("Agitprop.PageLoader.HttpStaticPageLoader")
+            .AddSource("Agitprop.PageLoader.PuppeteerPageLoader")
+            .AddSource("Agitprop.PageLoader.PuppeteerPageLoaderWithProxies")
+            .AddSource("Agitprop.NewsfeedJobConsumer")
+            .AddSource("Agitprop.NamedEntityRecognizer")
+            .AddSource("Agitprop.RssFeedReader")
+            .AddSource("Agitprop.NewsfeedSink")
+            .AddHttpClientInstrumentation()
+            .AddAspNetCoreInstrumentation();
+    });
 
         builder.AddOpenTelemetryExporters();
 

@@ -1,63 +1,95 @@
-﻿using System.Diagnostics;
+﻿using Polly;
+using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
 
 using Agitprop.Core;
-using Agitprop.Infrastructure.Interfaces;
-using Agitprop.Infrastructure.SurrealDB;
+using Agitprop.Core.Interfaces;
 
 using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Sinks.Newsfeed;
 
-/// <summary>
-/// Represents a sink for processing and storing newsfeed data.
-/// </summary>
 public class NewsfeedSink : ISink
 {
-    private INamedEntityRecognizer NerService;
-    private INewsfeedDB DataBase;
-    private ILogger<NewsfeedSink> Logger;
-    private ActivitySource ActivitySource = new("Agitprop.Sink.Newsfeed");
+    private readonly INamedEntityRecognizer _nerService;
+    private readonly INewsfeedDB _db;
+    private readonly ILogger<NewsfeedSink> _logger;
+    private readonly ActivitySource _activitySource = new("Agitprop.NewsfeedSink");
+    private readonly int _retryCount;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="NewsfeedSink"/> class.
-    /// </summary>
-    /// <param name="nerService">The named entity recognizer service.</param>
-    /// <param name="dataBase">The database for storing newsfeed data.</param>
-    /// <param name="logger">The logger for logging information and errors.</param>
-    public NewsfeedSink(INamedEntityRecognizer nerService, INewsfeedDB dataBase, ILogger<NewsfeedSink> logger)
+    public NewsfeedSink(INamedEntityRecognizer nerService, INewsfeedDB db, ILogger<NewsfeedSink> logger, IConfiguration? configuration = null)
     {
-        NerService = nerService;
-        DataBase = dataBase;
-        Logger = logger;
+        _nerService = nerService;
+        _db = db;
+        _logger = logger;
+        _retryCount = configuration?.GetValue<int>("Retry:NewsfeedSink", 3) ?? 3;
     }
 
-    /// <summary>
-    /// Checks if a page with the specified URL has already been visited.
-    /// </summary>
-    /// <param name="url">The URL of the page to check.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the page has been visited.</returns>
     public async Task<bool> CheckPageAlreadyVisited(string url)
     {
-        using var trace = ActivitySource.StartActivity("CheckPageAlreadyVisited");
-        return await DataBase.IsUrlAlreadyExists(url);
+        using var trace = _activitySource.StartActivity("CheckPageAlreadyVisited", ActivityKind.Internal);
+        try
+        {
+            if (_logger != null) _logger.LogInformation("Checking if page already visited: {url}", url);
+
+            var exists = await Polly.Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                {
+                    _logger?.LogWarning(ex, "[RETRY] Exception checking page {url} on attempt {attempt}", url, attempt);
+                })
+                .ExecuteAsync(() => _db.IsUrlAlreadyExists(url));
+
+            _logger?.LogInformation("CheckPageAlreadyVisited result for {url}: {exists}", url, exists);
+            return exists;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to check if page already visited: {url}", url);
+            trace?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
     }
 
-    /// <summary>
-    /// Processes and stores the parsed content data for a specific URL.
-    /// </summary>
-    /// <param name="url">The URL of the page being processed.</param>
-    /// <param name="data">The list of parsed content results.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task EmitAsync(string url, List<ContentParserResult> data, CancellationToken cancellationToken = default)
     {
-        using var trace = ActivitySource.StartActivity("EmitAsync");
+        using var trace = _activitySource.StartActivity("EmitAsync", ActivityKind.Internal);
+        _logger?.LogInformation("Processing {articleCount} articles for {url}", data.Count, url);
+
         foreach (var article in data)
         {
-            var entities = await NerService.AnalyzeSingleAsync(article.Text);
-            Logger.LogInformation("Recieved named entitees for {url}", url);
-            var count = await DataBase.CreateMentionsAsync(url, article, entities);
-            Logger.LogInformation("Inserted {count} mentions for {url}", count, url);
+            trace?.SetTag("articleLength", article.Text.Length);
+
+            try
+            {
+                var entities = await Polly.Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                    {
+                        _logger?.LogWarning(ex, "[RETRY] Exception analyzing entities for {url} attempt {attempt}", url, attempt);
+                    })
+                    .ExecuteAsync(() => _nerService.AnalyzeSingleAsync(article.Text));
+
+                _logger?.LogInformation("Received {entityCount} entities for article in {url}", entities.All.Count, url);
+
+                var count = await Polly.Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                    {
+                        _logger?.LogWarning(ex, "[RETRY] Exception inserting mentions for {url} attempt {attempt}", url, attempt);
+                    })
+                    .ExecuteAsync(() => _db.CreateMentionsAsync(url, article, entities));
+
+                _logger?.LogInformation("Inserted {count} mentions for article in {url}", count, url);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to process article for {url}", url);
+                trace?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                throw;
+            }
         }
+
+        _logger?.LogInformation("Finished processing articles for {url}", url);
     }
 }

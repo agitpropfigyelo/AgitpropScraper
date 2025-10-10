@@ -1,7 +1,8 @@
-﻿using Agitprop.Core;
+﻿using Microsoft.Extensions.Logging;
+using Agitprop.Core;
 using Agitprop.Core.Enums;
-using Agitprop.Infrastructure.Interfaces;
-using Agitprop.Infrastructure.SurrealDB;
+using Agitprop.Core.Interfaces;
+using Agitprop.Infrastructure.Postgres;
 using Agitprop.Scraper.NLPService;
 using Agitprop.Sinks.Newsfeed.Factories;
 
@@ -23,15 +24,27 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddTransient<INamedEntityRecognizer, NamedEntityRecognizer>();
+        builder.Services.AddTransient<INamedEntityRecognizer>(sp =>
+            new NamedEntityRecognizer(
+                sp.GetRequiredService<HttpClient>(),
+                sp.GetRequiredService<ILogger<NamedEntityRecognizer>>(),
+                sp.GetRequiredService<IConfiguration>()));
 
         var nlp = builder.Configuration.GetValue<string>("nlpService");
-        var idk = builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
+        if (!string.IsNullOrWhiteSpace(nlp))
         {
-            client.BaseAddress = new Uri(nlp);
-        });
+            builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
+            {
+                client.BaseAddress = new Uri(nlp);
+            });
+        }
         builder.AddNewsfeedDB();
-        builder.Services.AddTransient<NewsfeedSink>();
+        builder.Services.AddTransient<NewsfeedSink>(sp =>
+            new NewsfeedSink(
+                sp.GetRequiredService<INamedEntityRecognizer>(),
+                sp.GetRequiredService<INewsfeedDB>(),
+                sp.GetRequiredService<ILogger<NewsfeedSink>>(),
+                sp.GetRequiredService<IConfiguration>()));
         return builder;
     }
 

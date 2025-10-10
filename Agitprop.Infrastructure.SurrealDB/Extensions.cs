@@ -1,3 +1,5 @@
+using Agitprop.Core.Interfaces;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,6 +18,7 @@ public static class Extensions
     {
         builder.AddSurrealDbConnection();
         builder.Services.AddTransient<IEntityRepository, EntityRepository>();
+        builder.Services.AddTransient<ITrendingRepository, TrendingRepository>();
         return builder;
     }
 

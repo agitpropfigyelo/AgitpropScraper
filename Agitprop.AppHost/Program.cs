@@ -1,5 +1,3 @@
-using Agitprop.AppHost;
-
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -9,25 +7,34 @@ var messaging = builder.AddRabbitMQ("messaging")
                        .WithOtlpExporter()
                        .PublishAsConnectionString();
 
-var surrealDb = builder.AddSurrealDB("surrealdb")
-                       .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
-                       .WithBindMount("../databaseMount", "/mydata")
-                       .WithOtlpExporter();
+// var surrealDb = builder.AddSurrealDB("surrealdb")
+//                        .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
+//                        .WithBindMount("../databaseMount", "/mydata")
+//                        .WithOtlpExporter();
+var postgres = builder.AddPostgres("postgres")
+                      .WithDataVolume(isReadOnly: false)
+                      .WithPgAdmin(pgAdmin => {
+                          pgAdmin.WithHostPort(5050);
+                          pgAdmin.WithImageTag("latest");})
+                      .WithOtlpExporter()
+                      .AddDatabase("newsfeed");
 
 #pragma warning disable ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.AddPythonApp("nlpService", "../Agitprop.Scraper.NLPService", "app.py")
                         .WithHttpEndpoint(env: "PORT")
                         .WithHttpHealthCheck("/health", 200)
-                        .WithExternalHttpEndpoints()
-                        .WithOtlpExporter()
-                        .PublishAsDockerFile();
+                        .WithExternalHttpEndpoints();
+                        //.WithOtlpExporter()
+                        // .PublishAsDockerFile();
 #pragma warning restore ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 
 
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
-                      .WaitFor(surrealDb)
-                      .WithReference(surrealDb)
+                      //.WaitFor(surrealDb)
+                      //.WithReference(surrealDb)
+                      .WaitFor(postgres)
+                      .WithReference(postgres)
                       .WaitFor(messaging)
                       .WithReference(messaging)
                       .WaitFor(nlpService)
@@ -43,9 +50,9 @@ var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-rea
                        .PublishAsDockerFile();
 
 var backend = builder.AddProject<Agitprop_Web_Api>("backend")
-                       .WithReference(surrealDb)
-                       .WaitFor(surrealDb)
-                       .PublishAsDockerFile();
+                     .WaitFor(postgres)
+                     .WithReference(postgres)
+                     .PublishAsDockerFile();
 
 builder.AddNpmApp("angular", "../Agitprop.Web.Client")
     .WithReference(backend)

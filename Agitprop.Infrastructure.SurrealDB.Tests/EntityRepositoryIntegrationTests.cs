@@ -65,7 +65,7 @@ public class EntityRepositoryIntegrationTests
         var all = await _repository.GetEntitiesAsync();
         var first = all.FirstOrDefault();
         Assert.That(first, Is.Not.Null);
-        var entity = await _repository.GetEntityByIdAsync(first!.Id.DeserializeId<string>());
+        var entity = await _repository.GetEntityByIdAsync(first!.Id);
         Assert.That(entity, Is.Not.Null);
         Assert.That(entity!.Name, Is.EqualTo(first.Name));
     }

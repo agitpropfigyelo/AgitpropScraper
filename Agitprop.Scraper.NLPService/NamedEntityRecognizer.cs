@@ -1,60 +1,178 @@
-﻿using System.Text;
+﻿using Polly;
+using Microsoft.Extensions.Configuration;
+using System.Text;
 using System.Text.Json;
-
-using Agitprop.Infrastructure;
-using Agitprop.Infrastructure.Interfaces;
-
+using Agitprop.Core;
+using Agitprop.Core.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Agitprop.Scraper.NLPService;
 
 /// <summary>
-/// Provides functionality for recognizing named entities in text using an external service.
+/// Provides functionality for recognizing named entities in text using an external service, with retries and tracing.
 /// </summary>
-public class NamedEntityRecognizer(HttpClient client, ILogger<NamedEntityRecognizer> logger) : INamedEntityRecognizer
+public class NamedEntityRecognizer : INamedEntityRecognizer
 {
-    private readonly HttpClient _client = client;
-    private ILogger<NamedEntityRecognizer> Logger = logger;
+    private readonly HttpClient _client;
+    private readonly ILogger<NamedEntityRecognizer> _logger;
+    private readonly int _retryCount;
+    private static readonly ActivitySource _activitySource = new("Agitprop.NamedEntityRecognizer");
 
-    /// <summary>
-    /// Pings the named entity recognition service to check its availability.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the response from the service.</returns>
+    public NamedEntityRecognizer(HttpClient client, ILogger<NamedEntityRecognizer> logger, IConfiguration? configuration = null)
+    {
+        _client = client;
+        _logger = logger;
+        _retryCount = configuration?.GetValue<int>("Retry:NLPService", 3) ?? 3;
+    }
+
     public async Task<string> PingAsync()
     {
-        var response = await _client.GetAsync("ping");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        using var activity = _activitySource.StartActivity("PingNLPService", ActivityKind.Client);
+        try
+        {
+            _logger.LogInformation("Pinging NLP service");
+            var response = await Policy
+                .Handle<Exception>()
+                .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+                .WaitAndRetryAsync(
+                    _retryCount,
+                    attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                    (outcome, ts, attempt, ctx) =>
+                    {
+                        if (outcome.Exception != null)
+                            _logger.LogWarning(outcome.Exception, "[RETRY] Exception pinging NLP service on attempt {Attempt}", attempt);
+                        else if (outcome.Result != null)
+                            _logger.LogWarning("[RETRY] Failed to ping NLP service on attempt {Attempt}. Status: {StatusCode}", attempt, outcome.Result.StatusCode);
+                    })
+                .ExecuteAsync(() => _client.GetAsync("health"));
+
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync();
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to ping NLP service");
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
     }
 
-    /// <summary>
-    /// Analyzes a single text corpus for named entities.
-    /// </summary>
-    /// <param name="corpus">The text corpus to analyze.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the named entity collection.</returns>
     public async Task<NamedEntityCollection> AnalyzeSingleAsync(object corpus)
     {
-        Logger.LogInformation("Analyzing single corpus");
+        using var activity = _activitySource.StartActivity("AnalyzeSingleCorpus", ActivityKind.Client);
+        activity?.SetTag("corpus.length", corpus?.ToString()?.Length ?? 0);
+
+        _logger.LogInformation("Analyzing single corpus");
+
         var json = JsonSerializer.Serialize(corpus);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("analyzeSingle", content);
-        response.EnsureSuccessStatusCode();
-        var responseBody = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<NamedEntityCollection>(responseBody);
-    }
 
-    /// <summary>
-    /// Analyzes a batch of text corpora for named entities.
-    /// </summary>
-    /// <param name="corpora">The array of text corpora to analyze.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an array of named entity collections.</returns>
+        try
+        {
+            var response = await Policy
+                .Handle<Exception>()
+                .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+                .WaitAndRetryAsync(
+                    _retryCount,
+                    attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                    (outcome, ts, attempt, ctx) =>
+                    {
+                        if (outcome.Exception != null)
+                            _logger.LogWarning(outcome.Exception, "[RETRY] Exception analyzing single corpus on attempt {Attempt}", attempt);
+                        else if (outcome.Result != null)
+                            _logger.LogWarning("[RETRY] Failed to analyze single corpus on attempt {Attempt}. Status: {StatusCode}", attempt, outcome.Result.StatusCode);
+                    })
+                .ExecuteAsync(() => _client.PostAsync("analyzeSingle", content));
+
+            activity?.SetTag("response", response);
+            response.EnsureSuccessStatusCode();
+            var responseBody = await response.Content.ReadAsStringAsync();
+            
+            try
+            {
+                var entities = JsonSerializer.Deserialize<List<NamedEntity>>(responseBody,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+                var result = new NamedEntityCollection { Entities = entities };
+                _logger.LogInformation("Single corpus analyzed successfully. Entities found: {Count}", result.All.Count);
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return result;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize NLP service response: {Response}", responseBody);
+                activity?.SetStatus(ActivityStatusCode.Error, "JSON deserialization failed");
+                throw new InvalidOperationException("Failed to parse NLP service response", ex);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to analyze single corpus");
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
+    }
+    
+
     public async Task<NamedEntityCollection[]> AnalyzeBatchAsync(object[] corpora)
     {
+        using var activity = _activitySource.StartActivity("AnalyzeBatchCorpus", ActivityKind.Client);
+        activity?.SetTag("batch.size", corpora?.Length ?? 0);
+
+        _logger.LogInformation("Analyzing batch of {Count} corpora", corpora?.Length ?? 0);
+
         var json = JsonSerializer.Serialize(corpora);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("analyzeBatch", content);
-        response.EnsureSuccessStatusCode();
-        var responseBody = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<NamedEntityCollection[]>(responseBody);
+
+        try
+        {
+            var response = await Policy
+                .Handle<Exception>()
+                .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+                .WaitAndRetryAsync(
+                    _retryCount,
+                    attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                    (outcome, ts, attempt, ctx) =>
+                    {
+                        if (outcome.Exception != null)
+                            _logger.LogWarning(outcome.Exception, "[RETRY] Exception analyzing batch corpus on attempt {Attempt}", attempt);
+                        else if (outcome.Result != null)
+                            _logger.LogWarning("[RETRY] Failed to analyze batch corpus on attempt {Attempt}. Status: {StatusCode}", attempt, outcome.Result.StatusCode);
+                    })
+                .ExecuteAsync(() => _client.PostAsync("analyzeBatch", content));
+
+            activity?.SetTag("response", response);
+            activity?.SetTag("responseContent", response.Content);
+            response.EnsureSuccessStatusCode();
+            var responseBody = await response.Content.ReadAsStringAsync();
+            
+            try
+            {
+                var batchEntities = JsonSerializer.Deserialize<List<List<NamedEntity>>>(responseBody,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+                
+                var result = batchEntities.Select(entities => 
+                    new NamedEntityCollection { Entities = entities }).ToArray();
+                
+                _logger.LogInformation("Batch analysis completed successfully. Total corpora: {Count}", result.Length);
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return result;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize NLP service batch response: {Response}", responseBody);
+                activity?.SetStatus(ActivityStatusCode.Error, "JSON deserialization failed");
+                throw new InvalidOperationException("Failed to parse NLP service batch response", ex);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to analyze batch corpus");
+
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
     }
 }

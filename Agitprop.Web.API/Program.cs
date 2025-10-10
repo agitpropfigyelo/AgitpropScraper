@@ -1,8 +1,6 @@
-using Agitprop.Infrastructure.SurrealDB;
-using Agitprop.Infrastructure.SurrealDB.Models;
-using Agitprop.Web.Api.Services;
-
+using Agitprop.Infrastructure.Postgres;
 using OpenTelemetry.Trace;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,12 +14,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.AddNewsfeedRepositories();
-builder.Services.AddTransient<EntityService>();
 builder.Services.AddControllers();
 
-// builder.Services.AddScoped<EntityService>();
-//builder.Services.AddScoped<IEntityRepository, EntityRepository>();
-// builder.Services.AddScoped<ITrendingRepository, TrendingRepository>();
 // OpenTelemetry Tracer registration (if not already present)
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracerProviderBuilder =>
@@ -37,6 +31,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+if (app.Environment.IsDevelopment() ||
+    app.Configuration.GetValue<bool>("ApplyMigrationsAtStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+    Console.WriteLine("!!!!!!!!!!Applied migrations at startup!!!!!!!!!!");
 }
 
 app.UseHttpsRedirection();

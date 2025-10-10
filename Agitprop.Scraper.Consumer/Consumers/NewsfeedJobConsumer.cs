@@ -1,63 +1,83 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Agitprop.Infrastructure.Interfaces;
-
+using Agitprop.Core.Interfaces;
 using MassTransit;
-
 using Microsoft.Extensions.Logging;
-
 using Polly;
 using Polly.Registry;
 using System.Diagnostics;
 using Agitprop.Sinks.Newsfeed;
-using Agitprop.Core;
+using System;
 
 namespace Agitprop.Scraper.Consumer.Consumers
 {
     /// <summary>
     /// Consumes newsfeed job descriptions and processes them using a web scraping spider.
     /// </summary>
-    public class NewsfeedJobConsumer :
-        IConsumer<NewsfeedJobDescrpition>
+    public class NewsfeedJobConsumer : IConsumer<NewsfeedJobDescrpition>
     {
-        private ISpider spider;
-        private ILogger<NewsfeedJobConsumer> logger;
-        private ResiliencePipeline resiliencePipeline;
-        private NewsfeedSink sink;
-        private ActivitySource ActivitySource = new("Agitprop.NewsfeedJobConsumer");
+        private readonly ISpider _spider;
+        private readonly ILogger<NewsfeedJobConsumer> _logger;
+        private readonly ResiliencePipeline _resiliencePipeline;
+        private readonly NewsfeedSink _sink;
+        private static readonly ActivitySource _activitySource = new("Agitprop.NewsfeedJobConsumer");
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NewsfeedJobConsumer"/> class.
-        /// </summary>
-        /// <param name="spider">The web scraping spider to use for crawling.</param>
-        /// <param name="logger">The logger for logging information and errors.</param>
-        /// <param name="resiliencePipelineProvider">The resilience pipeline provider for handling transient errors.</param>
-        /// <param name="sink">The sink for processing scraped data.</param>
-        public NewsfeedJobConsumer(ISpider spider, ILogger<NewsfeedJobConsumer> logger, ResiliencePipelineProvider<string> resiliencePipelineProvider, NewsfeedSink sink)
+        public NewsfeedJobConsumer(
+            ISpider spider,
+            ILogger<NewsfeedJobConsumer> logger,
+            ResiliencePipelineProvider<string> resiliencePipelineProvider,
+            NewsfeedSink sink)
         {
-            this.spider = spider;
-            this.logger = logger;
-            resiliencePipeline = resiliencePipelineProvider.GetPipeline("Spider");
-            this.sink = sink;
+            _spider = spider;
+            _logger = logger;
+            _resiliencePipeline = resiliencePipelineProvider.GetPipeline("Spider");
+            _sink = sink;
         }
 
-        /// <summary>
-        /// Consumes a newsfeed job description and processes it.
-        /// </summary>
-        /// <param name="context">The consume context containing the job description.</param>
         public async Task Consume(ConsumeContext<NewsfeedJobDescrpition> context)
         {
-            using var trace = ActivitySource.StartActivity("Consume");
-            NewsfeedJobDescrpition descriptor = context.Message;
-            var job = descriptor.ConvertToScrapingJob();
-            logger.LogInformation("Crawling started: {url}", job.Url);
-            List<Core.ScrapingJobDescription> newJobs = await resiliencePipeline.ExecuteAsync(async ct => await spider.CrawlAsync(job, sink, ct));
-            logger.LogInformation("New jobs {count} received from: {url}", newJobs.Count, job.Url);
-            List<NewsfeedJobDescrpition> idk = newJobs.Select(x => (NewsfeedJobDescrpition)x).ToList();
-            await context.PublishBatch(idk);
+            using var activity = _activitySource.StartActivity("ConsumeNewsfeedJob", ActivityKind.Consumer);
+            var descriptor = context.Message;
+            activity?.SetTag("job.url", descriptor.Url);
+            activity?.SetTag("job.type", descriptor.Type.ToString());
 
-            logger.LogInformation("Crawling finished: {url}", job.Url);
+            _logger.LogInformation("Crawling started for URL: {Url}", descriptor.Url);
+
+            try
+            {
+                var job = descriptor.ConvertToScrapingJob();
+
+                // Create a span for the actual crawling
+                using var crawlActivity = _activitySource.StartActivity("SpiderCrawl", ActivityKind.Internal);
+                crawlActivity?.SetTag("crawl.url", job.Url);
+
+                List<Core.ScrapingJobDescription> newJobs = await _resiliencePipeline.ExecuteAsync(
+                    async ct => await _spider.CrawlAsync(job, _sink, ct));
+
+                crawlActivity?.SetTag("newJobs.count", newJobs.Count);
+                _logger.LogInformation("Crawling finished for URL: {Url}, new jobs found: {Count}", job.Url, newJobs.Count);
+
+                if (newJobs.Count > 0)
+                {
+                    // Create a span for publishing the new jobs
+                    using var publishActivity = _activitySource.StartActivity("PublishNewJobs", ActivityKind.Producer);
+                    var idk = newJobs.Select(x => (NewsfeedJobDescrpition)x).ToList();
+                    publishActivity?.SetTag("publish.jobs.count", idk.Count);
+                    await context.PublishBatch(idk);
+                    _logger.LogInformation("Published {Count} new jobs from URL: {Url}", idk.Count, job.Url);
+                    publishActivity?.SetStatus(ActivityStatusCode.Ok);
+                }
+
+                crawlActivity?.SetStatus(ActivityStatusCode.Ok);
+                activity?.SetStatus(ActivityStatusCode.Ok, "Job processed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing newsfeed job for URL: {Url}", descriptor.Url);
+                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                throw;
+            }
         }
     }
 }
