@@ -35,7 +35,7 @@ public class TrendsController : ControllerBase
                 Name=e.Name,
                 TotalMentions=mentionings[e.Id.ToString()].Count(),
                 MentionsCountByDate=mentionings[e.Id.ToString()].GroupBy(a=>DateOnly.FromDateTime(a.PublishedTime)).ToDictionary(g=>g.Key,g=>g.Count())
-            });
+            }).OrderByDescending(e=>e.TotalMentions).ToList();
             return Ok(new { trending = result });
         }
         catch (Exception ex)
