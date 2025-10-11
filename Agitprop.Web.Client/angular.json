@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "agitprop-dashboard": {
+    "Agitprop.Web.Client": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "agitprop-dashboard:build:production"
+              "buildTarget": "Agitprop.Web.Client:build:production"
             },
             "development": {
-              "buildTarget": "agitprop-dashboard:build:development"
+              "buildTarget": "Agitprop.Web.Client:build:development"
             }
           },
           "defaultConfiguration": "development"

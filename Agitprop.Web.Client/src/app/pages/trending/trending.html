@@ -1,0 +1,11 @@
+<div class="trending-container">
+  <h2>Trending Entities</h2>
+
+  <div *ngIf="loading">Loading...</div>
+
+  <ul *ngIf="!loading">
+    <li *ngFor="let item of trending">
+      <strong>{{ item.name }}</strong> — {{ item.totalMentions }} mentions
+    </li>
+  </ul>
+</div>
