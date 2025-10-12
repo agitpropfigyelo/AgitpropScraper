@@ -1,37 +1,103 @@
 import { Component, OnInit } from '@angular/core';
-import { TrendingService, TrendingEntity } from '../../core/services/trending';
-import {CommonModule} from "@angular/common";
+import { CommonModule } from '@angular/common';
+import { TrendingService, TrendingEntity, TrendingResponse } from '../../core/services/trending';
+import {
+  NgApexchartsModule,
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexStroke,
+  ApexXAxis,
+  ApexTooltip
+} from 'ng-apexcharts';
+import { catchError, of } from 'rxjs';
+import { DateRangePicker } from "../../shared/date-range-picker/date-range-picker";
+
+export interface SparklineChartOptions {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  stroke: ApexStroke;
+  tooltip: ApexTooltip;
+  xaxis: ApexXAxis;
+  colors: string[];
+}
 
 @Component({
   selector: 'app-trending',
   standalone: true,
+  imports: [CommonModule, NgApexchartsModule, DateRangePicker],
   templateUrl: './trending.html',
-  styleUrl: './trending.scss',
-  imports: [CommonModule]
+  styleUrls: ['./trending.scss']
 })
-export class Trending implements OnInit {
-  trending: TrendingEntity[] = [];
+export class TrendingComponent implements OnInit {
+  trending: (TrendingEntity & { chartOptions: SparklineChartOptions })[] = [];
   loading = true;
 
-  constructor(private trendingService: TrendingService) {}
+  private readonly defaultChartOptions: SparklineChartOptions = {
+    series: [{ data: [] }],
+    chart: { type: 'line', sparkline: { enabled: true } },
+    stroke: { width: 2 },
+    colors: ['#ccc'],
+    tooltip: { enabled: false },
+    xaxis: { categories: [] }
+  };
+  fromDate: any;
+  toDate: any;
 
-  ngOnInit() {
+  constructor(private trendingService: TrendingService) { }
+
+  ngOnInit(): void {
     const today = new Date();
-    const weekAgo = new Date();
-    weekAgo.setDate(today.getDate() - 7);
+    this.toDate = today;
 
-    const from = weekAgo.toISOString().split('T')[0];
-    const to = today.toISOString().split('T')[0];
-
-    this.trendingService.getTrending(from, to).subscribe({
-      next: (response) => {
-        this.trending = response.trending;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Failed to load trending data', err);
-        this.loading = false;
-      }
-    });
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    this.fromDate = sevenDaysAgo;
+    
+    this.loadTrending();
   }
+
+  loadTrending(): void {
+    this.loading = true;
+
+    this.trendingService.getTrending(
+      this.fromDate.toISOString().slice(0, 10),
+      this.toDate.toISOString().slice(0, 10)
+    )
+      .pipe(
+        catchError(err => {
+          console.error('Failed to load trending data', err);
+          return of({ trending: [] } as TrendingResponse);
+        })
+      )
+      .subscribe(data => {
+        this.trending = data.trending.map(entity => {
+          const sorted = Object.entries(entity.mentionsCountByDate)
+            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime());
+
+          const seriesData = sorted.map(([, count]) => count);
+          const color = seriesData[seriesData.length - 1] > seriesData[0] ? '#00C853' : '#D32F2F';
+
+          return {
+            ...entity,
+            chartOptions: {
+              ...this.defaultChartOptions,
+              series: [{ data: seriesData }],
+              colors: [color],
+              xaxis: { categories: sorted.map(([d]) => d) },
+              chart: { ...this.defaultChartOptions.chart, height: 50, width: 150 }
+            }
+          };
+        });
+
+        this.loading = false;
+      });
+  }
+
+
+  onDateRangeChange(event: { from: Date; to: Date }): void {
+    this.fromDate = event.from;
+    this.toDate = event.to;
+    this.loadTrending();
+  }
+
 }

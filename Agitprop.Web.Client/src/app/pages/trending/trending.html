@@ -1,11 +1,29 @@
-<div class="trending-container">
-  <h2>Trending Entities</h2>
-
-  <div *ngIf="loading">Loading...</div>
-
-  <ul *ngIf="!loading">
-    <li *ngFor="let item of trending">
-      <strong>{{ item.name }}</strong> — {{ item.totalMentions }} mentions
-    </li>
-  </ul>
+<div class="trending-page" *ngIf="!loading; else loadingTpl">
+  <app-date-range-picker
+  (rangeChange)="onDateRangeChange($event)">
+</app-date-range-picker>
+  <div class="trending-list">
+  <div *ngFor="let entity of trending" class="trending-card">
+    <div class="info">
+      <div class="name">{{ entity.name }}</div>
+      <div class="total">Total mentions: {{ entity.totalMentions }}</div>
+    </div>
+    <div class="sparkline">
+      <apx-chart
+        [series]="entity.chartOptions.series"
+        [chart]="entity.chartOptions.chart"
+        [stroke]="entity.chartOptions.stroke"
+        [xaxis]="entity.chartOptions.xaxis"
+        [tooltip]="entity.chartOptions.tooltip"
+        [colors]="entity.chartOptions.colors"
+      ></apx-chart>
+    </div>
+  </div>
 </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loading">
+    <span>Betöltés...</span>
+  </div>
+</ng-template>
