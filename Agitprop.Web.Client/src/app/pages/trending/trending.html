@@ -1,29 +1,44 @@
-<div class="trending-page" *ngIf="!loading; else loadingTpl">
-  <app-date-range-picker
-  (rangeChange)="onDateRangeChange($event)">
-</app-date-range-picker>
-  <div class="trending-list">
-  <div *ngFor="let entity of trending" class="trending-card">
-    <div class="info">
-      <div class="name">{{ entity.name }}</div>
-      <div class="total">Total mentions: {{ entity.totalMentions }}</div>
-    </div>
-    <div class="sparkline">
-      <apx-chart
-        [series]="entity.chartOptions.series"
-        [chart]="entity.chartOptions.chart"
-        [stroke]="entity.chartOptions.stroke"
-        [xaxis]="entity.chartOptions.xaxis"
-        [tooltip]="entity.chartOptions.tooltip"
-        [colors]="entity.chartOptions.colors"
-      ></apx-chart>
-    </div>
-  </div>
-</div>
+<div class="date-picker-container">
+  <igx-date-range-picker [value]="dateRange" (onValueChange)="onDateRangeChange($event)">
+  </igx-date-range-picker>
+  <button class="apply-btn" (click)="applyDateRange()">Apply</button>
 </div>
 
-<ng-template #loadingTpl>
-  <div class="loading">
-    <span>Betöltés...</span>
+<div class="big-chart-container">
+  <apx-chart 
+    [series]="bigChartSeries" 
+    [chart]="bigChartOptions.chart" 
+    [stroke]="bigChartOptions.stroke"
+    [xaxis]="bigChartOptions.xaxis" 
+    [tooltip]="bigChartOptions.tooltip" 
+    [legend]="bigChartOptions.legend">
+  </apx-chart>
+</div>
+
+<div class="trending-list">
+  <div *ngFor="let entity of trending" class="entity-card">
+    <input type="checkbox" [checked]="entity.selected" (change)="toggleEntitySelection(entity)" />
+    <div class="entity-info">
+      <div class="entity-name">{{ entity.name }}</div>
+      <div class="entity-total">{{ entity.totalMentions }}</div>
+    </div>
+    <apx-chart [series]="entity.chartOptions.series" [chart]="entity.chartOptions.chart" 
+               [stroke]="entity.chartOptions.stroke" [xaxis]="entity.chartOptions.xaxis"
+               [tooltip]="entity.chartOptions.tooltip" [colors]="entity.chartOptions.colors">
+    </apx-chart>
+    <button class="expand-btn" (click)="toggleExpand(entity)">▼</button>
+
+    <div *ngIf="entity.expanded" class="expanded-section">
+      <div class="pie-chart">
+        <!-- Pie chart placeholder -->
+      </div>
+      <div class="article-list">
+        <div *ngFor="let article of entity.articles">
+          <span>{{ article.title }}</span>
+          <a [href]="article.articleUrl" target="_blank">Link</a>
+          <span>{{ article.articlePublishedTime | date:'shortDate' }}</span>
+        </div>
+      </div>
+    </div>
   </div>
-</ng-template>
+</div>

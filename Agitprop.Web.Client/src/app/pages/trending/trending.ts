@@ -1,16 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TrendingService, TrendingEntity, TrendingResponse } from '../../core/services/trending';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IgxDateRangePickerModule } from 'igniteui-angular';
 import {
   NgApexchartsModule,
   ApexAxisChartSeries,
   ApexChart,
   ApexStroke,
   ApexXAxis,
-  ApexTooltip
+  ApexTooltip,
+  ApexLegend
 } from 'ng-apexcharts';
 import { catchError, of } from 'rxjs';
-import { DateRangePicker } from "../../shared/date-range-picker/date-range-picker";
+import { TrendingService, TrendingResponse } from '../../core/services/trending';
+import { EntitiesService, EntityDetailsDto, ArticleDto, MentioningArticlesResponse } from '../../core/services/entities';
 
 export interface SparklineChartOptions {
   series: ApexAxisChartSeries;
@@ -24,80 +27,130 @@ export interface SparklineChartOptions {
 @Component({
   selector: 'app-trending',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, DateRangePicker],
+  imports: [CommonModule, FormsModule, DatePipe, IgxDateRangePickerModule, NgApexchartsModule],
   templateUrl: './trending.html',
   styleUrls: ['./trending.scss']
 })
 export class TrendingComponent implements OnInit {
-  trending: (TrendingEntity & { chartOptions: SparklineChartOptions })[] = [];
+  fromDate: Date;
+  toDate: Date;
+  dateRange: { start: Date; end: Date };
+
+  trending: (EntityDetailsDto & {
+    chartOptions: SparklineChartOptions;
+    selected: boolean;
+    expanded: boolean;
+    articles?: ArticleDto[];
+    domainPieData?: { [domain: string]: number };
+  })[] = [];
   loading = true;
 
-  private readonly defaultChartOptions: SparklineChartOptions = {
-    series: [{ data: [] }],
-    chart: { type: 'line', sparkline: { enabled: true } },
-    stroke: { width: 2 },
-    colors: ['#ccc'],
-    tooltip: { enabled: false },
-    xaxis: { categories: [] }
-  };
-  fromDate: any;
-  toDate: any;
+  bigChartSeries: ApexAxisChartSeries = [];
+  bigChartOptions: any = {};
 
-  constructor(private trendingService: TrendingService) { }
-
-  ngOnInit(): void {
+  constructor(private trendingService: TrendingService, private entityService: EntitiesService) {
     const today = new Date();
     this.toDate = today;
+    this.fromDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000); // elmúlt 7 nap
+    this.dateRange = { start: this.fromDate, end: this.toDate };
+  }
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
-    this.fromDate = sevenDaysAgo;
-    
+  ngOnInit(): void {
     this.loadTrending();
   }
 
   loadTrending(): void {
     this.loading = true;
-
-    this.trendingService.getTrending(
-      this.fromDate.toISOString().slice(0, 10),
-      this.toDate.toISOString().slice(0, 10)
-    )
+    this.trendingService
+      .getTrending(this.fromDate.toISOString().slice(0, 10), this.toDate.toISOString().slice(0, 10))
       .pipe(
         catchError(err => {
-          console.error('Failed to load trending data', err);
+          console.error('Trending load failed', err);
           return of({ trending: [] } as TrendingResponse);
         })
       )
-      .subscribe(data => {
+      .subscribe((data: TrendingResponse) => {
         this.trending = data.trending.map(entity => {
-          const sorted = Object.entries(entity.mentionsCountByDate)
-            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime());
-
-          const seriesData = sorted.map(([, count]) => count);
+          const sorted = Object.entries(entity.mentionsCountByDate || {}).sort(
+            ([a], [b]) => new Date(a).getTime() - new Date(b).getTime()
+          );
+          const seriesData = sorted.map(([_, count]) => count);
           const color = seriesData[seriesData.length - 1] > seriesData[0] ? '#00C853' : '#D32F2F';
 
-          return {
-            ...entity,
-            chartOptions: {
-              ...this.defaultChartOptions,
-              series: [{ data: seriesData }],
-              colors: [color],
-              xaxis: { categories: sorted.map(([d]) => d) },
-              chart: { ...this.defaultChartOptions.chart, height: 50, width: 150 }
-            }
+          const chartOptions: SparklineChartOptions = {
+            series: [{ data: seriesData }],
+            colors: [color],
+            chart: {
+              type: 'line',
+              sparkline: { enabled: true },
+              height: 50,
+              width: 150
+            },
+            stroke: { width: 2 },
+            tooltip: { enabled: false },
+            xaxis: { categories: sorted.map(([d]) => d) }
           };
+
+          return { ...entity, chartOptions, selected: false, expanded: false };
         });
 
+        this.updateBigChart();
         this.loading = false;
       });
   }
 
+  onDateRangeChange(event: any) {
+    // az event.value tartalmazza a start és end dátumokat
+    if (event && event.value) {
+      this.dateRange = { start: event.value.start, end: event.value.end };
+    }
+  }
 
-  onDateRangeChange(event: { from: Date; to: Date }): void {
-    this.fromDate = event.from;
-    this.toDate = event.to;
+  applyDateRange() {
+    this.fromDate = this.dateRange.start;
+    this.toDate = this.dateRange.end;
     this.loadTrending();
   }
 
+  toggleEntitySelection(entity: EntityDetailsDto & any) {
+    entity.selected = !entity.selected;
+    this.updateBigChart();
+  }
+
+  toggleExpand(entity: EntityDetailsDto & any) {
+    entity.expanded = !entity.expanded;
+    if (entity.expanded && !entity.articles) {
+      this.entityService
+        .getEntityArticles(entity.id!, this.fromDate.toISOString().slice(0, 10), this.toDate.toISOString().slice(0, 10))
+        .pipe(catchError(() => of({ articles: [] } as MentioningArticlesResponse)))
+        .subscribe(res => {
+          entity.articles = res.articles || [];
+          entity.domainPieData = {};
+          entity.articles.forEach((a: { articleUrl: any; }) => {
+            try {
+              const url = new URL(a.articleUrl || '');
+              entity.domainPieData![url.hostname] = (entity.domainPieData![url.hostname] || 0) + 1;
+            } catch { }
+          });
+        });
+    }
+  }
+
+  private updateBigChart() {
+    const selectedEntities = this.trending.filter(e => e.selected);
+    this.bigChartSeries = selectedEntities.map(e => {
+      const sorted = Object.entries(e.mentionsCountByDate || {}).sort(
+        ([a], [b]) => new Date(a).getTime() - new Date(b).getTime()
+      );
+      return { name: e.name, data: sorted.map(([_, count]) => count) };
+    });
+
+    this.bigChartOptions = {
+      chart: { type: 'line', height: 300 },
+      stroke: { width: 2 },
+      xaxis: { categories: selectedEntities.length > 0 ? Object.keys(selectedEntities[0].mentionsCountByDate!) : [] },
+      tooltip: { shared: true },
+      legend: { position: 'top' }
+    };
+  }
 }
