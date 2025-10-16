@@ -9,7 +9,10 @@ import {
   ApexStroke,
   ApexXAxis,
   ApexTooltip,
-  ApexLegend
+  ApexLegend,
+  ApexNonAxisChartSeries,
+  ApexDataLabels,
+  ApexTitleSubtitle
 } from 'ng-apexcharts';
 import { catchError, of } from 'rxjs';
 import { TrendingService, TrendingResponse } from '../../core/services/trending';
@@ -22,6 +25,15 @@ export interface SparklineChartOptions {
   tooltip: ApexTooltip;
   xaxis: ApexXAxis;
   colors: string[];
+}
+
+export interface PieChartOptions {
+  series: ApexNonAxisChartSeries;
+  chart: ApexChart;
+  legend: ApexLegend;
+  labels: any;
+  dataLabels: ApexDataLabels;
+  title: ApexTitleSubtitle;
 }
 
 @Component({
@@ -42,6 +54,7 @@ export class TrendingComponent implements OnInit {
     expanded: boolean;
     articles?: ArticleDto[];
     domainPieData?: { [domain: string]: number };
+    pieChartOptions?: PieChartOptions;
   })[] = [];
   loading = true;
 
@@ -132,6 +145,31 @@ export class TrendingComponent implements OnInit {
               entity.domainPieData![url.hostname] = (entity.domainPieData![url.hostname] || 0) + 1;
             } catch { }
           });
+
+          const pieSeries = Object.values(entity.domainPieData!);
+          const pieLabels = Object.keys(entity.domainPieData!);
+
+          entity.pieChartOptions = {
+            series: pieSeries,
+            labels: pieLabels,
+            chart: {
+              type: 'pie',
+              width: 200,
+              height: 400
+            },
+            legend: {
+              show: true,
+              position: 'bottom',
+
+            },
+            dataLabels: {
+              enabled: false
+            },
+            title: {
+              text: 'Distribution',
+              align: 'center'
+            }
+          };
         });
     }
   }

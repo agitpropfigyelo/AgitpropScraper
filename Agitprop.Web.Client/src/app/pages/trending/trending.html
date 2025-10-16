@@ -30,14 +30,32 @@
 
     <div *ngIf="entity.expanded" class="expanded-section">
       <div class="pie-chart">
-        <!-- Pie chart placeholder -->
+        <apx-chart *ngIf="entity.pieChartOptions"
+          [series]="entity.pieChartOptions.series"
+          [chart]="entity.pieChartOptions.chart"
+          [labels]="entity.pieChartOptions.labels"
+          [legend]="entity.pieChartOptions.legend"
+          [dataLabels]="entity.pieChartOptions.dataLabels"
+          [title]="entity.pieChartOptions.title">
+        </apx-chart>
       </div>
-      <div class="article-list">
-        <div *ngFor="let article of entity.articles">
-          <span>{{ article.title }}</span>
-          <a [href]="article.articleUrl" target="_blank">Link</a>
-          <span>{{ article.articlePublishedTime | date:'shortDate' }}</span>
-        </div>
+      <div class="article-table-container">
+        <table class="article-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Link</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let article of entity.articles">
+              <td>{{ article.title }}</td>
+              <td><a [href]="article.articleUrl" target="_blank">Link</a></td>
+              <td>{{ article.articlePublishedTime | date:'shortDate' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
