@@ -12,7 +12,7 @@ var messaging = builder.AddRabbitMQ("messaging")
 //                        .WithBindMount("../databaseMount", "/mydata")
 //                        .WithOtlpExporter();
 var postgres = builder.AddPostgres("postgres")
-                      //.WithDataVolume(isReadOnly: false)
+                      .WithDataVolume(isReadOnly: false)
                       .WithPgAdmin(pgAdmin => {
                           pgAdmin.WithHostPort(5050);
                           pgAdmin.WithImageTag("latest");})
