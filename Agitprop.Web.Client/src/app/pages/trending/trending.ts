@@ -154,8 +154,8 @@ export class TrendingComponent implements OnInit {
             labels: pieLabels,
             chart: {
               type: 'pie',
-              width: 200,
-              height: 400
+              width: 300,
+              height: 300
             },
             legend: {
               show: true,
