@@ -69,14 +69,14 @@ public class EntityRepository : IEntityRepository
         }
     }
 
-    public async Task<Entity?> GetEntityByIdAsync(string entityId)
+    public Entity? GetEntityByIdAsync(string entityId)
     {
         using var trace = _activitySource.StartActivity("GetEntityById", ActivityKind.Internal);
         trace?.SetTag("entityId", entityId);
 
         try
         {
-            var results = await _dbContext.Entities.Include(e => e.Mentions).FirstOrDefaultAsync(e => e.Id == Guid.Parse(entityId));
+            var results = _dbContext.Entities.Include(e => e.Mentions).AsNoTracking().FirstOrDefault(e => e.Id == Guid.Parse(entityId));
             return results?.ToCoreModel();
         }
         catch (Exception ex)
@@ -105,8 +105,9 @@ public class EntityRepository : IEntityRepository
                .Where(a => a.EntityId == uuid)
                .Include(m => m.Article)
                .Where(a => a.Article.PublishedTime >= from && a.Article.PublishedTime <= to)
-               .Include(a => a.Entity)
-               .Select(m => m.Article);
+               .Select(m => m.Article)
+               .OrderByDescending(a => a.PublishedTime)
+               .AsNoTracking();
 
             return result.ToCoreModel();
         }

@@ -31,7 +31,7 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<PostgresMention>(mention =>
     {
       mention.ToTable("mentions");
-      mention.HasKey(m => m.Id);
+      mention.HasKey(m => new{m.ArticleId, m.EntityId});
 
       mention.HasOne(m => m.Article)
                  .WithMany(a => a.Mentions)

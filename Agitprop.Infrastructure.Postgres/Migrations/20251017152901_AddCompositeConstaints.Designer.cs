@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Agitprop.Infrastructure.Postgres.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250921183820_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251017152901_AddCompositeConstaints")]
+    partial class AddCompositeConstaints
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,6 +33,10 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
 
                     b.Property<DateTime>("PublishedTime")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Url")
                         .IsRequired()
@@ -56,6 +60,10 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
@@ -65,19 +73,16 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
 
             modelBuilder.Entity("Agitprop.Infrastructure.Postgres.Models.PostgresMention", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ArticleId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("EntityId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    b.HasIndex("ArticleId");
+                    b.HasKey("ArticleId", "EntityId");
 
                     b.HasIndex("EntityId");
 

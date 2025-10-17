@@ -52,7 +52,8 @@
             <tr *ngFor="let article of entity.articles">
               <td>{{ article.title }}</td>
               <td><a [href]="article.articleUrl" target="_blank">Link</a></td>
-              <td>{{ article.articlePublishedTime | date:'shortDate' }}</td>
+              <td>{{ article.articlePublishedTime | date:'mediumDate' }}</td>
+              <td>{{ article.articlePublishedTime | date:'shorTime' }}</td>
             </tr>
           </tbody>
         </table>

@@ -63,7 +63,7 @@ public class EntitiesController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         using var activity = _activitySource.StartActivity("GetEntityDetails", ActivityKind.Server);
-        var entity = await _entityRepository.GetEntityByIdAsync(entityId);
+        var entity = _entityRepository.GetEntityByIdAsync(entityId);
 
         if (entity == null)
             return NotFound();
@@ -90,7 +90,7 @@ public class EntitiesController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         using var activity = _activitySource.StartActivity("GetEntityTimeline", ActivityKind.Server);
-        var entity = await _entityRepository.GetEntityByIdAsync(entityId);
+        var entity =  _entityRepository.GetEntityByIdAsync(entityId);
         var articles = _entityRepository.GetMentioningArticlesAsync(entityId,
                                                                           request.StartDate,
                                                                           request.EndDate);
