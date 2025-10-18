@@ -31,48 +31,15 @@ public class NewsfeedDB(AppDbContext db, ILogger<NewsfeedDB> logger) : INewsfeed
             _logger.LogInformation("Creating mentions for article {@Url} from {@Source} at {@PublishDate}",
                 url, article.SourceSite, article.PublishDate);
 
-            // Check if article already exists and get it if it does
-            var existingArticle = await _db.Articles
-                .Include(a => a.Mentions)
-                .FirstOrDefaultAsync(a => a.Url == url);
-
-            PostgresArticle articleToUse;
-            bool isUpdate = false;
-
-            if (existingArticle != null)
+            _logger.LogInformation("Article does not exist in DB: {@Url}", url);
+            var articleToUse = new PostgresArticle
             {
-                _logger.LogInformation("Article already exists in DB: {@Url}", url);
-                articleToUse = existingArticle;
-                isUpdate = true;
-
-                // Update article fields
-                articleToUse.Title = article.Title;
-                articleToUse.PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc);
-
-                // Remove existing mentions to recreate them
-                _db.Mentions.RemoveRange(existingArticle.Mentions);
-            }
-            else
-            {
-                _logger.LogInformation("Article does not exist in DB: {@Url}", url);
-                articleToUse = new PostgresArticle
-                {
-                    Id = Guid.NewGuid(),
-                    Title = article.Title,
-                    Url = url,
-                    PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc)
-                };
-                _db.Articles.Add(articleToUse);
-            }
-
-            // var newArticle = new PostgresArticle
-            // {
-            //     Id = Guid.NewGuid(),
-            //     Title = article.Title,
-            //     Url = url,
-            //     PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc)
-            // };
-            // _db.Articles.Add(newArticle);
+                Id = Guid.NewGuid(),
+                Title = article.Title,
+                Url = url,
+                PublishedTime = DateTime.SpecifyKind(article.PublishDate, DateTimeKind.Utc)
+            };
+            _db.Articles.Add(articleToUse);
 
             int addedEntities = 0;
 
@@ -102,24 +69,16 @@ public class NewsfeedDB(AppDbContext db, ILogger<NewsfeedDB> logger) : INewsfeed
                     Article = articleToUse,
                     Entity = dbEntity
                 });
-                _logger.LogDebug(
-                    isUpdate
-                        ? "Updated mention for entity {@EntityName} in article {@ArticleUrl}"
-                        : "Created mention for entity {@EntityName} in article {@ArticleUrl}",
-                    entity, url);
+                _logger.LogDebug("Created mention for entity {@EntityName} in article {@ArticleUrl}", entity, url);
 
                 entityActivity?.SetStatus(ActivityStatusCode.Ok);
             }
 
             int changes = await _db.SaveChangesAsync();
 
-            _logger.LogInformation(
-                isUpdate 
-                    ? "Finished updating mentions. Total entities added: {EntitiesAdded}, DB changes: {DbChanges}"
-                    : "Finished creating mentions. Total entities added: {EntitiesAdded}, DB changes: {DbChanges}",
-                addedEntities, changes);
+            _logger.LogInformation("Finished creating mentions. Total entities added: {EntitiesAdded}, DB changes: {DbChanges}", addedEntities, changes);
 
-            activity?.SetStatus(ActivityStatusCode.Ok, isUpdate ? "Mentions updated" : "Mentions created");
+            activity?.SetStatus(ActivityStatusCode.Ok, "Mentions created");
             return changes;
         }
         catch (Exception ex)

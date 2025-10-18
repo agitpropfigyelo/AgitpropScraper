@@ -107,6 +107,7 @@ export class TrendingComponent implements OnInit {
           return { ...entity, chartOptions, selected: false, expanded: false };
         });
 
+        this.trending.slice(0, 5).forEach(e => e.selected = true);
         this.updateBigChart();
         this.loading = false;
       });

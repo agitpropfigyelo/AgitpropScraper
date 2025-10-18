@@ -12,6 +12,10 @@ public class AppDbContext : DbContext
   public DbSet<PostgresEntity> Entities => Set<PostgresEntity>();
   public DbSet<PostgresMention> Mentions => Set<PostgresMention>();
 
+  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+  {
+    optionsBuilder.EnableSensitiveDataLogging();
+  }
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
     modelBuilder.Entity<PostgresArticle>(entity =>
@@ -31,7 +35,7 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<PostgresMention>(mention =>
     {
       mention.ToTable("mentions");
-      mention.HasKey(m => new{m.ArticleId, m.EntityId});
+      mention.HasKey(m => new { m.ArticleId, m.EntityId });
 
       mention.HasOne(m => m.Article)
                  .WithMany(a => a.Mentions)
