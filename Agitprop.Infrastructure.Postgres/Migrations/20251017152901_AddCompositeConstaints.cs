@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Agitprop.Infrastructure.Postgres.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AddCompositeConstaints : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,6 +16,7 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
                     Url = table.Column<string>(type: "text", nullable: false),
                     PublishedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -29,7 +30,8 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false)
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -40,13 +42,13 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
                 name: "mentions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ArticleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    EntityId = table.Column<Guid>(type: "uuid", nullable: false)
+                    EntityId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_mentions", x => x.Id);
+                    table.PrimaryKey("PK_mentions", x => new { x.ArticleId, x.EntityId });
                     table.ForeignKey(
                         name: "FK_mentions_articles_ArticleId",
                         column: x => x.ArticleId,
@@ -71,11 +73,6 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
                 name: "IX_entities_Name",
                 table: "entities",
                 column: "Name");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_mentions_ArticleId",
-                table: "mentions",
-                column: "ArticleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_mentions_EntityId",

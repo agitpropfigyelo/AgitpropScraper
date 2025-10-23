@@ -70,19 +70,16 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
 
             modelBuilder.Entity("Agitprop.Infrastructure.Postgres.Models.PostgresMention", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ArticleId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("EntityId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    b.HasIndex("ArticleId");
+                    b.HasKey("ArticleId", "EntityId");
 
                     b.HasIndex("EntityId");
 

@@ -5,8 +5,10 @@ using Agitprop.Web.Api;
 using Agitprop.Web.Api.DTOs.Responses;
 using Agitprop.Web.Api.DTOs;
 using Agitprop.Web.Api.Models;
+using System.Diagnostics;
+using Agitprop.Api.Controllers;
 
-namespace Agitprop.Api.Controllers;
+namespace Agitprop.Web.Api.Controllers;
 
 /// <summary>
 /// Provides endpoints for browsing and analyzing entities.
@@ -17,6 +19,7 @@ public class EntitiesController : ControllerBase
 {
     private readonly ILogger<EntitiesController> _logger;
     private readonly IEntityRepository _entityRepository;
+    private static readonly ActivitySource _activitySource = new("Agitprop.Web.Api.Controllers.EntitiesController");
 
     public EntitiesController(
         ILogger<EntitiesController> logger,
@@ -34,6 +37,7 @@ public class EntitiesController : ControllerBase
         [FromQuery] EntitiesPaginatedRequest request,
         CancellationToken cancellationToken = default)
     {
+        using var activity = _activitySource.StartActivity("GetEntitiesPaginated", ActivityKind.Server);
         var entities = _entityRepository.GetEntitiesPaginatedAsync(
             request.StartDate,
             request.EndDate,
@@ -45,7 +49,7 @@ public class EntitiesController : ControllerBase
             Entities = entities.ToEntityDtos(),
             Page = request.Page
         };
-
+        activity?.SetTag("response", response);
         return Ok(response);
     }
 
@@ -58,12 +62,13 @@ public class EntitiesController : ControllerBase
         [FromQuery] EntityDetailsRequest request,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _entityRepository.GetEntityByIdAsync(entityId);
+        using var activity = _activitySource.StartActivity("GetEntityDetails", ActivityKind.Server);
+        var entity = _entityRepository.GetEntityByIdAsync(entityId);
 
         if (entity == null)
             return NotFound();
 
-        var dto = new EntityDetailsResponse
+        var response = new EntityDetailsResponse
         {
             EntityId = entity.Id,
             Name = entity.Name,
@@ -71,7 +76,8 @@ public class EntitiesController : ControllerBase
             TotalMentions = -1 //TODO: Implement total mentions calculation
         };
 
-        return Ok(dto);
+        activity?.SetTag("response", response);
+        return Ok(response);
     }
 
     /// <summary>
@@ -83,7 +89,8 @@ public class EntitiesController : ControllerBase
         [FromQuery] EntityTimelineRequest request,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _entityRepository.GetEntityByIdAsync(entityId);
+        using var activity = _activitySource.StartActivity("GetEntityTimeline", ActivityKind.Server);
+        var entity =  _entityRepository.GetEntityByIdAsync(entityId);
         var articles = _entityRepository.GetMentioningArticlesAsync(entityId,
                                                                           request.StartDate,
                                                                           request.EndDate);
@@ -105,6 +112,7 @@ public class EntitiesController : ControllerBase
             Timeline = timeline.ToList()
         };
 
+        activity?.SetTag("response", response);
         return Ok(response);
     }
 
@@ -117,12 +125,16 @@ public class EntitiesController : ControllerBase
         [FromQuery] MentioningArticlesRequest request,
         CancellationToken cancellationToken = default)
     {
-        var articles =  _entityRepository.GetMentioningArticlesAsync(
+        using var activity = _activitySource.StartActivity("GetArticlesMentioningEntity", ActivityKind.Server);
+        var articles = _entityRepository.GetMentioningArticlesAsync(
             entityId,
             request.StartDate,
             request.EndDate);
 
-        return Ok(new MentioningArticlesResponse { Articles = articles.ToArticleDto().ToList() });
+        var response = new MentioningArticlesResponse { Articles = [.. articles.ToArticleDto()] };
+        activity?.SetTag("response", response);
+
+        return Ok(response);
     }
 
     /// <summary>
@@ -134,6 +146,8 @@ public class EntitiesController : ControllerBase
         [FromQuery] RelatedEntitiesRequest request,
         CancellationToken cancellationToken = default)
     {
+        using var activity = _activitySource.StartActivity("GetRelatedEntities", ActivityKind.Server);
+
         // This assumes your repository will have a CoMention query later
         var articles = _entityRepository.GetMentioningArticlesAsync(
             entityId,
@@ -152,10 +166,12 @@ public class EntitiesController : ControllerBase
             })
             .OrderByDescending(r => r.CoMentionCount);
 
-        return Ok(new RelatedEntityResponse
+        var response = new RelatedEntityResponse
         {
             EntityId = entityId,
             CoMentionedEntities = related.ToList()
-        });
+        };
+        activity?.SetTag("response", response);
+        return Ok(response);
     }
 }

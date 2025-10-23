@@ -48,14 +48,9 @@ namespace Agitprop.Scraper.Consumer.Consumers
             {
                 var job = descriptor.ConvertToScrapingJob();
 
-                // Create a span for the actual crawling
-                using var crawlActivity = _activitySource.StartActivity("SpiderCrawl", ActivityKind.Internal);
-                crawlActivity?.SetTag("crawl.url", job.Url);
-
                 List<Core.ScrapingJobDescription> newJobs = await _resiliencePipeline.ExecuteAsync(
                     async ct => await _spider.CrawlAsync(job, _sink, ct));
 
-                crawlActivity?.SetTag("newJobs.count", newJobs.Count);
                 _logger.LogInformation("Crawling finished for URL: {Url}, new jobs found: {Count}", job.Url, newJobs.Count);
 
                 if (newJobs.Count > 0)
@@ -69,7 +64,6 @@ namespace Agitprop.Scraper.Consumer.Consumers
                     publishActivity?.SetStatus(ActivityStatusCode.Ok);
                 }
 
-                crawlActivity?.SetStatus(ActivityStatusCode.Ok);
                 activity?.SetStatus(ActivityStatusCode.Ok, "Job processed successfully");
             }
             catch (Exception ex)

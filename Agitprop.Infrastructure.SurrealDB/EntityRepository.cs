@@ -50,19 +50,19 @@ public class EntityRepository : IEntityRepository
         }
     }
 
-    public async Task<Entity?> GetEntityByIdAsync(string entityId)
+    public Entity? GetEntityByIdAsync(string entityId)
     {
         var recordId = new StringRecordId("entity:" + entityId);
         try
         {
-            var res = await Policy
+            var res = Policy
                 .Handle<Exception>()
-                .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
+                .WaitAndRetry(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
                 {
                     _logger?.LogWarning(ex, "[RETRY] Exception selecting entity by id on attempt {attempt}", attempt);
                 })
-                .ExecuteAsync(() => _client.Select<EntityRecord>(recordId));
-            return res.ToEnity();
+                .Execute(() => _client.Select<EntityRecord>(recordId));
+            return res.Result?.ToEnity();
         }
         catch (Exception ex)
         {
