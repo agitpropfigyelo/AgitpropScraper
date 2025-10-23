@@ -40,7 +40,13 @@ public class TrendsController : ControllerBase
                 TotalMentions = mentionings[e.Id.ToString()].Count(),
                 MentionsCountByDate = mentionings[e.Id.ToString()].GroupBy(a => DateOnly.FromDateTime(a.PublishedTime)).ToDictionary(g => g.Key, g => g.Count())
             }).OrderByDescending(e => e.TotalMentions).ToList();
-            return Ok(new { trending = result });
+            var response = new TrendingResponse
+            {
+                Trending = result
+            };  
+            activity?.SetTag("response", response);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            return Ok(response);
         }
         catch (Exception ex)
         {

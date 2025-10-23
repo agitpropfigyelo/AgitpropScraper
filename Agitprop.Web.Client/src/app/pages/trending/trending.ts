@@ -87,7 +87,9 @@ export class TrendingComponent implements OnInit {
           const sorted = Object.entries(entity.mentionsCountByDate || {}).sort(
             ([a], [b]) => new Date(a).getTime() - new Date(b).getTime()
           );
+          console.log('Sorted:',sorted);
           const seriesData = sorted.map(([_, count]) => count);
+          console.log('SeriesData',seriesData);
           const color = seriesData[seriesData.length - 1] > seriesData[0] ? '#00C853' : '#D32F2F';
 
           const chartOptions: SparklineChartOptions = {
