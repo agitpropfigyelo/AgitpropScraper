@@ -1,6 +1,12 @@
 <div class="date-picker-container">
-  <igx-date-range-picker [value]="dateRange" (onValueChange)="onDateRangeChange($event)">
-  </igx-date-range-picker>
+  <label>
+    From:
+    <input type="date" [value]="dateRange.start | date:'yyyy-MM-dd'" (change)="onStartChange($event.target.value)" />
+  </label>
+  <label>
+    To:
+    <input type="date" [value]="dateRange.end | date:'yyyy-MM-dd'" (change)="onEndChange($event.target.value)" />
+  </label>
   <button class="apply-btn" (click)="applyDateRange()">Apply</button>
 </div>
 

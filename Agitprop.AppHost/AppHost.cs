@@ -17,6 +17,7 @@ var postgres = builder.AddPostgres("postgres")
                           pgAdmin.WithHostPort(5050);
                           pgAdmin.WithImageTag("latest");})
                       .WithOtlpExporter()
+                      .WithLifetime(ContainerLifetime.Persistent)
                       .AddDatabase("newsfeed");
 
 #pragma warning disable ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
@@ -31,8 +32,6 @@ IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.A
 
 
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
-                      //.WaitFor(surrealDb)
-                      //.WithReference(surrealDb)
                       .WaitFor(postgres)
                       .WithReference(postgres)
                       .WaitFor(messaging)
