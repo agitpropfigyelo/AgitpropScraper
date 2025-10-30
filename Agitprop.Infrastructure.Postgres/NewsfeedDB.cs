@@ -65,7 +65,6 @@ public class NewsfeedDB(AppDbContext db, ILogger<NewsfeedDB> logger) : INewsfeed
 
                 _db.Mentions.Add(new PostgresMention
                 {
-                    Id = Guid.NewGuid(),
                     Article = articleToUse,
                     Entity = dbEntity
                 });
