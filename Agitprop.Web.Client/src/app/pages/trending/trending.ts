@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IgxDateRangePickerModule } from 'igniteui-angular';
+import { NgApexchartsModule } from 'ng-apexcharts';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import {
-  NgApexchartsModule,
   ApexAxisChartSeries,
   ApexChart,
   ApexStroke,
@@ -39,9 +39,10 @@ export interface PieChartOptions {
 @Component({
   selector: 'app-trending',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, IgxDateRangePickerModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, DatePipe, NgApexchartsModule],
   templateUrl: './trending.html',
-  styleUrls: ['./trending.scss']
+  styleUrls: ['./trending.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class TrendingComponent implements OnInit {
   fromDate: Date;
@@ -70,6 +71,18 @@ export class TrendingComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTrending();
+  }
+
+  onStartChange(value: string) {
+    try {
+      this.dateRange.start = new Date(value);
+    } catch { }
+  }
+
+  onEndChange(value: string) {
+    try {
+      this.dateRange.end = new Date(value);
+    } catch { }
   }
 
   loadTrending(): void {
