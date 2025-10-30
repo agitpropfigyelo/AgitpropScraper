@@ -17,7 +17,7 @@ internal class NegynegynegyArchiveLinkParser : ILinkParser
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("//article/div/h1/a");
+        HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("/html/body/div[1]/div[1]/div[3]/div[3]/a");
         var result = articles.Select(x => x.GetAttributeValue("href", ""))
                              .Select(link => new NewsfeedJobDescrpition
                              {
