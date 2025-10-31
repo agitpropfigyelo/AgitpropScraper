@@ -62,7 +62,7 @@ public class NewsfeedSink : ISink
 
             try
             {
-                var entities = await Polly.Policy
+                var entities = await Policy
                     .Handle<Exception>()
                     .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
                     {
