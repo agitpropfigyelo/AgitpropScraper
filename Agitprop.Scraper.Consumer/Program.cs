@@ -37,6 +37,8 @@ public class Program
         // Add default service configurations.
         builder.AddServiceDefaults();
 
+        builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
         var app = builder.Build();
 
         if (builder.Environment.IsDevelopment()

@@ -39,7 +39,7 @@ public static class Extensions
             });
         }
         builder.AddNewsfeedDB();
-        builder.Services.AddTransient<NewsfeedSink>(sp =>
+        builder.Services.AddTransient(sp =>
             new NewsfeedSink(
                 sp.GetRequiredService<INamedEntityRecognizer>(),
                 sp.GetRequiredService<INewsfeedDB>(),
