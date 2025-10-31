@@ -5,19 +5,33 @@ namespace Agitprop.Core;
 /// <summary>
 /// Represents a named entity and its type.
 /// </summary>
-public record NamedEntity
+public class NamedEntity : IEquatable<NamedEntity>
 {
-    /// <summary>
-    /// Gets or sets the entity text.
-    /// </summary>
     [JsonPropertyName("Item1")]
     public string Name { get; set; } = "";
 
-    /// <summary>
-    /// Gets or sets the entity type.
-    /// </summary>
     [JsonPropertyName("Item2")]
     public string Type { get; set; } = "";
+
+    public bool Equals(NamedEntity? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        return string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as NamedEntity);
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(
+            Name?.ToLowerInvariant() ?? string.Empty,
+            Type?.ToLowerInvariant() ?? string.Empty
+        );
+    }
+
+    public override string ToString() => $"{Name} ({Type})";
 }
 
 /// <summary>
@@ -25,34 +39,13 @@ public record NamedEntity
 /// </summary>
 public record NamedEntityCollection
 {
-    /// <summary>
-    /// Gets or sets the list of entities with their types.
-    /// </summary>
     [JsonPropertyName("entities")]
     public List<NamedEntity> Entities { get; set; } = [];
 
-    /// <summary>
-    /// Gets the list of person entities.
-    /// </summary>
-    public List<NamedEntity> PER => Entities.Where(e => e.Type == "PER").ToList();
+    public List<NamedEntity> PER => Entities.Where(e => e.Type.Equals("PER", StringComparison.OrdinalIgnoreCase)).ToList();
+    public List<NamedEntity> LOC => Entities.Where(e => e.Type.Equals("LOC", StringComparison.OrdinalIgnoreCase)).ToList();
+    public List<NamedEntity> ORG => Entities.Where(e => e.Type.Equals("ORG", StringComparison.OrdinalIgnoreCase)).ToList();
+    public List<NamedEntity> MISC => Entities.Where(e => e.Type.Equals("MISC", StringComparison.OrdinalIgnoreCase)).ToList();
 
-    /// <summary>
-    /// Gets the list of location entities.
-    /// </summary>
-    public List<NamedEntity> LOC => Entities.Where(e => e.Type == "LOC").ToList();
-
-    /// <summary>
-    /// Gets the list of organization entities.
-    /// </summary>
-    public List<NamedEntity> ORG => Entities.Where(e => e.Type == "ORG").ToList();
-
-    /// <summary>
-    /// Gets the list of miscellaneous entities.
-    /// </summary>
-    public List<NamedEntity> MISC => Entities.Where(e => e.Type == "MISC").ToList();
-
-    /// <summary>
-    /// Gets a combined list of all named entities.
-    /// </summary>
     public List<NamedEntity> All => Entities;
 }
