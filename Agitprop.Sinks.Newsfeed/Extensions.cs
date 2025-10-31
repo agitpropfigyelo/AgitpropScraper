@@ -36,6 +36,7 @@ public static class Extensions
             builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
             {
                 client.BaseAddress = new Uri(nlp);
+                client.Timeout = TimeSpan.FromSeconds(60);
             });
         }
         builder.AddNewsfeedDB();

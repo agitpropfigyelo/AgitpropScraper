@@ -30,8 +30,9 @@ public static class Extensions
         builder.Services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
         if (useProxies)
         {
+            builder.Services.AddSingleton<IProxyPool, ProxyPoolService>();
+            builder.Services.AddSingleton<RotatingHttpClientPool>();
             builder.Services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
-            builder.Services.AddTransient<IProxyProvider, ProxyScrapeProxyProvider>();
         }
         else
         {

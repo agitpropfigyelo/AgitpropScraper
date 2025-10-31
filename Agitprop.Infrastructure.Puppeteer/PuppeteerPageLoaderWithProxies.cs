@@ -1,24 +1,17 @@
-﻿using Polly;
+﻿
+using Polly;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using System.Diagnostics;
-
 using Agitprop.Core;
 using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
-
 using Microsoft.Extensions.Logging;
-
 using PuppeteerExtraSharp;
 using PuppeteerExtraSharp.Plugins.ExtraStealth;
-
 using PuppeteerSharp;
+using System.Net;
 
-namespace Agitprop.Infrastructure.Puppeteer;
-
-/// <summary>
-/// A Puppeteer-based page loader that supports proxy usage for loading web pages.
-/// </summary>
 internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageLoader
 {
     private readonly int _retryCount;
@@ -26,20 +19,20 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
     private readonly ActivitySource ActivitySource = new("Agitprop.PageLoader.PuppeteerPageLoaderWithProxies");
     private string? _executablePath;
 
+    private readonly IProxyPool _proxyPool;
+    private readonly ICookiesStorage _cookieStorage;
+
     public PuppeteerPageLoaderWithProxies(
         ILogger<PuppeteerPageLoaderWithProxies> logger,
-        IProxyProvider proxyProvider,
+        IProxyPool proxyPool,
         ICookiesStorage cookieStorage,
         IConfiguration? configuration = null)
         : base(logger)
     {
-        ProxyProvider = proxyProvider;
-        CookieStorage = cookieStorage;
+        _proxyPool = proxyPool;
+        _cookieStorage = cookieStorage;
         _retryCount = configuration?.GetValue<int>("Retry:PuppeteerPageLoaderWithProxies", 3) ?? 3;
     }
-
-    public IProxyProvider ProxyProvider { get; }
-    public ICookiesStorage CookieStorage { get; }
 
     public Task<string> Load(string url, object? pageActions, bool headless)
         => Load(url, (List<PageAction>?)pageActions, headless);
@@ -79,32 +72,43 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
             }
         }
 
-        var proxy = await ProxyProvider.GetProxyAsync();
-        var proxyAddress = $"--proxy-server={proxy.Address}";
-        trace?.SetTag("proxy", proxy.Address);
+        // ✅ NEW: Get proxy from IProxyPool
+        var result = await _proxyPool.GetRandomInvokerAsync();
+        if (result == null)
+            throw new InvalidOperationException("No proxy invoker available");
 
-        Logger?.LogInformation("Launching Puppeteer browser with proxy: {proxy}", proxy.Address);
+        var (invoker, proxyAddress) = result.Value;
+
+        string proxyArg = $"--proxy-server={proxyAddress}";
+        trace?.SetTag("proxy", proxyAddress);
+        Logger?.LogInformation("Launching Puppeteer with proxy: {proxy}", proxyAddress);
+
+
         var extra = new PuppeteerExtra();
         extra.Use(new StealthPlugin());
+
+        var launchArgs = new List<string>
+        {
+            "--disable-infobars",
+            "--ignore-certificate-errors",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+            "--disable-setuid-sandbox"
+        };
+
+        if (proxyArg != null)
+            launchArgs.Add(proxyArg);
 
         await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
             Headless = headless,
             ExecutablePath = _executablePath,
-            Args =
-            [
-                "--disable-infobars",
-                "--ignore-certificate-errors",
-                "--disable-dev-shm-usage",
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                proxyAddress
-            ]
+            Args = launchArgs.ToArray()
         });
 
         await using var page = (await browser.PagesAsync())[0];
 
-        var cookies = await CookieStorage.GetAsync();
+        var cookies = await _cookieStorage.GetAsync();
         if (cookies != null)
         {
             var cookieParams = cookies.GetAllCookies().Select(c => new CookieParam
@@ -134,7 +138,6 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
         }
         catch (Exception ex)
         {
-            ex.Data.Add("Proxy", proxy.Address);
             Logger?.LogError(ex, "Failed to navigate to page: {url}", url);
             trace?.SetStatus(ActivityStatusCode.Error, ex.Message);
             throw;
