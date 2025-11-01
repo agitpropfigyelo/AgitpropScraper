@@ -112,7 +112,8 @@ export class TrendingComponent implements OnInit {
               type: 'line',
               sparkline: { enabled: true },
               height: 50,
-              width: 150
+              width: 150,
+              zoom: { enabled: false }
             },
             stroke: { width: 2 },
             tooltip: { enabled: false },
@@ -200,7 +201,11 @@ export class TrendingComponent implements OnInit {
     });
 
     this.bigChartOptions = {
-      chart: { type: 'line', height: 300 },
+      chart: { 
+        type: 'line', 
+        height: 300,
+        zoom: { enabled: false }
+      },
       stroke: { width: 2 },
       xaxis: { categories: selectedEntities.length > 0 ? Object.keys(selectedEntities[0].mentionsCountByDate!) : [] },
       tooltip: { shared: true },
