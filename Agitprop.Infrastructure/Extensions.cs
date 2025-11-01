@@ -4,6 +4,7 @@ using Agitprop.Core.Interfaces;
 using Agitprop.Infrastructure.PageLoader;
 
 using Microsoft.Extensions.DependencyInjection;
+using Agitprop.Infrastructure.ProxyProviders;
 
 namespace Agitprop.Infrastructure;
 
@@ -37,6 +38,8 @@ public static class Extensions
 
         if (useProxies)
         {
+            services.AddHttpClient<IProxyProvider, AdvancedNameProxyProvider>();
+            services.AddSingleton<IProxyProvider, AdvancedNameProxyProvider>();
             services.AddSingleton<IProxyPool, ProxyPoolService>();
             services.AddSingleton<RotatingHttpClientPool>();
             services.AddTransient<IPageRequester, RotatingProxyPageRequester>();

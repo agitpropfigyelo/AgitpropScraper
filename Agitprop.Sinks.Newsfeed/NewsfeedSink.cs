@@ -30,7 +30,7 @@ public class NewsfeedSink : ISink
         using var trace = _activitySource.StartActivity("CheckPageAlreadyVisited", ActivityKind.Internal);
         try
         {
-            if (_logger != null) _logger.LogInformation("Checking if page already visited: {url}", url);
+            _logger?.LogInformation("Checking if page already visited: {url}", url);
 
             var exists = await Polly.Policy
                 .Handle<Exception>()
