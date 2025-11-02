@@ -97,36 +97,49 @@ public partial class ProxyPoolService : IProxyPool
             var addresses = (await _proxyProvider.FetchProxyAddressesAsync()).Take(_maxCachedProxies).ToList();
             activity?.SetTag("proxy.fetched_addresses", addresses.Count);
 
-            // Add new entries (do not overwrite existing entries to keep clients alive)
+            var throttler = new SemaphoreSlim(_validationParallelism);
+            var tasks = new List<Task>();
+
             foreach (var addr in addresses)
             {
-                _proxies.GetOrAdd(addr, a => new ProxyEntry(a, CreateInvokerForProxy(a)));
-            }
-
-            // Validate existing proxies concurrently, but bounded
-            var toValidate = _proxies.Values.ToList();
-            activity?.SetTag("proxy.pool_before_validation", toValidate.Count);
-            var throttler = new SemaphoreSlim(_validationParallelism);
-            var tasks = toValidate.Select(async entry =>
-            {
                 await throttler.WaitAsync(ct);
-                try
+                
+                var task = Task.Run(async () =>
                 {
-                    var alive = await ValidateProxyAsync(entry.Address, ct);
-                    entry.IsAlive = alive;
-                    entry.LastCheckedUtc = DateTime.UtcNow;
-                    if (!alive)
+                    try
                     {
-                        // if dead, optionally dispose its invoker to free sockets
-                        entry.DisposeInvoker();
-                        _logger?.LogDebug("Proxy {Proxy} marked dead during validation", entry.Address);
+                        var alive = await ValidateProxyAsync(addr, ct);
+                        if (alive)
+                        {
+                            // Only add/update if validation successful
+                            _proxies.AddOrUpdate(addr,
+                                // Add new
+                                _ => new ProxyEntry(addr, CreateInvokerForProxy(addr)) { IsAlive = true, LastCheckedUtc = DateTime.UtcNow },
+                                // Update existing
+                                (_, existing) =>
+                                {
+                                    existing.IsAlive = true;
+                                    existing.LastCheckedUtc = DateTime.UtcNow;
+                                    return existing;
+                                });
+                        }
+                        else if (_proxies.TryGetValue(addr, out var existing))
+                        {
+                            // Mark existing as dead if validation failed
+                            existing.IsAlive = false;
+                            existing.LastCheckedUtc = DateTime.UtcNow;
+                            existing.DisposeInvoker();
+                            _logger?.LogDebug("Proxy {Proxy} marked dead during validation", addr);
+                        }
                     }
-                }
-                finally
-                {
-                    throttler.Release();
-                }
-            }).ToArray();
+                    finally
+                    {
+                        throttler.Release();
+                    }
+                }, ct);
+                
+                tasks.Add(task);
+            }
 
             await Task.WhenAll(tasks);
 

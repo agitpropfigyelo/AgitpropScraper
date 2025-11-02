@@ -8,7 +8,7 @@ namespace Agitprop.Infrastructure.ProxyProviders;
 public class AdvancedNameProxyProvider : IProxyProvider
 {
     private readonly ILogger<AdvancedNameProxyProvider>? _logger;
-    private readonly ActivitySource _activitySource = new("Agitprop.Infrastructure.ProxyProviders.AdvancedNameProxyProvider");
+    private readonly ActivitySource _activitySource = new("Agitprop.ProxyProviders.AdvancedNameProxyProvider");
     private const string _sourceUri = "https://advanced.name/freeproxy/690657397c699?type=https";
     private readonly HttpClient _http;
 

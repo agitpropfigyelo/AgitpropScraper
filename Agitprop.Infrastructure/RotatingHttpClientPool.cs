@@ -55,7 +55,7 @@ public class RotatingHttpClientPool
                 var exception = new InvalidOperationException("No proxy invoker available");
                 _logger?.LogError(exception,"No proxy invoker available when sending {Method} {Url}", request.Method, request.RequestUri);
                 activity?.SetStatus(ActivityStatusCode.Error, "No proxy invoker available");
-                throw new InvalidOperationException("No proxy invoker available");
+                throw exception;
             }
 
             var (invoker, address) = result.Value;
@@ -64,9 +64,10 @@ public class RotatingHttpClientPool
 
             if (invoker is null)
             {
-                _logger?.LogError("Selected invoker was null for proxy {Proxy} when sending {Method} {Url}", address, request.Method, request.RequestUri);
+                var exception = new InvalidOperationException("Selected invoker was null");
+                _logger?.LogError(exception,"Selected invoker was null for proxy {Proxy} when sending {Method} {Url}", address, request.Method, request.RequestUri);
                 activity?.SetStatus(ActivityStatusCode.Error, "Selected invoker was null");
-                throw new InvalidOperationException("Selected invoker was null");
+                throw exception;
             }
 
             // send via invoker
