@@ -207,7 +207,12 @@ export class TrendingComponent implements OnInit {
         zoom: { enabled: false }
       },
       stroke: { width: 2 },
-      xaxis: { categories: selectedEntities.length > 0 ? Object.keys(selectedEntities[0].mentionsCountByDate!) : [] },
+      xaxis: { 
+        categories: selectedEntities.length > 0 
+          ? Object.keys(selectedEntities[0].mentionsCountByDate!).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()) 
+          : [],
+        type: 'category'
+      },
       tooltip: { shared: true },
       legend: { position: 'top' }
     };
