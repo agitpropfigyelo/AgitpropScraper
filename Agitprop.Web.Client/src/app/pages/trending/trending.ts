@@ -87,8 +87,14 @@ export class TrendingComponent implements OnInit {
 
   loadTrending(): void {
     this.loading = true;
+    // Normalize dates to start of day for consistent API calls
+    const fromDate = new Date(this.fromDate);
+    fromDate.setHours(0, 0, 0, 0);
+    const toDate = new Date(this.toDate);
+    toDate.setHours(23, 59, 59, 999);
+    
     this.trendingService
-      .getTrending(this.fromDate.toISOString().slice(0, 10), this.toDate.toISOString().slice(0, 10))
+      .getTrending(fromDate.toISOString().slice(0, 10), toDate.toISOString().slice(0, 10))
       .pipe(
         catchError(err => {
           console.error('Trending load failed', err);
@@ -96,13 +102,14 @@ export class TrendingComponent implements OnInit {
         })
       )
       .subscribe((data: TrendingResponse) => {
+        // create a full list of dates in the selected range so every entity has a value for each day
+        console.log('Load trending data for date range:', this.fromDate, 'to', this.toDate);
+        const categories = this.buildDateCategories(this.fromDate, this.toDate);
+
         this.trending = data.trending.map(entity => {
-          const sorted = Object.entries(entity.mentionsCountByDate || {}).sort(
-            ([a], [b]) => new Date(a).getTime() - new Date(b).getTime()
-          );
-          console.log('Sorted:',sorted);
-          const seriesData = sorted.map(([_, count]) => count);
-          console.log('SeriesData',seriesData);
+          const countsMap = entity.mentionsCountByDate || {};
+          // fill missing dates with 0 so series lengths match the categories
+          const seriesData = categories.map((d: string) => countsMap[d] || 0);
           const color = seriesData[seriesData.length - 1] > seriesData[0] ? '#00C853' : '#D32F2F';
 
           const chartOptions: SparklineChartOptions = {
@@ -117,7 +124,7 @@ export class TrendingComponent implements OnInit {
             },
             stroke: { width: 2 },
             tooltip: { enabled: false },
-            xaxis: { categories: sorted.map(([d]) => d) }
+            xaxis: { categories: categories }
           };
 
           return { ...entity, chartOptions, selected: false, expanded: false };
@@ -192,29 +199,46 @@ export class TrendingComponent implements OnInit {
   }
 
   private updateBigChart() {
+    const categories: string[] = this.buildDateCategories(this.fromDate, this.toDate);
     const selectedEntities = this.trending.filter(e => e.selected);
+
     this.bigChartSeries = selectedEntities.map(e => {
-      const sorted = Object.entries(e.mentionsCountByDate || {}).sort(
-        ([a], [b]) => new Date(a).getTime() - new Date(b).getTime()
-      );
-      return { name: e.name, data: sorted.map(([_, count]) => count) };
+      const countsMap = e.mentionsCountByDate || {};
+      const data = categories.map((d: string) => countsMap[d] || 0);
+      return { name: e.name, data };
     });
 
     this.bigChartOptions = {
-      chart: { 
-        type: 'line', 
+      chart: {
+        type: 'line',
         height: 300,
         zoom: { enabled: false }
       },
       stroke: { width: 2 },
-      xaxis: { 
-        categories: selectedEntities.length > 0 
-          ? Object.keys(selectedEntities[0].mentionsCountByDate!).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()) 
-          : [],
+      xaxis: {
+        categories,
         type: 'category'
       },
       tooltip: { shared: true },
       legend: { position: 'top' }
     };
+  }
+
+  private buildDateCategories(start: Date, end: Date): string[] {
+    const list: string[] = [];
+    if (!start || !end) return list;
+    
+    // Create new dates and set to midnight UTC
+    const startDate = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate()));
+    const endDate = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()));
+    
+    // Iterate through dates inclusively (using <=)
+    const cur = new Date(startDate);
+    while (cur <= endDate) {
+      list.push(cur.toISOString().slice(0, 10));
+      cur.setUTCDate(cur.getUTCDate() + 1);
+    }
+    
+    return list;
   }
 }
