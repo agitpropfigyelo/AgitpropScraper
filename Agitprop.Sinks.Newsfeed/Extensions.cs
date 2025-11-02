@@ -24,12 +24,6 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddTransient<INamedEntityRecognizer>(sp =>
-            new NamedEntityRecognizer(
-                sp.GetRequiredService<HttpClient>(),
-                sp.GetRequiredService<ILogger<NamedEntityRecognizer>>(),
-                sp.GetRequiredService<IConfiguration>()));
-
         var nlp = builder.Configuration.GetValue<string>("nlpService");
         if (!string.IsNullOrWhiteSpace(nlp))
         {
@@ -37,15 +31,31 @@ public static class Extensions
             {
                 client.BaseAddress = new Uri(nlp);
                 client.Timeout = TimeSpan.FromSeconds(60);
+
+            }).RemoveAllResilienceHandlers().AddStandardResilienceHandler(conf =>
+            {
+                conf.RateLimiter.DefaultRateLimiterOptions.PermitLimit = 20;
+                conf.RateLimiter.DefaultRateLimiterOptions.QueueLimit = 200;
+
+                conf.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
+                conf.Retry.MaxRetryAttempts = 5;
+                conf.Retry.UseJitter = true;
+                conf.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+                conf.Retry.Delay = TimeSpan.FromSeconds(5);
+
+                conf.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(90);
+                conf.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
+
+                conf.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
             });
+            builder.AddNewsfeedDB();
+            builder.Services.AddTransient(sp =>
+                new NewsfeedSink(
+                    sp.GetRequiredService<INamedEntityRecognizer>(),
+                    sp.GetRequiredService<INewsfeedDB>(),
+                    sp.GetRequiredService<ILogger<NewsfeedSink>>(),
+                    sp.GetRequiredService<IConfiguration>()));
         }
-        builder.AddNewsfeedDB();
-        builder.Services.AddTransient(sp =>
-            new NewsfeedSink(
-                sp.GetRequiredService<INamedEntityRecognizer>(),
-                sp.GetRequiredService<INewsfeedDB>(),
-                sp.GetRequiredService<ILogger<NewsfeedSink>>(),
-                sp.GetRequiredService<IConfiguration>()));
         return builder;
     }
 
