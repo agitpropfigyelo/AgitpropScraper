@@ -38,8 +38,8 @@ public static class Extensions
 
         if (useProxies)
         {
-            services.AddHttpClient<IProxyProvider, AdvancedNameProxyProvider>();
-            services.AddSingleton<IProxyProvider, AdvancedNameProxyProvider>();
+            services.AddHttpClient<IProxyProvider, ProxyScrapeProxyProvider>();
+            services.AddSingleton<IProxyProvider, ProxyScrapeProxyProvider>();
             services.AddSingleton<IProxyPool, ProxyPoolService>();
             services.AddSingleton<RotatingHttpClientPool>();
             services.AddTransient<IPageRequester, RotatingProxyPageRequester>();

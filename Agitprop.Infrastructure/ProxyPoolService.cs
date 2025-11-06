@@ -33,7 +33,6 @@ public partial class ProxyPoolService : IProxyPool
     private readonly int _maxConnectionsPerServer;
     private readonly TimeSpan _pooledConnectionLifetime;
     private readonly TimeSpan _pooledConnectionIdleTimeout;
-    private readonly TimeSpan _requestTimeout;
 
     public ProxyPoolService(ILogger<ProxyPoolService>? logger, IConfiguration config, IProxyProvider proxyProvider)
     {
@@ -50,10 +49,10 @@ public partial class ProxyPoolService : IProxyPool
         _maxConnectionsPerServer = _config.GetValue<int>("HttpClientDefaults:MaxConnectionsPerServer", 100);
         _pooledConnectionLifetime = TimeSpan.FromSeconds(_config.GetValue<int>("HttpClientDefaults:PooledConnectionLifetimeSeconds", 30));
         _pooledConnectionIdleTimeout = TimeSpan.FromSeconds(_config.GetValue<int>("HttpClientDefaults:PooledConnectionIdleTimeoutSeconds", 30));
-        _requestTimeout = TimeSpan.FromSeconds(_config.GetValue<int>("HttpClientDefaults:RequestTimeoutSeconds", 15));
 
         _timer = new PeriodicTimer(TimeSpan.FromMinutes(_validationIntervalMin));
 
+        this.RefreshAsync(_cts.Token).GetAwaiter().GetResult();
         // Fire-and-forget background refresh loop
         _ = BackgroundLoopAsync(_cts.Token);
     }

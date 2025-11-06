@@ -1,19 +1,18 @@
+using System;
 using System.Diagnostics;
-using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Infrastructure.ProxyProviders;
 
-public class AdvancedNameProxyProvider : IProxyProvider
+public class ProxyScrapeProxyProvider: IProxyProvider
 {
-    //TODO: ennek valaohgy dinamusan kéne lekérni a proxy listár, mert a seed változik
-    private readonly ILogger<AdvancedNameProxyProvider>? _logger;
+    private readonly ILogger<ProxyScrapeProxyProvider>? _logger;
     private readonly ActivitySource _activitySource = new("Agitprop.ProxyProviders.AdvancedNameProxyProvider");
-    private const string _sourceUri = "https://advanced.name/freeproxy/6907e2a6626ee?type=https";
+    private const string _sourceUri = "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=hr,ee,fi,si,cy,mt,pt,ad,lv,ie,dk,lt,at,gr,no,al,md,be,ge,sk,ro,me,cz,bg,it,se,by,ch,hu,gb,rs,tr,pl,es,ua,fr,de,nl&proxy_format=protocolipport&format=text&anonymity=Anonymous,Elite&timeout=20000";
     private readonly HttpClient _http;
 
-    public AdvancedNameProxyProvider(HttpClient http)
+    public ProxyScrapeProxyProvider(HttpClient http)
     {
         _http = http;
     }
