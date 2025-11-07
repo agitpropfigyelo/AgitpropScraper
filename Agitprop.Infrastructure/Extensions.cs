@@ -21,33 +21,18 @@ public static class Extensions
     /// <returns>The updated service collection.</returns>
     public static IServiceCollection ConfigureInfrastructureWithoutBrowser(this IServiceCollection services, bool useProxies = false)
     {
-        services.AddTransient<ISpider>(sp =>
-            new Spider(
-                sp.GetRequiredService<IBrowserPageLoader>(),
-                sp.GetRequiredService<IStaticPageLoader>(),
-                sp.GetRequiredService<IConfiguration>(),
-                sp.GetRequiredService<ILogger<Spider>>()));
+        services.AddTransient<ISpider, Spider>();
 
         services.AddTransient<ICookiesStorage, CookieStorage>();
-        services.AddTransient<IStaticPageLoader>(sp =>
-            new HttpStaticPageLoader(
-                sp.GetRequiredService<IPageRequester>(),
-                sp.GetRequiredService<ICookiesStorage>(),
-                sp.GetRequiredService<ILogger<HttpStaticPageLoader>>(),
-                sp.GetRequiredService<IConfiguration>()));
+        services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
 
-        if (useProxies)
-        {
-            services.AddHttpClient<IProxyProvider, ProxyScrapeProxyProvider>();
-            services.AddSingleton<IProxyProvider, ProxyScrapeProxyProvider>();
-            services.AddSingleton<IProxyPool, ProxyPoolService>();
-            services.AddSingleton<RotatingHttpClientPool>();
-            services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
-        }
-        else
-        {
-            services.AddTransient<IPageRequester, PageRequester.PageRequester>();
-        }
+        services.AddHttpClient<IProxyProvider, ProxyScrapeProxyProvider>();
+        services.AddSingleton<IProxyProvider, ProxyScrapeProxyProvider>();
+        services.AddSingleton<IProxyPoolInitializer, ProxyPoolService>();
+        services.AddSingleton<IProxyPool, ProxyPoolService>();
+        services.AddSingleton<RotatingHttpClientPool>();
+        services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
+
         return services;
     }
 }
