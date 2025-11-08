@@ -16,7 +16,7 @@ namespace Agitprop.Infrastructure.PageLoader;
 public class HttpStaticPageLoader : IStaticPageLoader
 {
     private readonly int _retryCount;
-    private ActivitySource ActivitySource = new("Agitprop.PageLoader.HttpStaticPageLoader");
+    private readonly ActivitySource ActivitySource = new("Agitprop.PageLoader.HttpStaticPageLoader");
 
     public HttpStaticPageLoader(
         IPageRequester pageRequester,

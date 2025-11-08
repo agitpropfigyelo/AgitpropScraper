@@ -33,7 +33,7 @@ public sealed class Spider(
         {
             _logger?.LogInformation("Page already visited: {Url}", job.Url);
             activity?.SetStatus(ActivityStatusCode.Ok, "Already visited");
-            return new List<ScrapingJobDescription>();
+            return [];
         }
 
         var retryCount = _configuration.GetValue<int>("Retry:Spider", 3);
@@ -59,7 +59,7 @@ public sealed class Spider(
             _logger?.LogInformation("Processing target page: {Url}", job.Url);
             await ProcessTargetPage(job, doc, sink, cancellationToken);
             activity?.SetStatus(ActivityStatusCode.Ok);
-            return new List<ScrapingJobDescription>();
+            return [];
         }
 
         List<ScrapingJobDescription> newJobs = new();

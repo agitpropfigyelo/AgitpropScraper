@@ -17,7 +17,7 @@ public partial class ProxyPoolService : IProxyPool
     private readonly ILogger<ProxyPoolService>? _logger;
     private readonly ActivitySource _activitySource = new("Agitprop.ProxyPoolService");
     private readonly IConfiguration _config;
-    private readonly IProxyProvider _proxyProvider;
+    private readonly IEnumerable<IProxyProvider> _proxyProviders;
     private readonly HttpClient _http = new();
     private readonly ConcurrentDictionary<string, ProxyEntry> _proxies = new();
     private readonly CancellationTokenSource _cts = new();
@@ -34,11 +34,11 @@ public partial class ProxyPoolService : IProxyPool
     private readonly TimeSpan _pooledConnectionLifetime;
     private readonly TimeSpan _pooledConnectionIdleTimeout;
 
-    public ProxyPoolService(ILogger<ProxyPoolService>? logger, IConfiguration config, IProxyProvider proxyProvider)
+    public ProxyPoolService(ILogger<ProxyPoolService>? logger, IConfiguration config, IEnumerable<IProxyProvider> proxyProviders)
     {
         _logger = logger;
         _config = config;
-        _proxyProvider = proxyProvider;
+        _proxyProviders = proxyProviders;
 
         _validateUri = new Uri(_config.GetValue<string>("Proxy:ValidateEndpoint", "https://vanenet.hu/"));
         _validationTimeoutSec = _config.GetValue<int>("Proxy:ValidationTimeoutSeconds", 3);
@@ -93,7 +93,20 @@ public partial class ProxyPoolService : IProxyPool
             using var activity = _activitySource.StartActivity("RefreshAsync", ActivityKind.Internal);
             _logger?.LogInformation("Refreshing proxy list");
 
-            var addresses = (await _proxyProvider.FetchProxyAddressesAsync()).Take(_maxCachedProxies).ToList();
+            var addresses = new List<string>();
+            foreach (var provider in _proxyProviders)
+            {
+                try
+                {
+                    var providerAddresses = (await provider.FetchProxyAddressesAsync()).Take(_maxCachedProxies).ToList();
+                    addresses.AddRange(providerAddresses);
+                    _logger?.LogInformation("Fetched {count} proxy addresses from provider {provider}", providerAddresses.Count, provider.GetType().Name);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Failed to fetch proxy addresses from provider {provider}", provider.GetType().Name);
+                }
+            }
             activity?.SetTag("proxy.fetched_addresses", addresses.Count);
 
             var throttler = new SemaphoreSlim(_validationParallelism);
@@ -102,7 +115,7 @@ public partial class ProxyPoolService : IProxyPool
             foreach (var addr in addresses)
             {
                 await throttler.WaitAsync(ct);
-                
+
                 var task = Task.Run(async () =>
                 {
                     try
@@ -136,7 +149,7 @@ public partial class ProxyPoolService : IProxyPool
                         throttler.Release();
                     }
                 }, ct);
-                
+
                 tasks.Add(task);
             }
 
@@ -215,7 +228,7 @@ public partial class ProxyPoolService : IProxyPool
             _logger?.LogDebug("Validated proxy {Proxy} => {Alive}", addr, ok);
             return ok;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger?.LogDebug("Validation failed for proxy {Proxy}", addr);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
