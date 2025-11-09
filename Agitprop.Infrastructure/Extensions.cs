@@ -28,7 +28,10 @@ public static class Extensions
 
         services.AddHttpClient<IProxyProvider, ProxyScrapeProxyProvider>();
         services.AddSingleton<IProxyProvider, ProxyScrapeProxyProvider>();
-        services.AddSingleton<IProxyPoolInitializer, ProxyPoolService>();
+
+        services.AddHttpClient<IProxyProvider, RedScrapeProxyProvider>();
+        services.AddSingleton<IProxyProvider, RedScrapeProxyProvider>();
+
         services.AddSingleton<IProxyPool, ProxyPoolService>();
         services.AddSingleton<RotatingHttpClientPool>();
         services.AddTransient<IPageRequester, RotatingProxyPageRequester>();

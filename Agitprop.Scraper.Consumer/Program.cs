@@ -49,6 +49,7 @@ public class Program
             db.Database.Migrate();
             Console.WriteLine("!!!!!!!!!!Applied migrations at startup!!!!!!!!!!");
         }
+        
         app.Run();
     }
 }

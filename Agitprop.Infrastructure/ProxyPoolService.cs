@@ -65,11 +65,12 @@ public partial class ProxyPoolService : IProxyPool
         {
             // initial load
             _logger?.LogInformation("Starting proxy pool background loop");
-            await RefreshAsync(ct);
-            while (await _timer.WaitForNextTickAsync(ct))
+            do
             {
                 await RefreshAsync(ct);
-            }
+                
+            } while (await _timer.WaitForNextTickAsync(ct));
+
             activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (OperationCanceledException)

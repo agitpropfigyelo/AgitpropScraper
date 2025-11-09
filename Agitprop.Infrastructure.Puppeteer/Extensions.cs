@@ -23,28 +23,26 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder ConfigureInfrastructureWithBrowser(this IHostApplicationBuilder builder, bool useProxies = false)
     {
+
         builder.Services.AddTransient<ISpider, Spider>();
+
         builder.Services.AddTransient<ICookiesStorage, CookieStorage>();
         builder.Services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
-        builder.Services.AddTransient<CookieContainer>();
+
+        builder.Services.AddHttpClient<IProxyProvider, ProxyScrapeProxyProvider>();
+        builder.Services.AddSingleton<IProxyProvider, ProxyScrapeProxyProvider>();
+
+        builder.Services.AddHttpClient<IProxyProvider, RedScrapeProxyProvider>();
+        builder.Services.AddSingleton<IProxyProvider, RedScrapeProxyProvider>();
+
+        builder.Services.AddSingleton<IProxyPool, ProxyPoolService>();
+        builder.Services.AddSingleton<RotatingHttpClientPool>();
+        builder.Services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
+
+
         //TODO: Puppeteer not working w/ proxies
         builder.Services.AddTransient<IBrowserPageLoader, PuppeteerPageLoader>();
-        if (useProxies)
-        {
-            builder.Services.AddHttpClient<IProxyProvider, AdvancedNameProxyProvider>(opt =>
-            {
-                opt.Timeout = TimeSpan.FromSeconds(60);
-            });
-            builder.Services.AddSingleton<IProxyProvider, AdvancedNameProxyProvider>();
-            builder.Services.AddSingleton<IProxyPoolInitializer, ProxyPoolService>();
-            builder.Services.AddSingleton<IProxyPool, ProxyPoolService>();
-            builder.Services.AddSingleton<RotatingHttpClientPool>();
-            builder.Services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
-        }
-        else
-        {
-            builder.Services.AddTransient<IPageRequester, PageRequester.PageRequester>();
-        }
+
         return builder;
     }
 }

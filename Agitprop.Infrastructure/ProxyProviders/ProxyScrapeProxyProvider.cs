@@ -1,14 +1,13 @@
-using System;
 using System.Diagnostics;
 
 using Microsoft.Extensions.Logging;
 
 namespace Agitprop.Infrastructure.ProxyProviders;
 
-public class ProxyScrapeProxyProvider: IProxyProvider
+public class ProxyScrapeProxyProvider : IProxyProvider
 {
     private readonly ILogger<ProxyScrapeProxyProvider>? _logger;
-    private readonly ActivitySource _activitySource = new("Agitprop.ProxyProviders.AdvancedNameProxyProvider");
+    private readonly ActivitySource _activitySource = new("Agitprop.ProxyProviders.ProxyScrapeProxyProvider");
     private const string _sourceUri = "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=hr,ee,fi,si,cy,mt,pt,ad,lv,ie,dk,lt,at,gr,no,al,md,be,ge,sk,ro,me,cz,bg,it,se,by,ch,hu,gb,rs,tr,pl,es,ua,fr,de,nl&proxy_format=protocolipport&format=text&anonymity=Anonymous,Elite&timeout=20000";
     private readonly HttpClient _http;
 
@@ -19,16 +18,18 @@ public class ProxyScrapeProxyProvider: IProxyProvider
 
     public async Task<IEnumerable<string>> FetchProxyAddressesAsync()
     {
-         using var activity = _activitySource.StartActivity("FetchProxyAddressesAsync", ActivityKind.Internal);
+        using var activity = _activitySource.StartActivity("FetchProxyAddressesAsync", ActivityKind.Internal);
         activity?.SetTag("proxy.source_uri", _sourceUri.ToString());
         try
         {
             var res = await _http.GetAsync(_sourceUri, HttpCompletionOption.ResponseHeadersRead);
             res.EnsureSuccessStatusCode();
             var json = await res.Content.ReadAsStringAsync();
-            var addresses = json.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            activity?.SetTag("proxy.fetched_count", addresses.Count());
-            _logger?.LogInformation("Fetched {Count} proxy addresses from {Url}", addresses.Count(), _sourceUri);
+            var addresses = json.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                .Select(addr => addr.Replace("http://", ""))
+                                .ToArray();
+            activity?.SetTag("proxy.fetched_count", addresses.Length);
+            _logger?.LogInformation("Fetched {Count} proxy addresses from {Url}", addresses.Length, _sourceUri);
             return addresses;
         }
         catch (Exception ex)
