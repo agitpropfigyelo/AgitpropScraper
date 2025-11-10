@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Web.Client", "Agit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.Infrastructure.Postgres", "Agitprop.Infrastructure.Postgres\Agitprop.Infrastructure.Postgres.csproj", "{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agitprop.CLI", "Agitprop.CLI\Agitprop.CLI.csproj", "{F11D1572-338C-48C5-8685-FFE62584C0C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E1E10EB-2B2B-42F4-BAA3-FF3491D2E0AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F11D1572-338C-48C5-8685-FFE62584C0C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F11D1572-338C-48C5-8685-FFE62584C0C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F11D1572-338C-48C5-8685-FFE62584C0C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F11D1572-338C-48C5-8685-FFE62584C0C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
