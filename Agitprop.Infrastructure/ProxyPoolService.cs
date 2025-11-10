@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Diagnostics;
+using System.Threading;
 
 using Agitprop.Core.Interfaces;
 
@@ -20,14 +21,15 @@ public partial class ProxyPoolService : IProxyPool
     private readonly IEnumerable<IProxyProvider> _proxyProviders;
     private readonly HttpClient _http = new();
     private readonly ConcurrentDictionary<string, ProxyEntry> _proxies = new();
-    private readonly CancellationTokenSource _cts = new();
-    private readonly PeriodicTimer _timer;
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
+    private readonly object _roundRobinLock = new object();
+    private int _roundRobinIndex = 0;
 
     private readonly Uri _validateUri;
     private readonly int _validationTimeoutSec;
     private readonly int _validationParallelism;
-    private readonly int _validationIntervalMin;
+    private readonly int _minAliveProxies;
+    private readonly int _targetAliveProxies;
     private readonly int _maxCachedProxies;
 
     private readonly int _maxConnectionsPerServer;
@@ -43,48 +45,19 @@ public partial class ProxyPoolService : IProxyPool
         _validateUri = new Uri(_config.GetValue<string>("Proxy:ValidateEndpoint", "https://vanenet.hu/"));
         _validationTimeoutSec = _config.GetValue<int>("Proxy:ValidationTimeoutSeconds", 3);
         _validationParallelism = _config.GetValue<int>("Proxy:ValidationParallelism", 50);
-        _validationIntervalMin = _config.GetValue<int>("Proxy:ValidationIntervalMinutes", 3);
+        _minAliveProxies = _config.GetValue<int>("Proxy:MinAliveProxies", 10);
+        _targetAliveProxies = _config.GetValue<int>("Proxy:TargetAliveProxies", 35);
         _maxCachedProxies = _config.GetValue<int>("Proxy:MaxCachedProxies", 2000);
 
         _maxConnectionsPerServer = _config.GetValue<int>("HttpClientDefaults:MaxConnectionsPerServer", 100);
         _pooledConnectionLifetime = TimeSpan.FromSeconds(_config.GetValue<int>("HttpClientDefaults:PooledConnectionLifetimeSeconds", 30));
         _pooledConnectionIdleTimeout = TimeSpan.FromSeconds(_config.GetValue<int>("HttpClientDefaults:PooledConnectionIdleTimeoutSeconds", 30));
 
-        _timer = new PeriodicTimer(TimeSpan.FromMinutes(_validationIntervalMin));
-
-        this.RefreshAsync(_cts.Token).GetAwaiter().GetResult();
-        // Fire-and-forget background refresh loop
-        _ = BackgroundLoopAsync(_cts.Token);
+        // Initial validation on startup
+        this.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
-    private async Task BackgroundLoopAsync(CancellationToken ct)
-    {
-        using var activity = _activitySource.StartActivity("BackgroundLoopAsync", ActivityKind.Internal);
-        activity?.SetTag("proxy.validate_interval_min", _validationIntervalMin);
-        try
-        {
-            // initial load
-            _logger?.LogInformation("Starting proxy pool background loop");
-            do
-            {
-                await RefreshAsync(ct);
-                
-            } while (await _timer.WaitForNextTickAsync(ct));
 
-            activity?.SetStatus(ActivityStatusCode.Ok);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger?.LogInformation("ProxyPoolService background loop cancelled");
-            activity?.SetStatus(ActivityStatusCode.Ok, "Cancelled");
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "ProxyPoolService background loop failed");
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            throw;
-        }
-    }
 
     private async Task RefreshAsync(CancellationToken ct)
     {
@@ -92,7 +65,7 @@ public partial class ProxyPoolService : IProxyPool
         try
         {
             using var activity = _activitySource.StartActivity("RefreshAsync", ActivityKind.Internal);
-            _logger?.LogInformation("Refreshing proxy list");
+            _logger?.LogInformation("Refreshing proxy list until {TargetAlive} alive proxies", _targetAliveProxies);
 
             var addresses = new List<string>();
             foreach (var provider in _proxyProviders)
@@ -110,11 +83,23 @@ public partial class ProxyPoolService : IProxyPool
             }
             activity?.SetTag("proxy.fetched_addresses", addresses.Count);
 
+            // Shuffle addresses to avoid checking in the same order
+            var shuffledAddresses = addresses.OrderBy(a => Guid.NewGuid()).ToList();
+
             var throttler = new SemaphoreSlim(_validationParallelism);
             var tasks = new List<Task>();
+            var aliveProxiesFound = 0;
+            var validationStopwatch = Stopwatch.StartNew();
 
-            foreach (var addr in addresses)
+            foreach (var addr in shuffledAddresses)
             {
+                // Stop if we've reached our target
+                if (aliveProxiesFound >= _targetAliveProxies)
+                {
+                    _logger?.LogInformation("Reached target of {TargetAlive} alive proxies, stopping validation", _targetAliveProxies);
+                    break;
+                }
+
                 await throttler.WaitAsync(ct);
 
                 var task = Task.Run(async () =>
@@ -124,6 +109,7 @@ public partial class ProxyPoolService : IProxyPool
                         var alive = await ValidateProxyAsync(addr, ct);
                         if (alive)
                         {
+                            Interlocked.Increment(ref aliveProxiesFound);
                             // Only add/update if validation successful
                             _proxies.AddOrUpdate(addr,
                                 // Add new
@@ -135,6 +121,7 @@ public partial class ProxyPoolService : IProxyPool
                                     existing.LastCheckedUtc = DateTime.UtcNow;
                                     return existing;
                                 });
+                            _logger?.LogDebug("Proxy {Proxy} validated as alive ({AliveCount}/{TargetAlive})", addr, aliveProxiesFound, _targetAliveProxies);
                         }
                         else if (_proxies.TryGetValue(addr, out var existing))
                         {
@@ -155,6 +142,7 @@ public partial class ProxyPoolService : IProxyPool
             }
 
             await Task.WhenAll(tasks);
+            validationStopwatch.Stop();
 
             // Remove too-old / dead entries if pool too big
             var deadKeys = _proxies.Where(kv => !kv.Value.IsAlive && (DateTime.UtcNow - kv.Value.LastCheckedUtc).TotalMinutes > 10)
@@ -169,9 +157,11 @@ public partial class ProxyPoolService : IProxyPool
                 }
             }
 
-            _logger?.LogInformation("Proxy refresh complete: total cached {count}, alive {aliveCount}",
-                _proxies.Count, _proxies.Count(kv => kv.Value.IsAlive));
+            var finalAliveCount = _proxies.Count(kv => kv.Value.IsAlive);
+            _logger?.LogInformation("Proxy refresh complete in {ElapsedMs}ms: total cached {count}, alive {aliveCount} (target: {TargetAlive})",
+                validationStopwatch.ElapsedMilliseconds, _proxies.Count, finalAliveCount, _targetAliveProxies);
             activity?.SetTag("proxy.pool_after_refresh", _proxies.Count);
+            activity?.SetTag("proxy.alive_after_refresh", finalAliveCount);
             activity?.SetStatus(ActivityStatusCode.Ok);
         }
         finally
@@ -239,10 +229,21 @@ public partial class ProxyPoolService : IProxyPool
 
     public async Task<(HttpMessageInvoker? invoker, string address)?> GetRandomInvokerAsync(CancellationToken ct = default)
     {
-        // Try to pick a random alive invoker
+        // Try to pick a round-robin alive invoker
         using var activity = _activitySource.StartActivity("GetRandomInvokerAsync", ActivityKind.Internal);
+        
+        // Check if we need to refresh the proxy pool
+        var currentAliveCount = _proxies.Count(kv => kv.Value.IsAlive && kv.Value.Invoker != null);
+        if (currentAliveCount < _minAliveProxies)
+        {
+            _logger?.LogWarning("Only {AliveCount} alive proxies available (minimum: {MinAlive}), starting refresh", currentAliveCount, _minAliveProxies);
+            // Start refresh in background without waiting
+            _ = Task.Run(async () => await RefreshAsync(ct), ct);
+        }
+        
         var alive = _proxies.Values.Where(e => e.IsAlive && e.Invoker != null).ToArray();
         activity?.SetTag("proxy.alive_count", alive.Length);
+        
         if (alive.Length == 0)
         {
             // fallback: return any invoker (even if not validated) or null
@@ -254,18 +255,31 @@ public partial class ProxyPoolService : IProxyPool
                 activity?.SetStatus(ActivityStatusCode.Error, "No proxies available");
                 return null;
             }
-            var pick = any[new Random().Next(any.Length)];
-            activity?.SetTag("proxy.selected", pick.Address);
-            _logger?.LogDebug("Selected fallback proxy {Proxy}", pick.Address);
+            
+            ProxyEntry selected;
+            lock (_roundRobinLock)
+            {
+                if (_roundRobinIndex >= any.Length) _roundRobinIndex = 0;
+                selected = any[_roundRobinIndex++];
+            }
+            activity?.SetTag("proxy.selected", selected.Address);
+            _logger?.LogDebug("Selected fallback proxy {Proxy}", selected.Address);
             activity?.SetStatus(ActivityStatusCode.Ok);
-            return (pick.Invoker, pick.Address);
+            return (selected.Invoker, selected.Address);
         }
 
-        var selected = alive[new Random().Next(alive.Length)];
-        activity?.SetTag("proxy.selected", selected.Address);
-        _logger?.LogDebug("Selected proxy {Proxy} from {AliveCount} alive proxies", selected.Address, alive.Length);
+        ProxyEntry selectedEntry;
+        lock (_roundRobinLock)
+        {
+            if (_roundRobinIndex >= alive.Length) _roundRobinIndex = 0;
+            selectedEntry = alive[_roundRobinIndex++];
+        }
+        
+        activity?.SetTag("proxy.selected", selectedEntry.Address);
+        _logger?.LogDebug("Selected proxy {Proxy} from {AliveCount} alive proxies (round-robin index: {Index})", 
+            selectedEntry.Address, alive.Length, _roundRobinIndex - 1);
         activity?.SetStatus(ActivityStatusCode.Ok);
-        return (selected.Invoker, selected.Address);
+        return (selectedEntry.Invoker, selectedEntry.Address);
     }
 
     public Task<IEnumerable<string>> GetAliveProxyAddressesAsync() =>
@@ -292,12 +306,9 @@ public partial class ProxyPoolService : IProxyPool
         _logger?.LogInformation("Disposing ProxyPoolService");
         try
         {
-            _cts.Cancel();
-            _timer.Dispose();
             foreach (var kv in _proxies) kv.Value.DisposeInvoker();
             _refreshLock.Dispose();
             _http.Dispose();
-            _cts.Dispose();
             activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (Exception ex)
