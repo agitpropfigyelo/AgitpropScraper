@@ -35,6 +35,7 @@ public static class Extensions
         services.AddSingleton<IProxyPool, ProxyPoolService>();
         services.AddSingleton<RotatingHttpClientPool>();
         services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
+        services.AddHostedService<ProxyInitializationService>();
 
         return services;
     }

@@ -38,6 +38,7 @@ public static class Extensions
         builder.Services.AddSingleton<IProxyPool, ProxyPoolService>();
         builder.Services.AddSingleton<RotatingHttpClientPool>();
         builder.Services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
+        builder.Services.AddHostedService<ProxyInitializationService>();
 
 
         //TODO: Puppeteer not working w/ proxies

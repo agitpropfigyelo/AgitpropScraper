@@ -11,7 +11,7 @@ public class RedScrapeProxyProvider : IProxyProvider
     //TODO: ennek valaohgy dinamusan kéne lekérni a proxy listár, mert a seed változik
     private readonly ILogger<RedScrapeProxyProvider>? _logger;
     private readonly ActivitySource _activitySource = new("Agitprop.ProxyProviders.RedScrapeProxyProvider");
-    private const string _sourceUri = "https://free.redscrape.com/api/proxies?protocol=http&max_timeout=1000&format=json";
+    private const string _sourceUri = "https://free.redscrape.com/api/proxies?protocol=http&format=json";
     private readonly HttpClient _http;
 
     public RedScrapeProxyProvider(HttpClient http)
