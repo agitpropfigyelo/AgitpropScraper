@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using PuppeteerExtraSharp;
 using PuppeteerExtraSharp.Plugins.ExtraStealth;
 using PuppeteerSharp;
-using System.Net;
 
 internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageLoader
 {
