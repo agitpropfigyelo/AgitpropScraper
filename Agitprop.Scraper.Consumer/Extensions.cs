@@ -3,6 +3,9 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Agitprop.Consumer.Consumers;
+using Agitprop.Scraper.Consumer.Consumers;
+
 using MassTransit;
 
 using Microsoft.Extensions.Configuration;
@@ -34,7 +37,7 @@ public static class Extensions
             x.SetKebabCaseEndpointNameFormatter();
             x.SetInMemorySagaRepositoryProvider();
             var entryAssembly = Assembly.GetEntryAssembly();
-            x.AddConsumers(entryAssembly);
+            x.AddConsumer<NewsfeedJobConsumer,NewsfeedJobConsumerDefinition>();
             x.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host(connectionString);

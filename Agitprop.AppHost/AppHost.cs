@@ -4,8 +4,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var messaging = builder.AddRabbitMQ("messaging")
                        .WithManagementPlugin()
-                       .WithOtlpExporter()
-                       .PublishAsConnectionString();
+                       .WithOtlpExporter();
 
 // var surrealDb = builder.AddSurrealDB("surrealdb")
 //                        .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
@@ -13,32 +12,31 @@ var messaging = builder.AddRabbitMQ("messaging")
 //                        .WithOtlpExporter();
 var postgres = builder.AddPostgres("postgres")
                       .WithDataVolume(isReadOnly: false)
-                      .WithPgAdmin(pgAdmin => {
+                      .WithPgAdmin(pgAdmin =>
+                      {
                           pgAdmin.WithHostPort(5050);
-                          pgAdmin.WithImageTag("latest");})
-                      .WithOtlpExporter()
+                          pgAdmin.WithImageTag("latest");
+                      })
                       .WithLifetime(ContainerLifetime.Persistent)
-                      .AddDatabase("newsfeed");
+                      .WithOtlpExporter();
 
-#pragma warning disable ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-IResourceBuilder<Aspire.Hosting.Python.PythonAppResource> nlpService = builder.AddPythonApp("nlpService", "../Agitprop.Scraper.NLPService", "app.py")
-                        .WithHttpEndpoint(env: "PORT")
-                        .WithHttpHealthCheck("/health", 200)
-                        .WithExternalHttpEndpoints();
-//.WithOtlpExporter()
-// .PublishAsDockerFile();
-#pragma warning restore ASPIREHOSTINGPYTHON001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+var newsfeedDb = postgres.AddDatabase("newsfeed");
+
+var nlpService = builder.AddUvicornApp("nlpService", "../Agitprop.Scraper.NLPService", "app:app")
+                        .WithHttpHealthCheck("/health")
+                        .WithOtlpExporter();
+
 
 var proxyPool = builder.AddProject<Agitprop_Infrastructure_ProxyService>("proxy-pool")
                        .PublishAsDockerFile();
 
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
-                      .WaitFor(postgres)
-                      .WithReference(postgres)
+                      .WaitFor(newsfeedDb)
+                      .WithReference(newsfeedDb)
                       .WaitFor(messaging)
                       .WithReference(messaging)
                       .WaitFor(nlpService)
-                      .WithEnvironment("nlpService", nlpService.GetEndpoint("http"))
+                      .WithReference(nlpService)
                       .WithOtlpExporter()
                       .PublishAsDockerFile();
 
@@ -50,8 +48,11 @@ var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-rea
                        .PublishAsDockerFile();
 
 var backend = builder.AddProject<Agitprop_Web_Api>("backend")
-                     .WaitFor(postgres)
-                     .WithReference(postgres)
+                     .WaitFor(newsfeedDb)
+                     .WithReference(newsfeedDb)
+                     .WaitFor(messaging)
+                     .WithReference(messaging)
+                     .WithOtlpExporter()
                      .PublishAsDockerFile();
 
 builder.AddNpmApp("angular", "../Agitprop.Web.Client")
