@@ -60,7 +60,7 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
         }
     }
 
-    public async Task<NamedEntityCollection> AnalyzeSingleAsync(object corpus)
+    public async Task<NamedEntityCollection> AnalyzeSingleAsync(string corpus)
     {
         using var activity = _activitySource.StartActivity("AnalyzeSingleCorpus", ActivityKind.Client);
         activity?.SetTag("corpus.length", corpus?.ToString()?.Length ?? 0);
@@ -116,7 +116,7 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
     }
     
 
-    public async Task<NamedEntityCollection[]> AnalyzeBatchAsync(object[] corpora)
+    public async Task<NamedEntityCollection[]> AnalyzeBatchAsync(string[] corpora)
     {
         using var activity = _activitySource.StartActivity("AnalyzeBatchCorpus", ActivityKind.Client);
         activity?.SetTag("batch.size", corpora?.Length ?? 0);
