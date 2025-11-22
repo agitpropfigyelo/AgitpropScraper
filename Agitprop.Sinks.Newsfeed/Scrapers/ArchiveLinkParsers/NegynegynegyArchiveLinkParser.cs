@@ -17,13 +17,25 @@ internal class NegynegynegyArchiveLinkParser : ILinkParser
 
     public Task<List<ScrapingJobDescription>> GetLinksAsync(string baseUrl, HtmlDocument doc)
     {
-        HtmlNodeCollection articles = doc.DocumentNode.SelectNodes("/html/body/div[1]/div[1]/div[3]/div[3]/a");
-        var result = articles.Select(x => x.GetAttributeValue("href", ""))
-                             .Select(link => new NewsfeedJobDescrpition
-                             {
-                                 Url = new Uri($"https://444.hu{link}").ToString(),
-                                 Type = PageContentType.Article,
-                             }).Cast<ScrapingJobDescription>().ToList();
+        // Use a more robust XPath selector for 444.hu
+        var articles = doc.DocumentNode.SelectNodes("//a[contains(@href, '/20')]");
+        
+        if (articles == null)
+        {
+            return Task.FromResult(new List<ScrapingJobDescription>());
+        }
+
+        var result = articles
+            .Select(x => x.GetAttributeValue("href", ""))
+            .Where(href => !string.IsNullOrEmpty(href) && href.Contains("/20"))
+            .Select(link => new NewsfeedJobDescrpition
+            {
+                Url = new Uri($"https://444.hu{link}").ToString(),
+                Type = PageContentType.Article,
+            })
+            .Cast<ScrapingJobDescription>()
+            .ToList();
+            
         return Task.FromResult(result);
     }
 }
