@@ -1,5 +1,5 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.7.4
-hu_core_news_lg @ https://huggingface.co/huspacy/hu_core_news_lg/resolve/main/hu_core_news_lg-any-py3-none-any.whl#sha256=803471467921b9db7e77c48ac7bdf9a57c08949427a9dd957a1655cbbdf65adc
+hu_core_news_lg @ https://huggingface.co/huspacy/hu_core_news_lg/resolve/main/hu_core_news_lg-any-py3-none-any.whl
 spacy==3.8.9
