@@ -67,7 +67,9 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
 
         _logger.LogInformation("Analyzing single corpus");
 
-        var json = JsonSerializer.Serialize(corpus);
+        // Send an object matching the FastAPI Pydantic model: { "text": "..." }
+        var payload = new { text = corpus };
+        var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         try
@@ -88,8 +90,13 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
                 .ExecuteAsync(() => _client.PostAsync("analyzeSingle", content));
 
             activity?.SetTag("response", response);
-            response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("NLP service returned non-success status {StatusCode}. Body: {Body}", response.StatusCode, responseBody);
+                activity?.SetStatus(ActivityStatusCode.Error, $"NLP service {response.StatusCode}");
+                throw new InvalidOperationException($"NLP service returned {(int)response.StatusCode}: {response.ReasonPhrase}");
+            }
             
             try
             {
@@ -123,7 +130,9 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
 
         _logger.LogInformation("Analyzing batch of {Count} corpora", corpora?.Length ?? 0);
 
-        var json = JsonSerializer.Serialize(corpora);
+        // Send an object matching the FastAPI Pydantic model: { "texts": [...] }
+        var payload = new { texts = corpora };
+        var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         try
@@ -145,8 +154,13 @@ public class NamedEntityRecognizer : INamedEntityRecognizer
 
             activity?.SetTag("response", response);
             activity?.SetTag("responseContent", response.Content);
-            response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("NLP service returned non-success status {StatusCode} for batch. Body: {Body}", response.StatusCode, responseBody);
+                activity?.SetStatus(ActivityStatusCode.Error, $"NLP service {response.StatusCode}");
+                throw new InvalidOperationException($"NLP service returned {(int)response.StatusCode}: {response.ReasonPhrase}");
+            }
             
             try
             {

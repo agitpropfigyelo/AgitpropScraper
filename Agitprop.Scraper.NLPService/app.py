@@ -4,7 +4,8 @@
 FastAPI-based NLP service for named entity recognition (NER) using spaCy.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
+from pydantic import BaseModel
 from typing import List, Dict, Any
 import spacy
 import os
@@ -22,24 +23,32 @@ except Exception as e:
 def healthcheck():
     return {"status": "alive"}
 
+class AnalyzeRequest(BaseModel):
+    text: str
+
+
 @app.post("/analyzeSingle")
-def analyze_single_corpus(text: str):
+def analyze_single_corpus(req: AnalyzeRequest = Body(...)):
     try:
-        doc = nlp(text)
+        doc = nlp(req.text)
         result = get_named_entities(doc)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class AnalyzeBatchRequest(BaseModel):
+    texts: List[str]
+
+
 @app.post("/analyzeBatch")
-def analyze_batch_corpus(texts: List[str]):
+def analyze_batch_corpus(req: AnalyzeBatchRequest = Body(...)):
     try:
         result = []
-        
-        for doc in nlp.pipe(texts):
+
+        for doc in nlp.pipe(req.texts):
             entities = get_named_entities(doc)
             result.append(entities)
-            
+
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

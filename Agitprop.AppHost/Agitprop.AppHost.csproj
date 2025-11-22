@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Agitprop.Infrastructure.ProxyService\Agitprop.Infrastructure.ProxyService.csproj" />
     <ProjectReference Include="..\Agitprop.Scraper.Consumer\Agitprop.Scraper.Consumer.csproj" />
     <ProjectReference Include="..\Agitprop.Scraper.RssFeedReader\Agitprop.Scraper.RssFeedReader.csproj" />
     <ProjectReference Include="..\Agitprop.Web.Api\Agitprop.Web.Api.csproj" />

@@ -26,10 +26,6 @@ var nlpService = builder.AddUvicornApp("nlpService", "../Agitprop.Scraper.NLPSer
                         .WithHttpHealthCheck("/health")
                         .WithOtlpExporter();
 
-
-var proxyPool = builder.AddProject<Agitprop_Infrastructure_ProxyService>("proxy-pool")
-                       .PublishAsDockerFile();
-
 IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
                       .WaitFor(newsfeedDb)
                       .WithReference(newsfeedDb)

@@ -29,10 +29,10 @@ public static class Extensions
         builder.Services.AddTransient<ICookiesStorage, CookieStorage>();
         builder.Services.AddTransient<IStaticPageLoader, HttpStaticPageLoader>();
 
-        builder.Services.AddHttpClient<IProxyProvider, ProxyScrapeProxyProvider>();
+        builder.Services.AddHttpClient<ProxyScrapeProxyProvider>();
         builder.Services.AddSingleton<IProxyProvider, ProxyScrapeProxyProvider>();
 
-        builder.Services.AddHttpClient<IProxyProvider, RedScrapeProxyProvider>();
+        builder.Services.AddHttpClient<RedScrapeProxyProvider>();
         builder.Services.AddSingleton<IProxyProvider, RedScrapeProxyProvider>();
 
         builder.Services.AddSingleton<IProxyPool, ProxyPoolService>();
