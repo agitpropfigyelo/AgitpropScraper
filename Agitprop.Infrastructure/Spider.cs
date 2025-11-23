@@ -71,7 +71,7 @@ public sealed class Spider(
                     .Handle<Exception>()
                     .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
                         (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to get links from {Url} on attempt {Attempt}", job.Url, attempt))
-                    .ExecuteAsync(() => parser.GetLinksAsync(job.Url, doc));
+                    .ExecuteAsync(() => parser.GetLinksAsync(job.Url, doc.ParsedText));
                 newJobs.AddRange(links);
             }
             catch (Exception ex)
