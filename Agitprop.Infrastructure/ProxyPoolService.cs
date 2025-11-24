@@ -25,9 +25,7 @@ public partial class ProxyPoolService : IProxyPool
     private readonly object _roundRobinLock = new object();
     private int _roundRobinIndex = 0;
 
-    private readonly Uri _validateUri;
-    private readonly int _validationTimeoutSec;
-    private readonly int _validationParallelism;
+    // Removed validation-specific fields for request-based approach
     private readonly int _minAliveProxies;
     private readonly int _targetAliveProxies;
     private readonly int _maxCachedProxies;
@@ -49,8 +47,7 @@ public partial class ProxyPoolService : IProxyPool
 
         // Log configuration details
         _logger?.LogInformation("Initializing ProxyPoolService with {ProviderCount} providers", _proxyProviders.Count());
-        _logger?.LogDebug("Configuration - ValidateEndpoint: {Endpoint}, Timeout: {Timeout}s, Parallelism: {Parallelism}",
-            _validateUri, _validationTimeoutSec, _validationParallelism);
+        _logger?.LogDebug("Configuration - Using request-based proxy validation");
         _logger?.LogDebug("Configuration - MinAlive: {Min}, TargetAlive: {Target}, MaxCached: {Max}",
             _minAliveProxies, _targetAliveProxies, _maxCachedProxies);
         _logger?.LogDebug("Configuration - StartupTimeout: {Startup}m, WaitTimeout: {Wait}s",
@@ -58,9 +55,7 @@ public partial class ProxyPoolService : IProxyPool
         _logger?.LogDebug("Configuration - HttpClient MaxConnectionsPerServer: {MaxConn}, Lifetime: {Lifetime}s, IdleTimeout: {Idle}s",
             _maxConnectionsPerServer, _pooledConnectionLifetime.TotalSeconds, _pooledConnectionIdleTimeout.TotalSeconds);
 
-        _validateUri = new Uri(_config.GetValue<string>("Proxy:ValidateEndpoint", "https://vanenet.hu/"));
-        _validationTimeoutSec = _config.GetValue<int>("Proxy:ValidationTimeoutSeconds", 3);
-        _validationParallelism = _config.GetValue<int>("Proxy:ValidationParallelism", 50);
+        // Removed validation configuration - using request-based validation
         _minAliveProxies = _config.GetValue<int>("Proxy:MinAliveProxies", 10);
         _targetAliveProxies = _config.GetValue<int>("Proxy:TargetAliveProxies", 25);
         _maxCachedProxies = _config.GetValue<int>("Proxy:MaxCachedProxies", 2000);
@@ -103,80 +98,31 @@ public partial class ProxyPoolService : IProxyPool
         try
         {
             using var activity = _activitySource.StartActivity("InitializeAsync", ActivityKind.Internal);
-            _logger?.LogInformation("Initializing proxy pool with target of {TargetAlive} alive proxies (timeout: {Timeout}m)",
-                _targetAliveProxies, _startupTimeout.TotalMinutes);
+            _logger?.LogInformation("Initializing proxy pool with request-based validation (timeout: {Timeout}m)",
+                _startupTimeout.TotalMinutes);
 
             var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(_startupTimeout);
 
-            var startTime = DateTime.UtcNow;
-            var lastAliveCount = 0;
-            var noProgressCount = 0;
-
-            while (!cts.Token.IsCancellationRequested)
+            try
             {
-                int aliveCount;
-                try
-                {
-                    aliveCount = await RefreshWithProgressTrackingAsync(cts.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                    // Timeout reached, exit loop gracefully
-                    break;
-                }
-
-                if (aliveCount >= _targetAliveProxies)
-                {
-                    _logger?.LogInformation("Proxy pool initialized successfully with {AliveCount} alive proxies (target: {TargetAlive})",
-                        aliveCount, _targetAliveProxies);
-                    _isInitialized = true;
-                    activity?.SetStatus(ActivityStatusCode.Ok);
-                    return;
-                }
-
-                // Check if we're making progress
-                if (aliveCount == lastAliveCount)
-                {
-                    noProgressCount++;
-                    if (noProgressCount >= 3)
-                    {
-                        _logger?.LogWarning("No progress in proxy validation after {Elapsed}m, proceeding with {AliveCount} proxies (target: {TargetAlive})",
-                            (DateTime.UtcNow - startTime).TotalMinutes, aliveCount, _targetAliveProxies);
-                        _isInitialized = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    noProgressCount = 0;
-                    lastAliveCount = aliveCount;
-                }
-
-                _logger?.LogInformation("Proxy pool initialization: {AliveCount}/{TargetAlive} alive proxies after {Elapsed}m, continuing validation",
-                    aliveCount, _targetAliveProxies, (DateTime.UtcNow - startTime).TotalMinutes);
-
-                // Wait before next validation attempt
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(5), cts.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                    // Timeout reached, exit loop gracefully
-                    break;
-                }
+                // For request-based validation, we just do one refresh and mark as initialized
+                await RefreshWithProgressTrackingAsync(cts.Token);
+                
+                var totalProxies = _proxies.Count;
+                var aliveCount = _proxies.Count(kv => kv.Value.IsAlive);
+                
+                _logger?.LogInformation("Proxy pool initialized with {TotalCount} total proxies, {AliveCount} currently alive", 
+                    totalProxies, aliveCount);
+                _isInitialized = true;
+                activity?.SetStatus(ActivityStatusCode.Ok);
             }
-
-            if (cts.Token.IsCancellationRequested)
+            catch (TaskCanceledException)
             {
-                var finalCount = _proxies.Count(kv => kv.Value.IsAlive);
-                _logger?.LogWarning("Proxy pool initialization timed out after {Timeout}m with {AliveCount} proxies (target: {TargetAlive})",
-                    _startupTimeout.TotalMinutes, finalCount, _targetAliveProxies);
+                _logger?.LogWarning("Proxy pool initialization timed out after {Timeout}m", _startupTimeout.TotalMinutes);
+                _isInitialized = true;
+                activity?.SetStatus(ActivityStatusCode.Ok);
             }
-
-            _isInitialized = true;
-            activity?.SetStatus(ActivityStatusCode.Ok);
         }
         finally
         {
@@ -237,78 +183,54 @@ public partial class ProxyPoolService : IProxyPool
             _logger?.LogDebug("Shuffled {Count} proxy addresses for validation", shuffledAddresses.Count);
             _logger?.LogTrace("First 5 addresses to validate: {Addresses}", string.Join(", ", shuffledAddresses.Take(5)));
 
-            var throttler = new SemaphoreSlim(_validationParallelism);
-            var tasks = new List<Task>();
-            var aliveProxiesFound = 0;
-            var validationStopwatch = Stopwatch.StartNew();
+            var refreshStopwatch = Stopwatch.StartNew();
             
-            _logger?.LogDebug("Starting proxy validation with {Parallelism} parallel workers", _validationParallelism);
-
-            var totalValidated = 0;
-            var totalFailed = 0;
+            _logger?.LogDebug("Starting proxy pool refresh with request-based validation");
             
-            foreach (var addr in shuffledAddresses)
+            // For request-based validation, we just prepare proxies without validating them
+            var totalPrepared = 0;
+            var totalSkipped = 0;
+            
+            foreach (var addr in shuffledAddresses.Take(_targetAliveProxies * 2)) // Prepare more than needed
             {
-                // Stop if we've reached our target
-                if (aliveProxiesFound >= _targetAliveProxies)
-                {
-                    _logger?.LogInformation("Reached target of {TargetAlive} alive proxies, stopping validation", _targetAliveProxies);
-                    break;
-                }
+                totalPrepared++;
                 
-                totalValidated++;
-
-                await throttler.WaitAsync(ct);
-
-                var task = Task.Run(async () =>
+                // Only add if not already in pool or if existing is marked dead
+                if (!_proxies.TryGetValue(addr, out var existing) || !existing.IsAlive)
                 {
                     try
                     {
-                        var alive = await ValidateProxyAsync(addr, ct);
-                        if (alive)
-                        {
-                            Interlocked.Increment(ref aliveProxiesFound);
-                            Interlocked.Increment(ref totalValidated);
-                            // Only add/update if validation successful
-                            _proxies.AddOrUpdate(addr,
-                                // Add new
-                                _ => new ProxyEntry(addr, CreateInvokerForProxy(addr)) { IsAlive = true, LastCheckedUtc = DateTime.UtcNow },
-                                // Update existing
-                                (_, existing) =>
-                                {
-                                    existing.IsAlive = true;
-                                    existing.LastCheckedUtc = DateTime.UtcNow;
-                                    return existing;
-                                });
-                            _logger?.LogDebug("Proxy {Proxy} validated as alive ({AliveCount}/{TargetAlive}/{TotalValidated})", addr, aliveProxiesFound, _targetAliveProxies, totalValidated);
-                        }
-                        else
-                        {
-                            Interlocked.Increment(ref totalFailed);
-                            if (_proxies.TryGetValue(addr, out var existing))
+                        var invoker = CreateInvokerForProxy(addr);
+                        _proxies.AddOrUpdate(addr,
+                            // Add new
+                            _ => new ProxyEntry(addr, invoker) { IsAlive = false, LastCheckedUtc = DateTime.UtcNow },
+                            // Update existing
+                            (_, existingEntry) =>
                             {
-                                // Mark existing as dead if validation failed
-                                existing.IsAlive = false;
-                                existing.LastCheckedUtc = DateTime.UtcNow;
-                                existing.DisposeInvoker();
-                                _logger?.LogTrace("Proxy {Proxy} marked dead during validation", addr);
-                            }
-                        }
+                                existingEntry.UpdateInvoker(invoker);
+                                existingEntry.IsAlive = false; // Will be set to true on first successful use
+                                existingEntry.LastCheckedUtc = DateTime.UtcNow;
+                                return existingEntry;
+                            });
+                        _logger?.LogDebug("Proxy {Proxy} prepared for request-based validation", addr);
                     }
-                    finally
+                    catch (Exception ex)
                     {
-                        throttler.Release();
+                        _logger?.LogWarning(ex, "Failed to prepare proxy {Proxy}", addr);
+                        totalSkipped++;
+                        continue;
                     }
-                }, ct);
-
-                tasks.Add(task);
+                }
+                else
+                {
+                    _logger?.LogTrace("Proxy {Proxy} already in pool, skipping preparation", addr);
+                }
             }
-
-            await Task.WhenAll(tasks);
-            validationStopwatch.Stop();
             
-            _logger?.LogDebug("Proxy validation completed. Total: {Total}, Alive: {Alive}, Failed: {Failed}, Duration: {Duration}ms",
-                totalValidated + totalFailed, aliveProxiesFound, totalFailed, validationStopwatch.ElapsedMilliseconds);
+            refreshStopwatch.Stop();
+            
+            _logger?.LogDebug("Proxy preparation completed. Prepared: {Prepared}, Skipped: {Skipped}, Duration: {Duration}ms",
+                totalPrepared - totalSkipped, totalSkipped, refreshStopwatch.ElapsedMilliseconds);
 
             // Remove too-old / dead entries if pool too big
             var deadKeys = _proxies.Where(kv => !kv.Value.IsAlive && (DateTime.UtcNow - kv.Value.LastCheckedUtc).TotalMinutes > 10)
@@ -330,9 +252,10 @@ public partial class ProxyPoolService : IProxyPool
             }
 
             var finalAliveCount = _proxies.Count(kv => kv.Value.IsAlive);
-            _logger?.LogInformation("Proxy refresh complete in {ElapsedMs}ms: total cached {count}, alive {aliveCount} (target: {TargetAlive})",
-                validationStopwatch.ElapsedMilliseconds, _proxies.Count, finalAliveCount, _targetAliveProxies);
-            activity?.SetTag("proxy.pool_after_refresh", _proxies.Count);
+            var totalProxies = _proxies.Count;
+            _logger?.LogInformation("Proxy refresh complete in {ElapsedMs}ms: total cached {TotalCount}, currently alive {AliveCount}", 
+                refreshStopwatch.ElapsedMilliseconds, totalProxies, finalAliveCount);
+            activity?.SetTag("proxy.pool_after_refresh", totalProxies);
             activity?.SetTag("proxy.alive_after_refresh", finalAliveCount);
             activity?.SetStatus(ActivityStatusCode.Ok);
         }
@@ -363,10 +286,10 @@ public partial class ProxyPoolService : IProxyPool
             PooledConnectionIdleTimeout = _pooledConnectionIdleTimeout,
             MaxConnectionsPerServer = _maxConnectionsPerServer,
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            ConnectTimeout = TimeSpan.FromSeconds(_validationTimeoutSec)
+            ConnectTimeout = TimeSpan.FromSeconds(10) // Use 10 second timeout for proxy connections
         };
         
-        _logger?.LogTrace("Created SocketsHttpHandler for proxy {Address} with connect timeout: {Timeout}s", addr, _validationTimeoutSec);
+        _logger?.LogTrace("Created SocketsHttpHandler for proxy {Address} with connect timeout: {Timeout}s", addr, 10);
 
         // Create invoker (wrapper over handler) so we can reuse it and dispose handler later
         activity?.SetStatus(ActivityStatusCode.Ok);
@@ -375,79 +298,63 @@ public partial class ProxyPoolService : IProxyPool
         return invoker;
     }
 
-    private async Task<bool> ValidateProxyAsync(string addr, CancellationToken ct)
+    // Removed ValidateProxyAsync method - using request-based validation instead
+
+    public Task MarkDeadAsync(string proxyAddress)
     {
-        // quick HEAD/GET to validation endpoint with short timeout
-        using var activity = _activitySource.StartActivity("ValidateProxyAsync", ActivityKind.Internal);
+        _logger?.LogTrace("MarkDeadAsync called for proxy: {Proxy}", proxyAddress);
         
-        _logger?.LogTrace("Starting validation for proxy: {Address}", addr);
+        if (_proxies.TryGetValue(proxyAddress, out var entry))
+        {
+            _logger?.LogWarning("Marking proxy {Proxy} as dead. Current state: IsAlive={IsAlive}, LastChecked={LastChecked}", 
+                proxyAddress, entry.IsAlive, entry.LastCheckedUtc);
+                
+            entry.IsAlive = false;
+            entry.LastCheckedUtc = DateTime.UtcNow;
+            // Don't dispose invoker - keep it for potential reuse
+            
+            var remainingAlive = _proxies.Count(kv => kv.Value.IsAlive);
+            _logger?.LogInformation("Proxy {Proxy} marked as dead. Remaining alive proxies: {AliveCount}", proxyAddress, remainingAlive);
+            
+            using var activity = _activitySource.StartActivity("MarkDeadAsync", ActivityKind.Internal);
+            activity?.SetTag("proxy.address", proxyAddress);
+            activity?.SetTag("proxy.remaining_alive", remainingAlive);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        else
+        {
+            _logger?.LogWarning("Attempted to mark proxy {Proxy} as dead, but proxy not found in pool", proxyAddress);
+        }
         
-        try
-        {
-            activity?.SetTag("proxy.address", addr);
-            activity?.SetTag("validation.endpoint", _validateUri.ToString());
-            activity?.SetTag("validation.timeout_sec", _validationTimeoutSec);
+        return Task.CompletedTask;
+    }
 
-            HttpMessageInvoker invoker;
-            if (_proxies.TryGetValue(addr, out var e) && e.Invoker != null)
-            {
-                invoker = e.Invoker; // reuse existing invoker if present (no disposal)
-                _logger?.LogTrace("Reusing existing invoker for proxy {Proxy}", addr);
-            }
-            else
-            {
-                invoker = CreateInvokerForProxy(addr);
-                if (invoker == null)
-                {
-                    _logger?.LogTrace("Failed to create invoker for proxy {Proxy}", addr);
-                    activity?.SetStatus(ActivityStatusCode.Error, "Failed to create invoker");
-                    return false;
-                }
-                _logger?.LogTrace("Created new invoker for proxy {Proxy}", addr);
-            }
-
-            using var req = new HttpRequestMessage(HttpMethod.Get, _validateUri);
-            req.Headers.UserAgent.ParseAdd("Mozilla/5.0 (compatible; ProxyValidator/1.0)");
-            
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            cts.CancelAfter(TimeSpan.FromSeconds(_validationTimeoutSec));
-            
-            _logger?.LogTrace("Sending validation request for proxy {Proxy} to {Endpoint}", addr, _validateUri);
-            
-            var resp = await invoker.SendAsync(req, cts.Token);
-            activity?.SetTag("http.status_code", (int)resp.StatusCode);
-            var ok = resp.IsSuccessStatusCode;
-            
-            if (ok)
-            {
-                _logger?.LogTrace("Proxy {Proxy} validation successful - Status: {Status}", addr, resp.StatusCode);
-            }
-            else
-            {
-                _logger?.LogTrace("Proxy {Proxy} validation failed - Status: {Status}", addr, resp.StatusCode);
-            }
-            
-            activity?.SetStatus(ok ? ActivityStatusCode.Ok : ActivityStatusCode.Error);
-            return ok;
-        }
-        catch (OperationCanceledException ex) when (ex.InnerException is TimeoutException)
+    public Task MarkSuccessAsync(string proxyAddress)
+    {
+        _logger?.LogTrace("MarkSuccessAsync called for proxy: {Proxy}", proxyAddress);
+        
+        if (_proxies.TryGetValue(proxyAddress, out var entry))
         {
-            _logger?.LogTrace("Proxy {Proxy} validation timed out after {Timeout}s", addr, _validationTimeoutSec);
-            activity?.SetStatus(ActivityStatusCode.Error, "Validation timeout");
-            return false;
+            _logger?.LogDebug("Marking proxy {Proxy} as alive. Previous state: IsAlive={IsAlive}", 
+                proxyAddress, entry.IsAlive);
+                
+            entry.IsAlive = true;
+            entry.LastCheckedUtc = DateTime.UtcNow;
+            
+            var aliveCount = _proxies.Count(kv => kv.Value.IsAlive);
+            _logger?.LogInformation("Proxy {Proxy} marked as alive. Total alive proxies: {AliveCount}", proxyAddress, aliveCount);
+            
+            using var activity = _activitySource.StartActivity("MarkSuccessAsync", ActivityKind.Internal);
+            activity?.SetTag("proxy.address", proxyAddress);
+            activity?.SetTag("proxy.alive_count", aliveCount);
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
-        catch (OperationCanceledException)
+        else
         {
-            _logger?.LogTrace("Proxy {Proxy} validation was cancelled", addr);
-            activity?.SetStatus(ActivityStatusCode.Error, "Validation cancelled");
-            return false;
+            _logger?.LogWarning("Attempted to mark proxy {Proxy} as alive, but proxy not found in pool", proxyAddress);
         }
-        catch (Exception ex)
-        {
-            _logger?.LogTrace(ex, "Validation failed for proxy {Proxy} - Exception: {ExceptionType}", addr, ex.GetType().Name);
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            return false;
-        }
+        
+        return Task.CompletedTask;
     }
 
     public async Task<(HttpMessageInvoker? invoker, string address)?> GetRandomInvokerAsync(CancellationToken ct = default)
@@ -501,18 +408,19 @@ public partial class ProxyPoolService : IProxyPool
                 _ = Task.Run(async () => await RefreshAsync(ct), ct);
             }
 
-            var alive = _proxies.Values.Where(e => e.IsAlive && e.Invoker != null).ToArray();
-            activity?.SetTag("proxy.alive_count", alive.Length);
+            // For request-based validation, select from all available proxies
+            var availableProxies = _proxies.Values.Where(e => e.Invoker != null).ToArray();
+            activity?.SetTag("proxy.available_count", availableProxies.Length);
             
-            _logger?.LogTrace("Found {AliveCount} alive proxies for selection", alive.Length);
+            _logger?.LogTrace("Found {AvailableCount} available proxies for selection", availableProxies.Length);
             
-            if (alive.Length > 0)
+            if (availableProxies.Length > 0)
             {
-                var addresses = alive.Select(e => e.Address).Take(3).ToArray();
-                _logger?.LogTrace("First few alive proxies: {Addresses}", string.Join(", ", addresses));
+                var addresses = availableProxies.Select(e => e.Address).Take(3).ToArray();
+                _logger?.LogTrace("First few available proxies: {Addresses}", string.Join(", ", addresses));
             }
 
-            if (alive.Length == 0)
+            if (availableProxies.Length == 0)
             {
                 if (!_isInitialized)
                 {
@@ -538,44 +446,25 @@ public partial class ProxyPoolService : IProxyPool
                     continue;
                 }
 
-                // Last attempt - try to get any proxy (even if not validated)
-                var any = _proxies.Values.Where(e => e.Invoker != null).ToArray();
-                _logger?.LogWarning("Attempting fallback proxy selection. Found {AnyCount} total proxies with invokers", any.Length);
-                if (any.Length > 0)
-                {
-                    ProxyEntry selected;
-                    lock (_roundRobinLock)
-                    {
-                        if (_roundRobinIndex >= any.Length) _roundRobinIndex = 0;
-                        selected = any[_roundRobinIndex++];
-                    }
-                    activity?.SetTag("proxy.selected", selected.Address);
-                    _logger?.LogWarning("Selected fallback proxy {Proxy} on attempt {Attempt}. Proxy status: {IsAlive}", 
-                        selected.Address, attemptCount, selected.IsAlive);
-                    activity?.SetStatus(ActivityStatusCode.Ok);
-                    return (selected.Invoker, selected.Address);
-                }
-
-                var finalAliveCount = _proxies.Count(kv => kv.Value.IsAlive);
                 var finalTotalCount = _proxies.Count;
-                _logger?.LogError("No proxies available in pool after {MaxAttempts} attempts. Final state - Total: {Total}, Alive: {Alive}", 
-                    maxAttempts, finalTotalCount, finalAliveCount);
+                _logger?.LogError("No proxies available in pool after {MaxAttempts} attempts. Final state - Total: {Total}, Available: {Available}", 
+                    maxAttempts, finalTotalCount, availableProxies.Length);
                 activity?.SetStatus(ActivityStatusCode.Error, "No proxies available");
                 throw new InvalidOperationException($"No proxies available in pool after {maxAttempts} attempts");
             }
 
-            // We have alive proxies
+            // Select proxy using round-robin from all available proxies
             ProxyEntry selectedEntry;
             lock (_roundRobinLock)
             {
-                if (_roundRobinIndex >= alive.Length) _roundRobinIndex = 0;
-                selectedEntry = alive[_roundRobinIndex++];
-                _logger?.LogTrace("Round-robin selection: index {Index} from {AliveCount} options", _roundRobinIndex - 1, alive.Length);
+                if (_roundRobinIndex >= availableProxies.Length) _roundRobinIndex = 0;
+                selectedEntry = availableProxies[_roundRobinIndex++];
+                _logger?.LogTrace("Round-robin selection: index {Index} from {AvailableCount} options", _roundRobinIndex - 1, availableProxies.Length);
             }
 
             activity?.SetTag("proxy.selected", selectedEntry.Address);
-            _logger?.LogDebug("Selected proxy {Proxy} from {AliveCount} alive proxies (round-robin index: {Index})",
-                selectedEntry.Address, alive.Length, _roundRobinIndex - 1);
+            _logger?.LogDebug("Selected proxy {Proxy} from {AvailableCount} available proxies (round-robin index: {Index}). Status: {IsAlive}",
+                selectedEntry.Address, availableProxies.Length, _roundRobinIndex - 1, selectedEntry.IsAlive);
             activity?.SetStatus(ActivityStatusCode.Ok);
             return (selectedEntry.Invoker, selectedEntry.Address);
         }
@@ -594,34 +483,7 @@ public partial class ProxyPoolService : IProxyPool
         return Task.FromResult(aliveProxies);
     }
 
-    public Task MarkDeadAsync(string proxyAddress)
-    {
-        _logger?.LogTrace("MarkDeadAsync called for proxy: {Proxy}", proxyAddress);
-        
-        if (_proxies.TryGetValue(proxyAddress, out var entry))
-        {
-            _logger?.LogWarning("Marking proxy {Proxy} as dead. Current state: IsAlive={IsAlive}, LastChecked={LastChecked}", 
-                proxyAddress, entry.IsAlive, entry.LastCheckedUtc);
-                
-            entry.IsAlive = false;
-            entry.LastCheckedUtc = DateTime.UtcNow;
-            entry.DisposeInvoker();
-            
-            var remainingAlive = _proxies.Count(kv => kv.Value.IsAlive);
-            _logger?.LogInformation("Proxy {Proxy} marked as dead. Remaining alive proxies: {AliveCount}", proxyAddress, remainingAlive);
-            
-            using var activity = _activitySource.StartActivity("MarkDeadAsync", ActivityKind.Internal);
-            activity?.SetTag("proxy.address", proxyAddress);
-            activity?.SetTag("proxy.remaining_alive", remainingAlive);
-            activity?.SetStatus(ActivityStatusCode.Ok);
-        }
-        else
-        {
-            _logger?.LogWarning("Attempted to mark proxy {Proxy} as dead, but proxy not found in pool", proxyAddress);
-        }
-        
-        return Task.CompletedTask;
-    }
+    
 
     public async ValueTask DisposeAsync()
     {
@@ -672,6 +534,12 @@ public partial class ProxyPoolService : IProxyPool
         {
             Address = addr;
             Invoker = inv;
+        }
+
+        public void UpdateInvoker(HttpMessageInvoker newInvoker)
+        {
+            DisposeInvoker();
+            Invoker = newInvoker;
         }
 
         public void DisposeInvoker()

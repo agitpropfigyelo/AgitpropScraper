@@ -98,6 +98,13 @@ public class RotatingHttpClientPool
                 activity?.SetStatus(ActivityStatusCode.Ok);
                 _logger?.LogDebug("Request {Method} {Url} via proxy {Proxy} returned {StatusCode}", 
                     requestClone.Method, requestClone.RequestUri, address, resp.StatusCode);
+                
+                // Mark proxy as successful for request-based validation
+                if (_pool is ProxyPoolService)
+                {
+                    await _pool.MarkSuccessAsync(address);
+                }
+                
                 return resp;
             }
             catch (Exception ex)
