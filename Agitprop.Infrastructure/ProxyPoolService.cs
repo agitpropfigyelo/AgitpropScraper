@@ -179,9 +179,7 @@ public partial class ProxyPoolService : IProxyPool
             activity?.SetTag("proxy.fetched_addresses", addresses.Count);
 
             // Shuffle addresses to avoid checking in the same order
-            var shuffledAddresses = addresses.OrderBy(a => Guid.NewGuid()).ToList();
-            _logger?.LogDebug("Shuffled {Count} proxy addresses for validation", shuffledAddresses.Count);
-            _logger?.LogTrace("First 5 addresses to validate: {Addresses}", string.Join(", ", shuffledAddresses.Take(5)));
+
 
             var refreshStopwatch = Stopwatch.StartNew();
             
@@ -191,7 +189,7 @@ public partial class ProxyPoolService : IProxyPool
             var totalPrepared = 0;
             var totalSkipped = 0;
             
-            foreach (var addr in shuffledAddresses.Take(_targetAliveProxies * 2)) // Prepare more than needed
+            foreach (var addr in addresses.Take(_targetAliveProxies * 2)) // Prepare more than needed
             {
                 totalPrepared++;
                 

@@ -56,7 +56,7 @@ public class RotatingHttpClientPool
             {
                 var ua = _defaultUserAgents[new Random().Next(_defaultUserAgents.Count)];
                 requestClone.Headers.UserAgent.ParseAdd(ua);
-                _logger?.LogDebug("Assigned User-Agent '{UA}' to request {Method} {Url}", ua, requestClone.Method, requestClone.RequestUri);
+                _logger?.LogTrace("Assigned User-Agent '{UA}' to request {Method} {Url}", ua, requestClone.Method, requestClone.RequestUri);
                 activity?.SetTag("http.user_agent", ua);
             }
 
@@ -98,13 +98,6 @@ public class RotatingHttpClientPool
                 activity?.SetStatus(ActivityStatusCode.Ok);
                 _logger?.LogDebug("Request {Method} {Url} via proxy {Proxy} returned {StatusCode}", 
                     requestClone.Method, requestClone.RequestUri, address, resp.StatusCode);
-                
-                // Mark proxy as successful for request-based validation
-                if (_pool is ProxyPoolService)
-                {
-                    await _pool.MarkSuccessAsync(address);
-                }
-                
                 return resp;
             }
             catch (Exception ex)
