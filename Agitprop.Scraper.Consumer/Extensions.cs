@@ -37,10 +37,13 @@ public static class Extensions
             x.SetKebabCaseEndpointNameFormatter();
             x.SetInMemorySagaRepositoryProvider();
             var entryAssembly = Assembly.GetEntryAssembly();
-            x.AddConsumer<NewsfeedJobConsumer,NewsfeedJobConsumerDefinition>();
+            x.AddConsumer<NewsfeedJobConsumer, NewsfeedJobConsumerDefinition>();
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host(connectionString);
+                cfg.Host(connectionString, h =>
+                {
+                    h.Heartbeat(TimeSpan.FromSeconds(20));
+                });
 
                 cfg.ClearSerialization();
                 cfg.AddRawJsonSerializer();
@@ -71,9 +74,9 @@ public static class Extensions
                     { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
                     _ => PredicateResult.False()
                 },
-                BackoffType = DelayBackoffType.Constant,
-                Delay = TimeSpan.FromSeconds(0.2),
-                MaxRetryAttempts = 9,
+                BackoffType = DelayBackoffType.Exponential,
+                Delay = TimeSpan.FromSeconds(2),
+                MaxRetryAttempts = 15,
                 UseJitter = false,
             });
         });
