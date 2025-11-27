@@ -1,5 +1,6 @@
 ﻿using Polly;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
@@ -21,47 +22,90 @@ public sealed class Spider(
     private readonly IStaticPageLoader _staticPageLoader = staticPageLoader;
     private readonly IConfiguration _configuration = configuration;
     private readonly ActivitySource _activitySource = new("Agitprop.Spider");
+    
+    // Performance Metrics
+    private readonly Meter _meter = new("Agitprop.Spider");
+    private readonly Counter<long> _pagesProcessed = new Meter("Agitprop.Spider").CreateCounter<long>("spider.pages.processed", description: "Total pages processed");
+    private readonly Counter<long> _pagesFailed = new Meter("Agitprop.Spider").CreateCounter<long>("spider.pages.failed", description: "Total pages failed");
+    private readonly Histogram<double> _pageLoadTime = new Meter("Agitprop.Spider").CreateHistogram<double>("spider.page.load.time", "ms", "Page load time in milliseconds");
+    private readonly Histogram<double> _processingTime = new Meter("Agitprop.Spider").CreateHistogram<double>("spider.processing.time", "ms", "Total processing time per page");
+    private readonly UpDownCounter<long> _activePages = new Meter("Agitprop.Spider").CreateUpDownCounter<long>("spider.active.pages", description: "Currently active page processing");
 
     public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, ISink sink, CancellationToken cancellationToken = default)
     {
+        var processingStartTime = Stopwatch.StartNew();
         using var activity = _activitySource.StartActivity("CrawlAsync", ActivityKind.Internal);
         activity?.SetTag("url", job.Url);
+        activity?.SetTag("page_type", job.PageType.ToString());
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Check if already visited
-        if (await sink.CheckPageAlreadyVisited(job.Url))
-        {
-            _logger?.LogInformation("Page already visited: {Url}", job.Url);
-            activity?.SetStatus(ActivityStatusCode.Ok, "Already visited");
-            return [];
-        }
+        // Track active pages
+        _activePages.Add(1, new KeyValuePair<string, object?>("url", job.Url));
 
-        var retryCount = _configuration.GetValue<int>("Retry:Spider", 3);
-
-        HtmlDocument doc;
         try
         {
-            doc = await Policy
-                .Handle<Exception>()
-                .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
-                    (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to load page {Url} on attempt {Attempt}", job.Url, attempt))
-                .ExecuteAsync(() => LoadPageAsync(job));
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to load page after {RetryCount} attempts: {Url}", retryCount, job.Url);
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            throw;
-        }
+            // Check if already visited
+            if (await sink.CheckPageAlreadyVisited(job.Url))
+            {
+                _logger?.LogInformation("Page already visited: {Url}", job.Url);
+                activity?.SetStatus(ActivityStatusCode.Ok, "Already visited");
+                return [];
+            }
 
+            var retryCount = _configuration.GetValue<int>("Retry:Spider", 3);
+
+            // Track page load time
+            var loadStartTime = Stopwatch.StartNew();
+            HtmlDocument doc;
+            try
+            {
+                doc = await Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                        (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to load page {Url} on attempt {Attempt}", job.Url, attempt))
+                    .ExecuteAsync(() => LoadPageAsync(job));
+                
+                var loadTime = loadStartTime.Elapsed.TotalMilliseconds;
+                _pageLoadTime.Record(loadTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
+                _logger?.LogInformation("Page loaded in {LoadTime}ms: {Url}", loadTime, job.Url);
+            }
+            catch (Exception ex)
+            {
+                var loadTime = loadStartTime.Elapsed.TotalMilliseconds;
+                _pageLoadTime.Record(loadTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()), new KeyValuePair<string, object?>("status", "failed"));
+                _pagesFailed.Add(1, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("error_type", ex.GetType().Name));
+                _logger?.LogError(ex, "Failed to load page after {RetryCount} attempts: {Url}", retryCount, job.Url);
+                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                throw;
+            }
+
+            // Process the page
+            var result = await ProcessPage(job, doc, sink, cancellationToken);
+            
+            // Record successful processing
+            var processingTime = processingStartTime.Elapsed.TotalMilliseconds;
+            _processingTime.Record(processingTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
+            _pagesProcessed.Add(1, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
+            
+            _logger?.LogInformation("Page processed in {ProcessingTime}ms: {Url}", processingTime, job.Url);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            return result;
+        }
+        finally
+        {
+            _activePages.Add(-1, new KeyValuePair<string, object?>("url", job.Url));
+        }
+    }
+
+    private async Task<List<ScrapingJobDescription>> ProcessPage(ScrapingJob job, HtmlDocument doc, ISink sink, CancellationToken cancellationToken)
+    {
         if (job.PageCategory == PageCategory.TargetPage)
         {
-            _logger?.LogInformation("Processing target page: {Url}", job.Url);
             await ProcessTargetPage(job, doc, sink, cancellationToken);
-            activity?.SetStatus(ActivityStatusCode.Ok);
             return [];
         }
 
+        // Process link extraction pages
         List<ScrapingJobDescription> newJobs = new();
         foreach (var parser in job.LinkParsers)
         {
@@ -69,7 +113,7 @@ public sealed class Spider(
             {
                 var links = await Policy
                     .Handle<Exception>()
-                    .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                    .WaitAndRetryAsync(_configuration.GetValue<int>("Retry:Spider", 3), attempt => TimeSpan.FromSeconds(0.5 * attempt),
                         (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to get links from {Url} on attempt {Attempt}", job.Url, attempt))
                     .ExecuteAsync(() => parser.GetLinksAsync(job.Url, doc.ParsedText));
                 newJobs.AddRange(links);
@@ -80,15 +124,16 @@ public sealed class Spider(
             }
         }
 
+        // Handle pagination
         if (job.PageCategory == PageCategory.PageWithPagination && _configuration.GetValue<bool>("Continous"))
         {
             try
             {
                 var nextPage = await Policy
                     .Handle<Exception>()
-                    .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
+                    .WaitAndRetryAsync(_configuration.GetValue<int>("Retry:Spider", 3), attempt => TimeSpan.FromSeconds(0.5 * attempt),
                         (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to get next page for {Url} on attempt {Attempt}", job.Url, attempt))
-                    .ExecuteAsync(() => job.Pagination!.GetNextPageAsync(job.Url, doc.ToString()));
+                    .ExecuteAsync(() => job.Pagination!.GetNextPageAsync(job.Url, doc.DocumentNode.OuterHtml));
                 newJobs.Add(nextPage);
             }
             catch (Exception ex)
@@ -97,7 +142,6 @@ public sealed class Spider(
             }
         }
 
-        activity?.SetStatus(ActivityStatusCode.Ok);
         return newJobs;
     }
 
