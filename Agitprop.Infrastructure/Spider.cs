@@ -22,7 +22,7 @@ public sealed class Spider(
     private readonly IStaticPageLoader _staticPageLoader = staticPageLoader;
     private readonly IConfiguration _configuration = configuration;
     private readonly ActivitySource _activitySource = new("Agitprop.Spider");
-    
+
     // Performance Metrics
     private readonly Meter _meter = new("Agitprop.Spider");
     private readonly Counter<long> _pagesProcessed = new Meter("Agitprop.Spider").CreateCounter<long>("spider.pages.processed", description: "Total pages processed");
@@ -33,7 +33,6 @@ public sealed class Spider(
 
     public async Task<List<ScrapingJobDescription>> CrawlAsync(ScrapingJob job, ISink sink, CancellationToken cancellationToken = default)
     {
-        var processingStartTime = Stopwatch.StartNew();
         using var activity = _activitySource.StartActivity("CrawlAsync", ActivityKind.Internal);
         activity?.SetTag("url", job.Url);
         activity?.SetTag("page_type", job.PageType.ToString());
@@ -52,6 +51,7 @@ public sealed class Spider(
                 return [];
             }
 
+            var processingStartTime = Stopwatch.StartNew();
             var retryCount = _configuration.GetValue<int>("Retry:Spider", 3);
 
             // Track page load time
@@ -64,7 +64,7 @@ public sealed class Spider(
                     .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
                         (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to load page {Url} on attempt {Attempt}", job.Url, attempt))
                     .ExecuteAsync(() => LoadPageAsync(job));
-                
+
                 var loadTime = loadStartTime.Elapsed.TotalMilliseconds;
                 _pageLoadTime.Record(loadTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
                 _logger?.LogInformation("Page loaded in {LoadTime}ms: {Url}", loadTime, job.Url);
@@ -81,12 +81,12 @@ public sealed class Spider(
 
             // Process the page
             var result = await ProcessPage(job, doc, sink, cancellationToken);
-            
+
             // Record successful processing
             var processingTime = processingStartTime.Elapsed.TotalMilliseconds;
             _processingTime.Record(processingTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
             _pagesProcessed.Add(1, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
-            
+
             _logger?.LogInformation("Page processed in {ProcessingTime}ms: {Url}", processingTime, job.Url);
             activity?.SetStatus(ActivityStatusCode.Ok);
             return result;
