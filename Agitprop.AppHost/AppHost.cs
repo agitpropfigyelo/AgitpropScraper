@@ -1,61 +1,89 @@
 using Projects;
 
-var builder = DistributedApplication.CreateBuilder(args);
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        var builder = DistributedApplication.CreateBuilder(args);
 
-var messaging = builder.AddRabbitMQ("messaging")
-                       .WithManagementPlugin()
-                       .WithOtlpExporter();
+        var compose = builder.AddDockerComposeEnvironment("Agitprop");
 
-// var surrealDb = builder.AddSurrealDB("surrealdb")
-//                        .WithHttpEndpoint(port: 1289, targetPort: 8000, name: "SurrealistConnection")
-//                        .WithBindMount("../databaseMount", "/mydata")
-//                        .WithOtlpExporter();
-var postgres = builder.AddPostgres("postgres")
-                      .WithDataVolume(isReadOnly: false)
-                      .WithPgAdmin(pgAdmin =>
-                      {
-                          pgAdmin.WithHostPort(5050);
-                          pgAdmin.WithImageTag("latest");
-                      })
-                      .WithLifetime(ContainerLifetime.Persistent)
-                      .WithOtlpExporter();
+        var messaging = builder.AddRabbitMQ("messaging")
+                               .WithManagementPlugin()
+                               .WithOtlpExporter()
+                               .PublishAsDockerComposeService((resource, service) =>
+                               {
+                                   service.Name = "rabbitmq";
+                               });
 
-var newsfeedDb = postgres.AddDatabase("newsfeed");
+        var postgres = builder.AddPostgres("postgres")
+                              .WithDataVolume(isReadOnly: false)
+                              .WithPgAdmin(pgAdmin =>
+                              {
+                                  pgAdmin.WithHostPort(5050);
+                                  pgAdmin.WithImageTag("latest");
+                              })
+                              .WithLifetime(ContainerLifetime.Persistent)
+                              .WithOtlpExporter()
+                              .PublishAsDockerComposeService((resource, service) =>
+                               {
+                                   service.Name = "postgresDB";
+                               });
 
-var nlpService = builder.AddUvicornApp("nlpService", "../Agitprop.Scraper.NLPService", "app:app")
-                        .WithHttpHealthCheck("/health")
-                        .WithOtlpExporter();
+        var newsfeedDb = postgres.AddDatabase("newsfeed");
 
-IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
-                      .WaitFor(newsfeedDb)
-                      .WithReference(newsfeedDb)
-                      .WaitFor(messaging)
-                      .WithReference(messaging)
-                      .WaitFor(nlpService)
-                      .WithReference(nlpService)
-                      .WithOtlpExporter()
-                      .PublishAsDockerFile();
+        var nlpService = builder.AddUvicornApp("nlpService", "../Agitprop.Scraper.NLPService", "app:app")
+                                .WithHttpHealthCheck("/health")
+                                .WithOtlpExporter()
+                                .PublishAsDockerComposeService((resource, service) =>
+                                {
+                                    service.Name = "NLPService";
+                                });
 
-var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-reader")
-                       .WithReference(messaging)
-                       .WaitFor(messaging)
-                       .WaitFor(consumer)
-                       .WithOtlpExporter()
-                       .PublishAsDockerFile();
+        IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
+                                                            .WaitFor(newsfeedDb)
+                                                            .WithReference(newsfeedDb)
+                                                            .WaitFor(messaging)
+                                                            .WithReference(messaging)
+                                                            .WaitFor(nlpService)
+                                                            .WithReference(nlpService)
+                                                            .WithOtlpExporter()
+                                                            .PublishAsDockerComposeService((resource, service) =>
+                                                            {
+                                                                service.Name = "rabbitmq";
+                                                            });
 
-var backend = builder.AddProject<Agitprop_Web_Api>("backend")
-                     .WaitFor(newsfeedDb)
-                     .WithReference(newsfeedDb)
-                     .WaitFor(messaging)
-                     .WithReference(messaging)
-                     .WithOtlpExporter()
-                     .PublishAsDockerFile();
+        var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-reader")
+                               .WithReference(messaging)
+                               .WaitFor(messaging)
+                               .WaitFor(consumer)
+                               .WithOtlpExporter()
+                               .PublishAsDockerComposeService((resource, service) =>
+                               {
+                                   service.Name = "rssFeedReader";
+                               });
 
-builder.AddNpmApp("angular", "../Agitprop.Web.Client")
-    .WithReference(backend)
-    .WaitFor(backend)
-    .WithHttpEndpoint(env: "PORT")
-    .WithExternalHttpEndpoints()
-    .PublishAsDockerFile();
+        var backend = builder.AddProject<Agitprop_Web_Api>("backend")
+                             .WaitFor(newsfeedDb)
+                             .WithReference(newsfeedDb)
+                             .WaitFor(messaging)
+                             .WithReference(messaging)
+                             .WithOtlpExporter()
+                             .PublishAsDockerComposeService((resource, service) =>
+                             {
+                                 service.Name = "backend";
+                             });
 
-builder.Build().Run();
+        builder.AddNpmApp("angular", "../Agitprop.Web.Client")
+            .WithReference(backend)
+            .WaitFor(backend)
+            .WithHttpEndpoint(env: "PORT")
+            .WithExternalHttpEndpoints()
+            .PublishAsDockerComposeService((resource, service) =>
+            {
+                service.Name = "frontend";
+            });
+
+        builder.Build().Run();
+    }
+}
