@@ -24,7 +24,6 @@ public sealed class Spider(
     private readonly ActivitySource _activitySource = new("Agitprop.Spider");
 
     // Performance Metrics
-    private readonly Meter _meter = new("Agitprop.Spider");
     private readonly Counter<long> _pagesProcessed = new Meter("Agitprop.Spider").CreateCounter<long>("spider.pages.processed", description: "Total pages processed");
     private readonly Counter<long> _pagesFailed = new Meter("Agitprop.Spider").CreateCounter<long>("spider.pages.failed", description: "Total pages failed");
     private readonly Histogram<double> _pageLoadTime = new Meter("Agitprop.Spider").CreateHistogram<double>("spider.page.load.time", "ms", "Page load time in milliseconds");

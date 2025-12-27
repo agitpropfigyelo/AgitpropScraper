@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Diagnostics;
 using System.Threading;
@@ -15,15 +16,11 @@ public class RotatingHttpClientPool
     private readonly ILogger<RotatingHttpClientPool>? _logger;
     private readonly ActivitySource _activitySource = new("Agitprop.RotatingHttpClientPool");
     private readonly List<string> _defaultUserAgents;
-    private readonly int _maxRetries;
-    private readonly double _successConfidenceThreshold;
 
-    public RotatingHttpClientPool(IProxyPool pool, ILogger<RotatingHttpClientPool>? logger = null, int maxRetries = 10, double successConfidenceThreshold = 0.9)
+    public RotatingHttpClientPool(IProxyPool pool, ILogger<RotatingHttpClientPool>? logger = null)
     {
         _pool = pool;
         _logger = logger;
-        _maxRetries = maxRetries;
-        _successConfidenceThreshold = successConfidenceThreshold;
         _defaultUserAgents =
         [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
@@ -65,30 +62,23 @@ public class RotatingHttpClientPool
                 requestClone.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
             }
 
-            // Get proxy invoker (this will block and retry internally if needed)
-            var result = await _pool.GetRandomInvokerAsync(ct);
-            if (result == null)
+            // Get proxy address (this will block and retry internally if needed)
+            var proxyAddress = await _pool.GetNextProxyAsync(ct);
+            if (string.IsNullOrEmpty(proxyAddress))
             {
-                var exception = new InvalidOperationException("No proxy invoker available");
-                _logger?.LogError(exception, "No proxy invoker available when sending {Method} {Url}", requestClone.Method, requestClone.RequestUri);
-                activity?.SetStatus(ActivityStatusCode.Error, "No proxy invoker available");
+                var exception = new InvalidOperationException("No proxy address available");
+                _logger?.LogError(exception, "No proxy address available when sending {Method} {Url}", requestClone.Method, requestClone.RequestUri);
+                activity?.SetStatus(ActivityStatusCode.Error, "No proxy address available");
                 throw exception;
             }
 
-            var (invoker, address) = result.Value;
-            activity?.SetTag("proxy.address", address);
+            activity?.SetTag("proxy.address", proxyAddress);
             
             _logger?.LogDebug("Selected proxy {Proxy} for request {Method} {Url}", 
-                address, requestClone.Method, requestClone.RequestUri);
+                proxyAddress, requestClone.Method, requestClone.RequestUri);
 
-            if (invoker is null)
-            {
-                var exception = new InvalidOperationException("Selected invoker was null");
-                _logger?.LogError(exception, "Selected invoker was null for proxy {Proxy} when sending {Method} {Url}", 
-                    address, requestClone.Method, requestClone.RequestUri);
-                activity?.SetStatus(ActivityStatusCode.Error, "Selected invoker was null");
-                throw exception;
-            }
+            // Create HTTP client with proxy for this request
+            using var invoker = CreateInvokerForProxy(proxyAddress);
 
             // Send via invoker
             try
@@ -97,21 +87,21 @@ public class RotatingHttpClientPool
                 activity?.SetTag("http.status_code", (int)resp.StatusCode);
                 activity?.SetStatus(ActivityStatusCode.Ok);
                 _logger?.LogDebug("Request {Method} {Url} via proxy {Proxy} returned {StatusCode}", 
-                    requestClone.Method, requestClone.RequestUri, address, resp.StatusCode);
+                    requestClone.Method, requestClone.RequestUri, proxyAddress, resp.StatusCode);
+                
+                // Mark proxy as successful
+                await _pool.MarkSuccessAsync(proxyAddress);
+                
                 return resp;
             }
             catch (Exception ex)
             {
                 _logger?.LogWarning(ex, "Request {Method} {Url} via proxy {Proxy} failed", 
-                    requestClone.Method, requestClone.RequestUri, address);
+                    requestClone.Method, requestClone.RequestUri, proxyAddress);
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
 
                 // Mark proxy as dead
-                if (_pool is ProxyPoolService)
-                {
-                    _logger?.LogWarning("Marking proxy {Proxy} as dead due to exception: {Message}", address, ex.Message);
-                    await _pool.MarkDeadAsync(address);
-                }
+                await _pool.MarkDeadAsync(proxyAddress);
 
                 throw;
             }
@@ -149,5 +139,25 @@ public class RotatingHttpClientPool
         }
         
         return clone;
+    }
+
+    private HttpMessageInvoker CreateInvokerForProxy(string addr)
+    {
+        var handler = new SocketsHttpHandler
+        {
+            UseProxy = true,
+            Proxy = new WebProxy(addr),
+            PooledConnectionLifetime = TimeSpan.FromSeconds(30),
+            PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
+            MaxConnectionsPerServer = 100,
+            AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+            ConnectTimeout = TimeSpan.FromSeconds(10)
+        };
+        
+        _logger?.LogTrace("Created SocketsHttpHandler for proxy {Address} with connect timeout: {Timeout}s", addr, 10);
+
+        var invoker = new HttpMessageInvoker(handler, disposeHandler: true);
+        _logger?.LogTrace("Created HttpMessageInvoker for proxy {Address}", addr);
+        return invoker;
     }
 }

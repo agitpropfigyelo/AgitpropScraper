@@ -71,12 +71,10 @@ internal class PuppeteerPageLoaderWithProxies : BrowserPageLoader, IBrowserPageL
             }
         }
 
-        // ✅ NEW: Get proxy from IProxyPool
-        var result = await _proxyPool.GetRandomInvokerAsync();
-        if (result == null)
-            throw new InvalidOperationException("No proxy invoker available");
-
-        var (invoker, proxyAddress) = result.Value;
+        // ✅ NEW: Get proxy address from IProxyPool
+        var proxyAddress = await _proxyPool.GetNextProxyAsync();
+        if (string.IsNullOrEmpty(proxyAddress))
+            throw new InvalidOperationException("No proxy address available");
 
         string proxyArg = $"--proxy-server={proxyAddress}";
         trace?.SetTag("proxy", proxyAddress);

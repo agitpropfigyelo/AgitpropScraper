@@ -32,10 +32,9 @@ public static class Extensions
         services.AddHttpClient<IProxyProvider, RedScrapeProxyProvider>();
         services.AddSingleton<IProxyProvider, RedScrapeProxyProvider>();
 
-        services.AddSingleton<IProxyPool, ProxyPoolService>();
+        services.AddSingleton<IProxyPool, ProxyPool>();
         services.AddSingleton<RotatingHttpClientPool>();
         services.AddTransient<IPageRequester, RotatingProxyPageRequester>();
-        services.AddHostedService<ProxyInitializationService>();
 
         return services;
     }
