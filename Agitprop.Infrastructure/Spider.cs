@@ -110,11 +110,7 @@ public sealed class Spider(
         {
             try
             {
-                var links = await Policy
-                    .Handle<Exception>()
-                    .WaitAndRetryAsync(_configuration.GetValue<int>("Retry:Spider", 3), attempt => TimeSpan.FromSeconds(0.5 * attempt),
-                        (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to get links from {Url} on attempt {Attempt}", job.Url, attempt))
-                    .ExecuteAsync(() => parser.GetLinksAsync(job.Url, doc.ParsedText));
+                var links = await parser.GetLinksAsync(job.Url, doc.ParsedText);
                 newJobs.AddRange(links);
             }
             catch (Exception ex)
@@ -128,11 +124,7 @@ public sealed class Spider(
         {
             try
             {
-                var nextPage = await Policy
-                    .Handle<Exception>()
-                    .WaitAndRetryAsync(_configuration.GetValue<int>("Retry:Spider", 3), attempt => TimeSpan.FromSeconds(0.5 * attempt),
-                        (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to get next page for {Url} on attempt {Attempt}", job.Url, attempt))
-                    .ExecuteAsync(() => job.Pagination!.GetNextPageAsync(job.Url, doc.DocumentNode.OuterHtml));
+                var nextPage = await job.Pagination!.GetNextPageAsync(job.Url, doc.DocumentNode.OuterHtml);
                 newJobs.Add(nextPage);
             }
             catch (Exception ex)
@@ -156,11 +148,7 @@ public sealed class Spider(
         {
             try
             {
-                var parsed = await Policy
-                    .Handle<Exception>()
-                    .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
-                        (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed content parser on {Url}, attempt {Attempt}", job.Url, attempt))
-                    .ExecuteAsync(() => parser.ParseContentAsync(doc));
+                var parsed = await  parser.ParseContentAsync(doc);
 
                 results.Add(parsed);
             }
