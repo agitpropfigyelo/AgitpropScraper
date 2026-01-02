@@ -9,11 +9,11 @@ internal class Program
         var compose = builder.AddDockerComposeEnvironment("Agitprop");
 
         var messaging = builder.AddRabbitMQ("messaging")
-                               .WithManagementPlugin()
+                               .WithManagementPlugin(4242)
                                .WithOtlpExporter()
                                .PublishAsDockerComposeService((resource, service) =>
                                {
-                                   service.Name = "rabbitmq";
+                                   service.Name = "messaging";
                                });
 
         var postgres = builder.AddPostgres("postgres")
@@ -27,7 +27,7 @@ internal class Program
                               .WithOtlpExporter()
                               .PublishAsDockerComposeService((resource, service) =>
                                {
-                                   service.Name = "postgresDB";
+                                   service.Name = "postgres";
                                });
 
         var newsfeedDb = postgres.AddDatabase("newsfeed");
@@ -37,7 +37,7 @@ internal class Program
                                 .WithOtlpExporter()
                                 .PublishAsDockerComposeService((resource, service) =>
                                 {
-                                    service.Name = "NLPService";
+                                    service.Name = "nlp-service";
                                 });
 
         IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
@@ -50,7 +50,7 @@ internal class Program
                                                             .WithOtlpExporter()
                                                             .PublishAsDockerComposeService((resource, service) =>
                                                             {
-                                                                service.Name = "rabbitmq";
+                                                                service.Name = "consumer";
                                                             });
 
         var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-reader")
@@ -60,7 +60,7 @@ internal class Program
                                .WithOtlpExporter()
                                .PublishAsDockerComposeService((resource, service) =>
                                {
-                                   service.Name = "rssFeedReader";
+                                   service.Name = "rss-reader";
                                });
 
         var backend = builder.AddProject<Agitprop_Web_Api>("backend")
@@ -71,17 +71,17 @@ internal class Program
                              .WithOtlpExporter()
                              .PublishAsDockerComposeService((resource, service) =>
                              {
-                                 service.Name = "backend";
+                                 service.Name = "backend-api";
                              });
 
         builder.AddNpmApp("angular", "../Agitprop.Web.Client")
             .WithReference(backend)
             .WaitFor(backend)
-            .WithHttpEndpoint(env: "PORT")
+            .WithHttpEndpoint(port: 4100, env: "PORT")
             .WithExternalHttpEndpoints()
             .PublishAsDockerComposeService((resource, service) =>
             {
-                service.Name = "frontend";
+                service.Name = "frontend-angular";
             });
 
         builder.Build().Run();
