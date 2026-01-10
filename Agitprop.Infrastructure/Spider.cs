@@ -1,11 +1,15 @@
 ﻿using Polly;
+
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+
 using Agitprop.Core;
 using Agitprop.Core.Enums;
 using Agitprop.Core.Exceptions;
 using Agitprop.Core.Interfaces;
+
 using HtmlAgilityPack;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -54,31 +58,36 @@ public sealed class Spider(
             var retryCount = _configuration.GetValue<int>("Retry:Spider", 3);
 
             // Track page load time
-            var loadStartTime = Stopwatch.StartNew();
-            HtmlDocument doc;
-            try
-            {
-                doc = await Policy
-                    .Handle<Exception>()
-                    .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
-                        (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to load page {Url} on attempt {Attempt}", job.Url, attempt))
-                    .ExecuteAsync(() => LoadPageAsync(job));
+            HtmlDocument doc = await LoadPageAsync(job);
+            // try
+            // {
+            //     doc = await Policy
+            //         .Handle<Exception>()
+            //         .WaitAndRetryAsync(retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt),
+            //             (ex, ts, attempt, ctx) => _logger?.LogWarning(ex, "[RETRY] Failed to load page {Url} on attempt {Attempt}", job.Url, attempt))
+            //         .ExecuteAsync(() => LoadPageAsync(job));
 
-                var loadTime = loadStartTime.Elapsed.TotalMilliseconds;
-                _pageLoadTime.Record(loadTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
-                _logger?.LogInformation("Page loaded in {LoadTime}ms: {Url}", loadTime, job.Url);
-            }
-            catch (Exception ex)
-            {
-                var loadTime = loadStartTime.Elapsed.TotalMilliseconds;
-                _pageLoadTime.Record(loadTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()), new KeyValuePair<string, object?>("status", "failed"));
-                _pagesFailed.Add(1, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("error_type", ex.GetType().Name));
-                _logger?.LogError(ex, "Failed to load page after {RetryCount} attempts: {Url}", retryCount, job.Url);
-                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                throw;
-            }
+            //     // var loadTime = loadStartTime.Elapsed.TotalMilliseconds;
+            //     // _pageLoadTime.Record(loadTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()));
+            //     // _logger?.LogInformation("Page loaded in {LoadTime}ms: {Url}", loadTime, job.Url);
+            // }
+            // catch (Exception ex)
+            // {
+            //     // var loadTime = loadStartTime.Elapsed.TotalMilliseconds;
+            //     // _pageLoadTime.Record(loadTime, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("page_type", job.PageType.ToString()), new KeyValuePair<string, object?>("status", "failed"));
+            //     _pagesFailed.Add(1, new KeyValuePair<string, object?>("url", job.Url), new KeyValuePair<string, object?>("error_type", ex.GetType().Name));
+            //     _logger?.LogError(ex, "Failed to load page after {RetryCount} attempts: {Url}", retryCount, job.Url);
+            //     activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            //     throw;
+            // }
 
             // Process the page
+            if (job.PageCategory == PageCategory.TargetPage)
+            {
+                await ProcessTargetPage(job, doc, sink, cancellationToken);
+                return [];
+            }
+
             var result = await ProcessPage(job, doc, sink, cancellationToken);
 
             // Record successful processing
@@ -98,11 +107,7 @@ public sealed class Spider(
 
     private async Task<List<ScrapingJobDescription>> ProcessPage(ScrapingJob job, HtmlDocument doc, ISink sink, CancellationToken cancellationToken)
     {
-        if (job.PageCategory == PageCategory.TargetPage)
-        {
-            await ProcessTargetPage(job, doc, sink, cancellationToken);
-            return [];
-        }
+        using var activity = _activitySource.StartActivity("ProcessPage", ActivityKind.Internal);
 
         // Process link extraction pages
         List<ScrapingJobDescription> newJobs = new();
@@ -148,7 +153,7 @@ public sealed class Spider(
         {
             try
             {
-                var parsed = await  parser.ParseContentAsync(doc);
+                var parsed = await parser.ParseContentAsync(doc);
 
                 results.Add(parsed);
             }
@@ -175,12 +180,20 @@ public sealed class Spider(
 
     private async Task<HtmlDocument> LoadPageAsync(ScrapingJob job)
     {
-        string htmlContent = job.PageType switch
-        {
-            PageType.Static => await LoadStaticPage(job),
-            PageType.Dynamic => await LoadDynamicPage(job, _configuration.GetValue<bool>("Headless")),
-            _ => throw new NotImplementedException()
-        };
+        using var activity = _activitySource.StartActivity("LoadPageAsync", ActivityKind.Internal);
+        bool isHeadless = _configuration.GetValue<bool>("Headless");
+        var htmlContent = await Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(0.5 * attempt)).ExecuteAsync(() =>
+                    {
+                        return job.PageType switch
+                        {
+                            PageType.Static => LoadStaticPage(job),
+                            PageType.Dynamic => LoadDynamicPage(job, isHeadless),
+                            _ => throw new NotImplementedException()
+                        };
+                    });
+
 
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlContent);

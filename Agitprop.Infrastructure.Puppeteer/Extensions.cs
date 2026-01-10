@@ -8,6 +8,8 @@ using Agitprop.Infrastructure.ProxyProviders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using Polly;
+
 namespace Agitprop.Infrastructure.Puppeteer;
 
 /// <summary>

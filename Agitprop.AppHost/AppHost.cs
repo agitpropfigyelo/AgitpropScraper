@@ -34,6 +34,8 @@ internal class Program
 
         var nlpService = builder.AddUvicornApp("nlpService", "../Agitprop.Scraper.NLPService", "app:app")
                                 .WithHttpHealthCheck("/health")
+                                .WithEnvironment("Reload","True")
+                                .WithEnvironment("LOG_LEVEL","debug")
                                 .WithOtlpExporter()
                                 .PublishAsDockerComposeService((resource, service) =>
                                 {

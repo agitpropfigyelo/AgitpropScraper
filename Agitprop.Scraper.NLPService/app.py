@@ -75,7 +75,8 @@ if __name__ == '__main__':
     import uvicorn
     
     port = int(os.environ.get('PORT', 8111))
-    debug = bool(os.environ.get('DEBUG', False))
+    reload = bool(os.environ.get('RELOAD', "False"))
+    logLevel = os.environ.get('LOG_LEVEL', 'trace')
     host = os.environ.get('HOST', '127.0.0.1')
     
-    uvicorn.run(app, host=host, port=port, reload=debug)
+    uvicorn.run(app, host=host, port=port, reload=reload, log_level=logLevel)

@@ -37,7 +37,7 @@ namespace Agitprop.Scraper.Consumer.Consumers
 
         public async Task Consume(ConsumeContext<NewsfeedJobDescrpition> context)
         {
-            using var activity = _activitySource.StartActivity("ConsumeNewsfeedJob", ActivityKind.Consumer);
+            using var activity = _activitySource.StartActivity("Consume", ActivityKind.Consumer);
             var descriptor = context.Message;
             activity?.SetTag("job.url", descriptor.Url);
             activity?.SetTag("job.type", descriptor.Type.ToString());

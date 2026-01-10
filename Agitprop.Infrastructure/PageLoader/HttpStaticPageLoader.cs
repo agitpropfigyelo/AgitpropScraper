@@ -29,7 +29,7 @@ public class HttpStaticPageLoader : IStaticPageLoader
         PageRequester = pageRequester;
         CookiesStorage = cookiesStorage;
         Logger = logger;
-        _retryCount = configuration?.GetValue<int>("Retry:PageLoader", 3) ?? 3;
+        _retryCount = configuration?.GetValue<int>("Retry:PageLoader") ?? 3;
     }
 
     public IPageRequester PageRequester { get; }
