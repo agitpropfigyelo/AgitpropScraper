@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://localhost:7171/api',
+  apiUrl: process.env['BACKEND_HTTPS'] || 'https://localhost:7171/api',
 };

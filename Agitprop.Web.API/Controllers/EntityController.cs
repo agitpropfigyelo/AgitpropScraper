@@ -68,12 +68,15 @@ public class EntitiesController : ControllerBase
         if (entity == null)
             return NotFound();
 
+        var articles = _entityRepository.GetMentioningArticlesAsync(entityId, request.StartDate, request.EndDate);
+        var totalMentions = articles.Count();
+        
         var response = new EntityDetailsResponse
         {
             EntityId = entity.Id,
             Name = entity.Name,
             Type = entity.Type,
-            TotalMentions = -1 //TODO: Implement total mentions calculation
+            TotalMentions = totalMentions
         };
 
         activity?.SetTag("response", response);
@@ -171,6 +174,23 @@ public class EntitiesController : ControllerBase
             EntityId = entityId,
             CoMentionedEntities = related.ToList()
         };
+        activity?.SetTag("response", response);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Returns all entities for autocomplete suggestions.
+    /// </summary>
+    [HttpGet("all")]
+    public async Task<ActionResult<IEnumerable<EntityDto>>> GetAllEntitiesAsync(
+        [FromQuery] DateOnly startDate,
+        [FromQuery] DateOnly endDate,
+        CancellationToken cancellationToken = default)
+    {
+        using var activity = _activitySource.StartActivity("GetAllEntities", ActivityKind.Server);
+        var entities = await _entityRepository.GetAllEntitiesAsync(startDate, endDate);
+        
+        var response = entities.ToEntityDtos();
         activity?.SetTag("response", response);
         return Ok(response);
     }

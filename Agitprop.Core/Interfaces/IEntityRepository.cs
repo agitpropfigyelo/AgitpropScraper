@@ -10,5 +10,6 @@ namespace Agitprop.Core.Interfaces
         Entity? GetEntityByIdAsync(string entityId);
         IEnumerable<Entity> SearchEntitiesAsync(string query);
         IEnumerable<Entity> GetEntitiesPaginatedAsync(DateOnly from, DateOnly to, int page, int pageSize);
+        Task<IEnumerable<Entity>> GetAllEntitiesAsync(DateOnly from, DateOnly to);
     }
 }

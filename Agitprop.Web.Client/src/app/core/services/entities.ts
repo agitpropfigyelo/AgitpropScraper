@@ -99,4 +99,11 @@ export class EntitiesService {
     const params = { StartDate: startDate, EndDate: endDate };
     return this.http.get<RelatedEntityResponse>(`${this.baseUrl}/Entities/${entityId}/related`, { params });
   }
+
+  // Get all entities for autocomplete
+  getAllEntities(startDate: string, endDate: string): Observable<EntityDto[]> {
+    return this.http.get<EntityDto[]>(`${this.baseUrl}/Entities/all`, { 
+      params: { StartDate: startDate, EndDate: endDate }
+    });
+  }
 }
