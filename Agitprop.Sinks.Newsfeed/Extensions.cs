@@ -26,8 +26,8 @@ public static class Extensions
     {
         builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
         {
-            client.BaseAddress = new("https+http://nlpService");
-            client.Timeout = TimeSpan.FromSeconds(60);
+            client.BaseAddress = new("https://nlpService");
+            client.Timeout = TimeSpan.FromSeconds(180);
 
         }).RemoveAllResilienceHandlers().AddStandardResilienceHandler(conf =>
         {
@@ -38,12 +38,12 @@ public static class Extensions
             conf.Retry.MaxRetryAttempts = 5;
             conf.Retry.UseJitter = true;
             conf.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
-            conf.Retry.Delay = TimeSpan.FromSeconds(5);
+            conf.Retry.Delay = TimeSpan.FromSeconds(15);
 
             conf.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(90);
-            conf.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
+            conf.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(10);
 
-            conf.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
+            conf.AttemptTimeout.Timeout = TimeSpan.FromSeconds(120);
         });
 
         builder.AddNewsfeedDB();

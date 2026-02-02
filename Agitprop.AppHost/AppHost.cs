@@ -79,7 +79,7 @@ internal class Program
         builder.AddNpmApp("angular", "../Agitprop.Web.Client")
             .WithReference(backend)
             .WaitFor(backend)
-            .WithHttpEndpoint(port: 4100, env: "PORT")
+            // .WithHttpEndpoint(port: 4200)
             .WithExternalHttpEndpoints()
             .PublishAsDockerComposeService((resource, service) =>
             {
