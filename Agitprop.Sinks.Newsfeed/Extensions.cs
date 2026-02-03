@@ -31,6 +31,8 @@ public static class Extensions
 
         }).RemoveAllResilienceHandlers().AddStandardResilienceHandler(conf =>
         {
+            conf.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
+            
             conf.RateLimiter.DefaultRateLimiterOptions.PermitLimit = 20;
             conf.RateLimiter.DefaultRateLimiterOptions.QueueLimit = 200;
 
