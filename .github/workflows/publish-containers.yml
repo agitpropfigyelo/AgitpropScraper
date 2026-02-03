@@ -67,7 +67,7 @@ jobs:
           for file in ${{ steps.find.outputs.files }}; do
             dir=$(dirname "$file")
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_' '-')
-            image="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${svc}"
+            image="ghcr.io/${{ github.repository_owner }}/agitprop-${svc}"
             echo "\n--- Building $image from $dir ---\n"
 
             # If your Dockerfile handles the dotnet build/publish lifecycle then the following is sufficient.
