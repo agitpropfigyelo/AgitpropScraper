@@ -3,11 +3,19 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Agitprop.Consumer.Consumers;
+using Agitprop.Scraper.Consumer.Consumers;
+
 using MassTransit;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
+using OpenTelemetry.Metrics;
+using OpenTelemetry;
+using OpenTelemetry.Instrumentation.Process;
+using OpenTelemetry.Instrumentation.Http;
 
 using Polly;
 using Polly.Retry;
@@ -34,10 +42,13 @@ public static class Extensions
             x.SetKebabCaseEndpointNameFormatter();
             x.SetInMemorySagaRepositoryProvider();
             var entryAssembly = Assembly.GetEntryAssembly();
-            x.AddConsumers(entryAssembly);
+            x.AddConsumer<NewsfeedJobConsumer, NewsfeedJobConsumerDefinition>();
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host(connectionString);
+                cfg.Host(connectionString, h =>
+                {
+                    h.Heartbeat(TimeSpan.FromSeconds(20));
+                });
 
                 cfg.ClearSerialization();
                 cfg.AddRawJsonSerializer();
@@ -68,13 +79,47 @@ public static class Extensions
                     { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
                     _ => PredicateResult.False()
                 },
-                BackoffType = DelayBackoffType.Constant,
-                Delay = TimeSpan.FromSeconds(0.2),
-                MaxRetryAttempts = 9,
+                BackoffType = DelayBackoffType.Exponential,
+                Delay = TimeSpan.FromSeconds(2),
+                MaxRetryAttempts = 15,
                 UseJitter = false,
             });
         });
         builder.Services.AddResilienceEnricher();
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures OpenTelemetry metrics for Aspire observability.
+    /// </summary>
+    /// <param name="builder">The host application builder.</param>
+    /// <returns>The updated host application builder.</returns>
+    public static IHostApplicationBuilder ConfigureMetrics(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddOpenTelemetry()
+            .WithMetrics(metrics => metrics
+                // Built-in instrumentation for metrics
+                .AddAspNetCoreInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddHttpClientInstrumentation()
+                
+                // Custom spider performance metrics
+                .AddMeter("Agitprop.Spider")
+                
+                // Configure histogram buckets for better analysis
+                .AddView("spider.page.load.time", new ExplicitBucketHistogramConfiguration
+                {
+                    Boundaries = new[] { 100.0, 500.0, 1000.0, 2000.0, 5000.0, 10000.0, 30000.0, 60000.0 }
+                })
+                .AddView("spider.processing.time", new ExplicitBucketHistogramConfiguration
+                {
+                    Boundaries = new[] { 500.0, 1000.0, 2000.0, 5000.0, 10000.0, 20000.0, 60000.0 }
+                }))
+            
+            // Add tracing for complete observability
+            .WithTracing(tracing => tracing
+                .AddSource("Agitprop.Spider"));
+
         return builder;
     }
 }

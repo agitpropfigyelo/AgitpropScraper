@@ -63,7 +63,8 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("entities", (string)null);
                 });
@@ -74,9 +75,6 @@ namespace Agitprop.Infrastructure.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("EntityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
                     b.HasKey("ArticleId", "EntityId");

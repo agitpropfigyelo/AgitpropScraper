@@ -5,6 +5,7 @@ using Agitprop.Core.Enums;
 using MassTransit;
 using System.Diagnostics;
 using Agitprop.Sinks.Newsfeed;
+using System.Threading.Tasks;
 
 namespace Agitprop.Scraper.RssFeedReader;
 
@@ -13,7 +14,6 @@ namespace Agitprop.Scraper.RssFeedReader;
 /// </summary>
 public class RssFeedReader : IHostedService, IDisposable
 {
-    private Timer? _timer;
     private readonly string[] _feeds;
     private readonly ILogger<RssFeedReader> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -30,15 +30,15 @@ public class RssFeedReader : IHostedService, IDisposable
         _interval = TimeSpan.FromMinutes(configuration.GetValue<double>("IntervalMinutes", 60));
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var activity = _activitySource.StartActivity("StartAsync");
         _logger.LogInformation("Starting RSS Feed Reader. Interval: {Interval} minutes, Feeds: {FeedCount}", _interval.TotalMinutes, _feeds.Length);
-        _timer = new Timer(ExecuteTask, null, TimeSpan.Zero, _interval);
-        return Task.CompletedTask;
+        var timer = new Timer(async _ => await ExecuteTask(_), null,TimeSpan.Zero, _interval);
+        return;
     }
 
-    private void ExecuteTask(object? state)
+    private async Task ExecuteTask(object? state)
     {
         using var activity = _activitySource.StartActivity("ExecuteTask", ActivityKind.Producer);
         _logger.LogInformation("Running RSS feed scraping task");
@@ -56,7 +56,7 @@ public class RssFeedReader : IHostedService, IDisposable
             else
             {
                 _logger.LogInformation("Publishing {JobCount} scraping jobs", jobs.Count);
-                publishEndpoint.PublishBatch(jobs).Wait();
+                await publishEndpoint.PublishBatch(jobs);
             }
 
             activity?.SetStatus(ActivityStatusCode.Ok, "RSS feed task completed successfully");
@@ -72,15 +72,14 @@ public class RssFeedReader : IHostedService, IDisposable
     {
         using var activity = _activitySource.StartActivity("StopAsync");
         _logger.LogInformation("Stopping RSS Feed Reader");
-        _timer?.Change(Timeout.Infinite, 0);
         return Task.CompletedTask;
     }
 
     public void Dispose()
     {
-        _timer?.Dispose();
+        _logger.LogInformation("Disposing RSS Feed Reader resources");
     }
-
+    
     private List<NewsfeedJobDescrpition> FetchScrapingJobs()
     {
         using var activity = _activitySource.StartActivity("FetchScrapingJobs", ActivityKind.Producer);

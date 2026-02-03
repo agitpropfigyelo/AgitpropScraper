@@ -16,7 +16,7 @@ namespace Agitprop.Infrastructure.PageLoader;
 public class HttpStaticPageLoader : IStaticPageLoader
 {
     private readonly int _retryCount;
-    private ActivitySource ActivitySource = new("Agitprop.PageLoader.HttpStaticPageLoader");
+    private readonly ActivitySource ActivitySource = new("Agitprop.PageLoader.HttpStaticPageLoader");
 
     public HttpStaticPageLoader(
         IPageRequester pageRequester,
@@ -29,7 +29,7 @@ public class HttpStaticPageLoader : IStaticPageLoader
         PageRequester = pageRequester;
         CookiesStorage = cookiesStorage;
         Logger = logger;
-        _retryCount = configuration?.GetValue<int>("Retry:PageLoader", 3) ?? 3;
+        _retryCount = configuration?.GetValue<int>("Retry:PageLoader") ?? 3;
     }
 
     public IPageRequester PageRequester { get; }

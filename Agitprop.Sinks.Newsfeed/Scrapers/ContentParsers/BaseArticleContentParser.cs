@@ -48,16 +48,25 @@ internal abstract class BaseArticleContentParser : IContentParser
         {
 
             var dateNode = SelectSingleNode(html, DateXPaths);
+            if (dateNode == null || dateNode.Attributes["content"] == null)
+                throw new ContentParserException("Date not found or missing content attribute");
+
             DateTime date = DateTime.Parse(dateNode.Attributes["content"].Value);
             if (date == DateTime.MinValue) throw new ContentParserException("Date not found");
 
             var titleNode = SelectSingleNode(html, TitleXPaths);
+            if (titleNode == null)
+                throw new ContentParserException("Title not found");
+
             string titleText = titleNode.InnerText.Trim() + " ";
 
             var leadNode = SelectSingleNode(html, LeadXPaths);
             string leadText = leadNode != null ? leadNode.InnerText.Trim() + " " : "";
 
             var articleNodes = SelectMultipleNodes(html, ArticleXPaths);
+            if (!articleNodes.Any())
+                throw new ContentParserException("Article content not found");
+
             string articleText = string.Join(" ", articleNodes.Select(node => node.InnerText.Trim()));
 
             string concatenatedText = titleText + leadText + articleText;

@@ -30,12 +30,15 @@ public class Program
         // Configure MassTransit for message-based communication.
         builder.ConfigureMassTransit();
         builder.ConfigureResiliency();
+        builder.ConfigureMetrics();
 
         // Add the Newsfeed sink for processing scraped data.
         builder.AddNewsfeedSink();
 
         // Add default service configurations.
         builder.AddServiceDefaults();
+
+        builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
         var app = builder.Build();
 
@@ -47,6 +50,7 @@ public class Program
             db.Database.Migrate();
             Console.WriteLine("!!!!!!!!!!Applied migrations at startup!!!!!!!!!!");
         }
+        
         app.Run();
     }
 }

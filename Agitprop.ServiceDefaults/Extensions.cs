@@ -72,6 +72,10 @@ public static class Extensions
             .AddSource("Agitprop.NamedEntityRecognizer")
             .AddSource("Agitprop.RssFeedReader")
             .AddSource("Agitprop.NewsfeedSink")
+            .AddSource("Agitprop.RotatingHttpClientPool")
+            .AddSource("Agitprop.ProxyPoolService")
+            .AddSource("Agitprop.ProxyProviders.AdvancedNameProxyProvider")
+            .AddSource("Agitprop.Infrastructure.ProxyService")
             .AddHttpClientInstrumentation()
             .AddAspNetCoreInstrumentation();
     });

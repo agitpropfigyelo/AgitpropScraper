@@ -33,17 +33,4 @@ public class Program
         var app = builder.Build();
         app.Run();
     }
-
-    /// <summary>
-    /// Creates and configures the host builder for the application.
-    /// </summary>
-    /// <param name="args">Command-line arguments.</param>
-    /// <returns>An instance of <see cref="IHostBuilder"/>.</returns>
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddHostedService<RssFeedReader>();
-
-            });
 }

@@ -1,59 +1,59 @@
 # Python
 
 """
-Flask-based NLP service for named entity recognition (NER) using spaCy.
+FastAPI-based NLP service for named entity recognition (NER) using spaCy.
 """
 
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException, Body
+from pydantic import BaseModel
+from typing import List, Dict, Any
 import spacy
 import os
 
-app = Flask(__name__)
+app = FastAPI(title="NLP Service", description="Named Entity Recognition API using spaCy")
 
 try:
     nlp = spacy.load("hu_core_news_lg")
 except Exception as e:
     raise
 
-@app.route("/health")
+
+
+@app.get("/health")
 def healthcheck():
-    return {"status": "alive"}, 200
+    return {"status": "alive"}
 
-@app.route("/analyzeSingle", methods=['POST'])
-def analyzeSingleCorpus():
+class AnalyzeRequest(BaseModel):
+    text: str
+
+
+@app.post("/analyzeSingle")
+def analyze_single_corpus(req: AnalyzeRequest = Body(...)):
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
-
-        text = str(data)
-        doc = nlp(text)
-        result = getNamedEntities(doc)
-        return jsonify(result), 200
-
+        doc = nlp(req.text)
+        result = get_named_entities(doc)
+        return result
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route("/analyzeBatch", methods=['POST'])
-def analyzeBatchCorpus():
+class AnalyzeBatchRequest(BaseModel):
+    texts: List[str]
+
+
+@app.post("/analyzeBatch")
+def analyze_batch_corpus(req: AnalyzeBatchRequest = Body(...)):
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
-
-        texts = list(data)
         result = []
-        
-        for doc in nlp.pipe(texts):
-            entities = getNamedEntities(doc)
+
+        for doc in nlp.pipe(req.texts):
+            entities = get_named_entities(doc)
             result.append(entities)
-            
-        return jsonify(result), 200
 
+        return result
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-def getNamedEntities(doc):
+def get_named_entities(doc):
     entities = []
     seen = set()
     for ent in doc.ents:
@@ -67,13 +67,16 @@ def getNamedEntities(doc):
             entities.append(entity_dict)
     return entities
 
-@app.route("/discovery")
+@app.get("/discovery")
 def discovery():
-    return {"endpoints": ["/health", "/analyzeSingle", "/analyzeBatch", "/discovery"]}, 200
+    return {"endpoints": ["/health", "/analyzeSingle", "/analyzeBatch", "/discovery"]}
 
 if __name__ == '__main__':
-
+    import uvicorn
+    
     port = int(os.environ.get('PORT', 8111))
-    debug = bool(os.environ.get('DEBUG', False))
+    reload = bool(os.environ.get('RELOAD', "False"))
+    logLevel = os.environ.get('LOG_LEVEL', 'trace')
     host = os.environ.get('HOST', '127.0.0.1')
-    app.run(port=port, debug=debug, host=host)
+    
+    uvicorn.run(app, host=host, port=port, reload=reload, log_level=logLevel)

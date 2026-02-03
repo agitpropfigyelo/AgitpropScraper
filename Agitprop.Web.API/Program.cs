@@ -16,22 +16,15 @@ builder.Services.AddSwaggerGen();
 builder.AddNewsfeedRepositories();
 builder.Services.AddControllers();
 
-// OpenTelemetry Tracer registration (if not already present)
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracerProviderBuilder =>
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
     {
-        tracerProviderBuilder.AddAspNetCoreInstrumentation();
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
-
-    builder.Services.AddCors(options =>
-    {
-        options.AddDefaultPolicy(policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-    });
+});
 
 var app = builder.Build();
 

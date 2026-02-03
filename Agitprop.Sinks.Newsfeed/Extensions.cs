@@ -24,22 +24,29 @@ public static class Extensions
     /// <returns>The updated host application builder.</returns>
     public static IHostApplicationBuilder AddNewsfeedSink(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddTransient<INamedEntityRecognizer>(sp =>
-            new NamedEntityRecognizer(
-                sp.GetRequiredService<HttpClient>(),
-                sp.GetRequiredService<ILogger<NamedEntityRecognizer>>(),
-                sp.GetRequiredService<IConfiguration>()));
-
-        var nlp = builder.Configuration.GetValue<string>("nlpService");
-        if (!string.IsNullOrWhiteSpace(nlp))
+        builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
         {
-            builder.Services.AddHttpClient<INamedEntityRecognizer, NamedEntityRecognizer>(client =>
-            {
-                client.BaseAddress = new Uri(nlp);
-            });
-        }
+            client.BaseAddress = new("https://nlpService");
+            client.Timeout = TimeSpan.FromSeconds(180);
+
+        }).RemoveAllResilienceHandlers().AddStandardResilienceHandler(conf =>
+        {
+            conf.RateLimiter.DefaultRateLimiterOptions.PermitLimit = 20;
+            conf.RateLimiter.DefaultRateLimiterOptions.QueueLimit = 200;
+
+            conf.Retry.MaxRetryAttempts = 5;
+            conf.Retry.UseJitter = true;
+            conf.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+            conf.Retry.Delay = TimeSpan.FromSeconds(15);
+
+            conf.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(90);
+            conf.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(10);
+
+            conf.AttemptTimeout.Timeout = TimeSpan.FromSeconds(120);
+        });
+
         builder.AddNewsfeedDB();
-        builder.Services.AddTransient<NewsfeedSink>(sp =>
+        builder.Services.AddTransient(sp =>
             new NewsfeedSink(
                 sp.GetRequiredService<INamedEntityRecognizer>(),
                 sp.GetRequiredService<INewsfeedDB>(),

@@ -1,75 +1,43 @@
 ﻿using System.Net;
-using System.Net.Security;
 
 using Agitprop.Core.Interfaces;
 
-namespace Agitprop.Infrastructure.PageRequester;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
-/// <summary>
-/// A page requester that rotates proxies for each request.
-/// </summary>
-public class RotatingProxyPageRequester(IProxyProvider proxyProvider) : IPageRequester
+namespace Agitprop.Infrastructure;
+
+    
+public class RotatingProxyPageRequester : IPageRequester
 {
-    /// <summary>
-    /// Gets the proxy provider used for rotating proxies.
-    /// </summary>
-    public IProxyProvider ProxyProvider { get; } = proxyProvider;
+    private readonly RotatingHttpClientPool _pool;
+    private readonly IConfiguration _config;
+    private readonly ILogger<RotatingProxyPageRequester>? _logger;
 
-    /// <summary>
-    /// Gets or sets the cookie container for managing cookies.
-    /// </summary>
-    public required CookieContainer CookieContainer { get; set; }
+    public CookieContainer CookieContainer { get; set; } = new CookieContainer();
 
-    /// <summary>
-    /// Sends an HTTP GET request to the specified URL using a rotating proxy.
-    /// </summary>
-    /// <param name="url">The URL to send the GET request to.</param>
-    /// <returns>The HTTP response message.</returns>
+    public RotatingProxyPageRequester(RotatingHttpClientPool pool, IConfiguration config, ILogger<RotatingProxyPageRequester>? logger = null)
+    {
+        _pool = pool;
+        _config = config;
+        _logger = logger;
+    }
+
     public async Task<HttpResponseMessage> GetAsync(string url)
     {
-        var client = await CreateClient();
-        var resp = await client.GetAsync(url);
+        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        // CookieContainer is handled by SocketsHttpHandler in invoker; ensure handlers use it if needed.
 
-        client.Dispose();
-
-        return resp;
-    }
-
-    /// <summary>
-    /// Creates an HTTP client with a rotating proxy and custom headers.
-    /// </summary>
-    /// <returns>An <see cref="HttpClient"/> instance.</returns>
-    private async Task<HttpClient> CreateClient()
-    {
-        var handler = await GetHttpHandler();
-        var client = new HttpClient(handler);
-        client.DefaultRequestHeaders.Add("User-Agent",
-            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/535.7 (KHTML, like Gecko) Comodo_Dragon/16.1.1.0 Chrome/16.0.912.63 Safari/535.7");
-        return client;
-    }
-
-    /// <summary>
-    /// Creates an HTTP handler configured with a rotating proxy and other settings.
-    /// </summary>
-    /// <returns>A <see cref="SocketsHttpHandler"/> instance.</returns>
-    public async Task<SocketsHttpHandler> GetHttpHandler()
-    {
-        var handler = new SocketsHttpHandler
+        try
         {
-            SslOptions = new SslClientAuthenticationOptions
-            {
-                // Leave certs unvalidated for debugging
-                RemoteCertificateValidationCallback = delegate { return true; }
-            },
-            PooledConnectionIdleTimeout = TimeSpan.FromSeconds(5),
-            PooledConnectionLifetime = TimeSpan.FromTicks(0),
-            UseCookies = true,
-            UseProxy = true,
-            Proxy = await ProxyProvider.GetProxyAsync(),
-            CookieContainer = CookieContainer,
-            ConnectTimeout = TimeSpan.FromSeconds(60),
-        };
-
-        return handler;
+            var resp = await _pool.SendAsync(req);
+            return resp;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Request via rotating proxy failed for {url}", url);
+            throw;
+        }
     }
 }

@@ -30,7 +30,7 @@ public class NewsfeedSink : ISink
         using var trace = _activitySource.StartActivity("CheckPageAlreadyVisited", ActivityKind.Internal);
         try
         {
-            if (_logger != null) _logger.LogInformation("Checking if page already visited: {url}", url);
+            _logger?.LogInformation("Checking if page already visited: {url}", url);
 
             var exists = await Polly.Policy
                 .Handle<Exception>()
@@ -62,7 +62,7 @@ public class NewsfeedSink : ISink
 
             try
             {
-                var entities = await Polly.Policy
+                var entities = await Policy
                     .Handle<Exception>()
                     .WaitAndRetryAsync(_retryCount, attempt => TimeSpan.FromSeconds(0.5 * attempt), (ex, ts, attempt, ctx) =>
                     {

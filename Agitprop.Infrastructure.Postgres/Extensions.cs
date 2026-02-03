@@ -28,7 +28,10 @@ public static class Extensions
     {
         var conn = builder.Configuration.GetConnectionString("newsfeed"); // Aspire provides this if configured
         builder.Services.AddDbContext<AppDbContext>(opts =>
-            opts.UseNpgsql(conn, o => o.EnableRetryOnFailure()));
+        {
+            opts.UseNpgsql(conn, o => o.EnableRetryOnFailure());
+            if (builder.Environment.IsDevelopment()) opts.EnableSensitiveDataLogging();
+        });
         return builder;
     }
 }

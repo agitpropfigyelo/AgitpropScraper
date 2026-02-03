@@ -10,12 +10,12 @@ public interface INamedEntityRecognizer
     /// </summary>
     /// <param name="corpus">The text corpus to analyze.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the named entity collection.</returns>
-    public Task<NamedEntityCollection> AnalyzeSingleAsync(object corpus);
+    public Task<NamedEntityCollection> AnalyzeSingleAsync(string corpus);
 
     /// <summary>
     /// Analyzes a batch of text corpora for named entities.
     /// </summary>
     /// <param name="corpora">The array of text corpora to analyze.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains an array of named entity collections.</returns>
-    public Task<NamedEntityCollection[]> AnalyzeBatchAsync(object[] corpora);
+    public Task<NamedEntityCollection[]> AnalyzeBatchAsync(string[] corpora);
 }

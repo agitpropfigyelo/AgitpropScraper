@@ -165,4 +165,32 @@ public class EntityRepository : IEntityRepository
             throw;
         }
     }
+
+    public async Task<IEnumerable<Entity>> GetAllEntitiesAsync(DateOnly startDate, DateOnly endDate)
+    {
+        using var trace = _activitySource.StartActivity("GetAllEntities", ActivityKind.Internal);
+        trace?.SetTag("startDate", startDate.ToString());
+        trace?.SetTag("endDate", endDate.ToString());
+
+        try
+        {
+            var from = DateTime.SpecifyKind(startDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            var to = DateTime.SpecifyKind(endDate.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
+
+            var entities = await _dbContext.Entities
+                .Where(e => e.Mentions.Any(m =>
+                    m.Article.PublishedTime >= from &&
+                    m.Article.PublishedTime <= to))
+                .ToListAsync();
+
+            trace?.SetTag("resultCount", entities.Count);
+            return entities.ToCoreModel();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve all entities mentioned in articles between {startDate} and {endDate}", startDate, endDate);
+            trace?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
+    }
 }

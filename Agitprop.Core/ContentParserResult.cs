@@ -22,5 +22,5 @@ public record class ContentParserResult
             : value.ToUniversalTime();
     }
     public required string Text { get; init; }
-    public required string Title { get; init; }
+    public string Title { get; init; } = "";
 }
