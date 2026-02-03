@@ -66,9 +66,12 @@ jobs:
           IFS=$'\n'
           for file in ${{ steps.find.outputs.files }}; do
             dir=$(dirname "$file")
-            svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_' '-')
-            image="ghcr.io/${{ github.repository_owner }}/agitprop-${svc}"
+            svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
+            owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
+            repo=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
+            image="ghcr.io/$owner/${repo}-${svc}"
             echo "\n--- Building $image from $dir ---\n"
+
 
             # If your Dockerfile handles the dotnet build/publish lifecycle then the following is sufficient.
             docker buildx build \
@@ -78,6 +81,8 @@ jobs:
               -f "$file" "$dir" \
               --push
           done
+
+          
 
       - name: No Dockerfiles found
         if: steps.find.outputs.files == ''
