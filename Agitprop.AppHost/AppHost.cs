@@ -37,6 +37,7 @@ internal class Program
                                 .WithEnvironment("Reload", "True")
                                 .WithEnvironment("LOG_LEVEL", "debug")
                                 .WithOtlpExporter()
+                                .PublishAsDockerFile()
                                 .PublishAsDockerComposeService((resource, service) =>
                                 {
                                     service.Name = "nlp-service";
@@ -47,6 +48,7 @@ internal class Program
                               .WaitFor(messaging).WithReference(messaging)
                               .WaitFor(nlpService).WithReference(nlpService)
                               .WithOtlpExporter()
+                              .PublishAsDockerFile()
                               .PublishAsDockerComposeService((resource, service) =>
                               {
                                   service.Name = "consumer";
@@ -56,6 +58,7 @@ internal class Program
                                .WaitFor(messaging).WithReference(messaging)
                                .WaitFor(consumer)
                                .WithOtlpExporter()
+                               .PublishAsDockerFile()
                                .PublishAsDockerComposeService((resource, service) =>
                                {
                                    service.Name = "rss-reader";
@@ -65,6 +68,7 @@ internal class Program
                              .WaitFor(newsfeedDb).WithReference(newsfeedDb)
                              .WaitFor(messaging).WithReference(messaging)
                              .WithOtlpExporter()
+                             .PublishAsDockerFile()
                              .PublishAsDockerComposeService((resource, service) =>
                              {
                                  service.Name = "backend-api";
