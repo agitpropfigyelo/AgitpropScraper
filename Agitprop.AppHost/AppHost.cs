@@ -42,22 +42,18 @@ internal class Program
                                     service.Name = "nlp-service";
                                 });
 
-        IResourceBuilder<ProjectResource> consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
-                                                            .WaitFor(newsfeedDb)
-                                                            .WithReference(newsfeedDb)
-                                                            .WaitFor(messaging)
-                                                            .WithReference(messaging)
-                                                            .WaitFor(nlpService)
-                                                            .WithReference(nlpService)
-                                                            .WithOtlpExporter()
-                                                            .PublishAsDockerComposeService((resource, service) =>
-                                                            {
-                                                                service.Name = "consumer";
-                                                            });
+        var consumer = builder.AddProject<Agitprop_Scraper_Consumer>("consumer")
+                              .WaitFor(newsfeedDb).WithReference(newsfeedDb)
+                              .WaitFor(messaging).WithReference(messaging)
+                              .WaitFor(nlpService).WithReference(nlpService)
+                              .WithOtlpExporter()
+                              .PublishAsDockerComposeService((resource, service) =>
+                              {
+                                  service.Name = "consumer";
+                              });
 
         var rssReader = builder.AddProject<Agitprop_Scraper_RssFeedReader>("rss-feed-reader")
-                               .WithReference(messaging)
-                               .WaitFor(messaging)
+                               .WaitFor(messaging).WithReference(messaging)
                                .WaitFor(consumer)
                                .WithOtlpExporter()
                                .PublishAsDockerComposeService((resource, service) =>
@@ -66,10 +62,8 @@ internal class Program
                                });
 
         var backend = builder.AddProject<Agitprop_Web_Api>("backend")
-                             .WaitFor(newsfeedDb)
-                             .WithReference(newsfeedDb)
-                             .WaitFor(messaging)
-                             .WithReference(messaging)
+                             .WaitFor(newsfeedDb).WithReference(newsfeedDb)
+                             .WaitFor(messaging).WithReference(messaging)
                              .WithOtlpExporter()
                              .PublishAsDockerComposeService((resource, service) =>
                              {
@@ -77,8 +71,7 @@ internal class Program
                              });
 
         builder.AddNpmApp("angular", "../Agitprop.Web.Client")
-            .WithReference(backend)
-            .WaitFor(backend)
+            .WithReference(backend).WaitFor(backend)
             // .WithHttpEndpoint(port: 4200)
             .WithExternalHttpEndpoints()
             .PublishAsDockerComposeService((resource, service) =>

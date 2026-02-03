@@ -34,7 +34,6 @@ public static class Extensions
             conf.RateLimiter.DefaultRateLimiterOptions.PermitLimit = 20;
             conf.RateLimiter.DefaultRateLimiterOptions.QueueLimit = 200;
 
-            conf.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
             conf.Retry.MaxRetryAttempts = 5;
             conf.Retry.UseJitter = true;
             conf.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
