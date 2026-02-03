@@ -7,7 +7,8 @@ WORKDIR /app
 COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-RUN python -m spacy download hu_core_news_lg
+RUN !pip install https://huggingface.co/huspacy/hu_core_news_lg/resolve/main/hu_core_news_lg-any-py3-none-any.whl
+
 
 # Expose the port the app runs on
 EXPOSE 8000
