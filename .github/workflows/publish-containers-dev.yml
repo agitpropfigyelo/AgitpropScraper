@@ -70,10 +70,11 @@ jobs:
           BRANCH_SLUG: ${{ steps.tag.outputs.branch_slug }}
           GH_OWNER: ${{ github.repository_owner }}
           SUFFIX: ${{ inputs['tag-suffix'] }}
+          FILES: ${{ steps.find.outputs.files }}
         run: |
           set -euo pipefail
           IFS=$'\n'
-          for file in ${{ steps.find.outputs.files }}; do
+          for file in $FILES; do
             dir=$(dirname "$file")
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
             owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
