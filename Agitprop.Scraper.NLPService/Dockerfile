@@ -4,7 +4,7 @@ FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
 
-COPY . .
+COPY Agitprop.Scraper.NLPService/ .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
