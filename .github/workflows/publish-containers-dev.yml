@@ -83,7 +83,7 @@ jobs:
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               -t "$image:$TAG" \
-              -t "$image:${SUFFIX}" \
+              -t "$image:$SUFFIX" \
               -f "$file" "$dir" \
               --push
           done
