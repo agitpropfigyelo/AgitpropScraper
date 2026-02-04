@@ -69,7 +69,6 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
           BRANCH_SLUG: ${{ steps.tag.outputs.branch_slug }}
           GH_OWNER: ${{ github.repository_owner }}
-          GH_REPO: ${{ github.event.repository.name }}
           SUFFIX: ${{ inputs['tag-suffix'] }}
         run: |
           set -euo pipefail
@@ -78,8 +77,7 @@ jobs:
             dir=$(dirname "$file")
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
             owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
-            repo=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
-            image="ghcr.io/$owner/${repo}-${svc}"
+            image="ghcr.io/$owner/${svc}"
             echo "\n--- Building $image from $dir ---\n"
 
             docker buildx build \
