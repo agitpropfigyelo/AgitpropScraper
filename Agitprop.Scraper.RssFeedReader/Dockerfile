@@ -3,12 +3,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# copy csproj and restore
-COPY ["Agitprop.Scraper.RssFeedReader.csproj", "./"]
+# copy the full repo so Directory.Packages.props is available and restore
+COPY . .
 RUN dotnet restore "Agitprop.Scraper.RssFeedReader.csproj"
 
-# copy everything and publish
-COPY . .
+# publish (restore already done)
 RUN dotnet publish "Agitprop.Scraper.RssFeedReader.csproj" -c Release -o /app/publish --no-restore
 
 # runtime image
