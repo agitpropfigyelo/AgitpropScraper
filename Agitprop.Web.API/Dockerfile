@@ -5,6 +5,7 @@ WORKDIR /src
 
 # copy the full repo so Directory.Packages.props is available and restore
 COPY . .
+WORKDIR /src/Agitprop.Web.API
 RUN dotnet restore "Agitprop.Web.API.csproj"
 
 # publish (restore already done)

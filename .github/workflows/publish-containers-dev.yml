@@ -85,7 +85,7 @@ jobs:
               --platform linux/amd64,linux/arm64 \
               -t "$image:$TAG" \
               -t "$image:$SUFFIX" \
-              -f "$file" "$dir" \
+              -f "$file" . \
               --push
           done
 

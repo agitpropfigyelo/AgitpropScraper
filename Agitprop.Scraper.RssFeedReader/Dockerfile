@@ -5,6 +5,7 @@ WORKDIR /src
 
 # copy the full repo so Directory.Packages.props is available and restore
 COPY . .
+WORKDIR /src/Agitprop.Scraper.RssFeedReader
 RUN dotnet restore "Agitprop.Scraper.RssFeedReader.csproj"
 
 # publish (restore already done)

@@ -77,7 +77,7 @@ jobs:
               --platform linux/amd64,linux/arm64 \
               -t "$image:$TAG" \
               -t "$image:latest" \
-              -f "$file" "$dir" \
+              -f "$file" . \
               --push
           done
 
