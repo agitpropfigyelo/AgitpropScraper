@@ -15,7 +15,7 @@ RUN npm run build -- --configuration production --output-path=dist || npm run bu
 
 # production stage
 FROM nginx:alpine
-# copy built static files to nginx www (Angular outputs into dist/<project-name>)
-COPY --from=build /app/dist/Agitprop.Web.Client /usr/share/nginx/html
+# copy built static files to nginx www (Angular outputs into dist or dist/<project-name>)
+COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
