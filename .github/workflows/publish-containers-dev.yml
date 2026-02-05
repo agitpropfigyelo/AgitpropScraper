@@ -69,6 +69,7 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
           BRANCH_SLUG: ${{ steps.tag.outputs.branch_slug }}
           GH_OWNER: ${{ github.repository_owner }}
+          GH_REPO: ${{ github.event.repository.name }}
           SUFFIX: ${{ inputs['tag-suffix'] }}
           FILES: ${{ steps.find.outputs.files }}
         run: |
@@ -78,7 +79,9 @@ jobs:
             dir=$(dirname "$file")
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
             owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
-            image="ghcr.io/$owner/${svc}-dev"
+            repo=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
+            image="ghcr.io/$owner/${svc}"
+            cache_image="ghcr.io/$owner/${repo}-${svc}:buildcache"
             echo "\n--- Building $image from $dir ---\n"
 
             docker buildx build \
@@ -86,6 +89,8 @@ jobs:
               -t "$image:$TAG" \
               -t "$image:$SUFFIX" \
               -f "$file" . \
+              --cache-from type=registry,ref="$cache_image" \
+              --cache-to type=registry,ref="$cache_image",mode=max \
               --push
           done
 
