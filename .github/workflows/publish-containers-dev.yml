@@ -77,6 +77,7 @@ jobs:
             dir=$(dirname "$file")
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
             owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
+            repo=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
             image="ghcr.io/$owner/${svc}-dev"
             cache_image="ghcr.io/$owner/${svc}-dev:buildcache"
             echo "\n--- Building $image from $dir ---\n"

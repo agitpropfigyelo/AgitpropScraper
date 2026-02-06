@@ -78,6 +78,7 @@ jobs:
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               -t "$image:$TAG" \
+              -t "$image:latest" \
               -f "$file" . \
               --cache-from type=registry,ref="$cache_image" \
               --cache-to type=registry,ref="$cache_image",mode=max \
