@@ -61,10 +61,13 @@ jobs:
         if: steps.find.outputs.files != ''
         env:
           TAG: ${{ steps.tag.outputs.tag }}
+          GH_OWNER: ${{ github.repository_owner }}
+          GH_REPO: ${{ github.event.repository.name }}
+          FILES: ${{ steps.find.outputs.files }}
         run: |
           set -euo pipefail
           IFS=$'\n'
-          for file in ${{ steps.find.outputs.files }}; do
+          for file in $FILES; do
             dir=$(dirname "$file")
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
             owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
@@ -75,7 +78,6 @@ jobs:
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               -t "$image:$TAG" \
-              -t "$image:latest" \
               -f "$file" . \
               --cache-from type=registry,ref="$cache_image" \
               --cache-to type=registry,ref="$cache_image",mode=max \
