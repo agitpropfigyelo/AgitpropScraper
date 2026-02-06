@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts (.NET)
+**/bin/
+**/obj/
+**/*.log
+
+# IDE
+.vs
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node / npm (frontend will do fresh npm ci)
+node_modules
+npm-debug.log
+package-lock.json
+
+# NPM cache
+.npm
+
+# Docker
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Other
+artifacts/
+.angular/
+dist/
+coverage/
+**/.env.local

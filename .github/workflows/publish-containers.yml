@@ -1,4 +1,4 @@
-name: Publish containers to GitHub Container Registry
+name: Publish release containers
 
 on:
   push:
@@ -66,18 +66,23 @@ jobs:
           IFS=$'\n'
           for file in ${{ steps.find.outputs.files }}; do
             dir=$(dirname "$file")
-            svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_' '-')
-            image="ghcr.io/${{ github.repository_owner }}/agitprop-${svc}"
+            svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
+            owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
+            image="ghcr.io/$owner/${svc}"
+            cache_image="ghcr.io/$owner/${svc}:buildcache"
             echo "\n--- Building $image from $dir ---\n"
 
-            # If your Dockerfile handles the dotnet build/publish lifecycle then the following is sufficient.
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               -t "$image:$TAG" \
               -t "$image:latest" \
-              -f "$file" "$dir" \
+              -f "$file" . \
+              --cache-from type=registry,ref="$cache_image" \
+              --cache-to type=registry,ref="$cache_image",mode=max \
               --push
           done
+
+          
 
       - name: No Dockerfiles found
         if: steps.find.outputs.files == ''
