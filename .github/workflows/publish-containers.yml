@@ -41,9 +41,7 @@ jobs:
         id: tag
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          BRANCH="${{ inputs.branch }}"
-          BRANCH_SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
-          TAG="${BRANCH_SLUG}-$SHORT_SHA"
+          TAG="main-$SHORT_SHA"
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
           echo "branch_slug=$BRANCH_SLUG" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
