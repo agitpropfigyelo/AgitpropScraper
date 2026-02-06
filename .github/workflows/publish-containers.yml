@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.branch }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -53,7 +54,7 @@ jobs:
           echo "$files" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Build & push images
+      - name: Build & push dev images
         if: steps.find.outputs.files != ''
         env:
           TAG: ${{ steps.tag.outputs.tag }}
