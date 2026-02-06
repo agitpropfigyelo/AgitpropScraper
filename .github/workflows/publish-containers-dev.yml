@@ -1,4 +1,4 @@
-name: Publish dev containers (manual)
+name: Publish dev containers
 
 on:
   workflow_dispatch:
@@ -70,7 +70,6 @@ jobs:
           BRANCH_SLUG: ${{ steps.tag.outputs.branch_slug }}
           GH_OWNER: ${{ github.repository_owner }}
           GH_REPO: ${{ github.event.repository.name }}
-          SUFFIX: ${{ inputs['tag-suffix'] }}
           FILES: ${{ steps.find.outputs.files }}
         run: |
           set -euo pipefail
@@ -80,14 +79,13 @@ jobs:
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
             owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
             repo=$(echo "$GH_REPO" | tr '[:upper:]' '[:lower:]')
-            image="ghcr.io/$owner/${svc}"
-            cache_image="ghcr.io/$owner/${repo}-${svc}:buildcache"
+            image="ghcr.io/$owner/${svc}-dev"
+            cache_image="ghcr.io/$owner/${svc}-dev:buildcache"
             echo "\n--- Building $image from $dir ---\n"
 
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               -t "$image:$TAG" \
-              -t "$image:$SUFFIX" \
               -f "$file" . \
               --cache-from type=registry,ref="$cache_image" \
               --cache-to type=registry,ref="$cache_image",mode=max \

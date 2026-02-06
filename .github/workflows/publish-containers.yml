@@ -1,4 +1,4 @@
-name: Publish containers to GitHub Container Registry
+name: Publish release containers
 
 on:
   push:
@@ -68,9 +68,8 @@ jobs:
             dir=$(dirname "$file")
             svc=$(basename "$dir" | tr '[:upper:]' '[:lower:]' | tr '/_. ' '-')
             owner=$(echo "$GH_OWNER" | tr '[:upper:]' '[:lower:]')
-            repo=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
             image="ghcr.io/$owner/${svc}"
-            cache_image="ghcr.io/$owner/${repo}-${svc}:buildcache"
+            cache_image="ghcr.io/$owner/${svc}:buildcache"
             echo "\n--- Building $image from $dir ---\n"
 
             docker buildx build \
