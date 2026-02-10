@@ -74,7 +74,7 @@ internal class Program
                                  service.Name = "backend-api";
                              });
 
-        builder.AddNpmApp("angular", "../Agitprop.Web.Client")
+        var frontend = builder.AddJavaScriptApp("angular", "../Agitprop.Web.Client")
             .WithReference(backend).WaitFor(backend)
             // .WithHttpEndpoint(port: 4200)
             .WithExternalHttpEndpoints()

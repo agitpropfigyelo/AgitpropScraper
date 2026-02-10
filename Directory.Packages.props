@@ -9,7 +9,7 @@
     <PackageVersion Include="Aspire.Hosting.Docker" Version="13.1.0-preview.1.25616.3" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.1.0" />
     <PackageVersion Include="Aspire.Hosting.Python" Version="13.1.0" />
-    <PackageVersion Include="Aspire.Hosting.NodeJs" Version="9.5.2" />
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.0" />
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.1.0" />
     <PackageVersion Include="Aspire.RabbitMQ.Client" Version="13.1.0" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
